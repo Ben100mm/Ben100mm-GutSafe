@@ -19,7 +19,7 @@ import { Spacing, BorderRadius } from '../constants/spacing';
 import { AnimatedButton } from '../components/AnimatedButton';
 import { GlassmorphicCard } from '../components/GlassmorphicCard';
 import { StatusIndicator } from '../components/StatusIndicator';
-import { ScanResult } from '../types';
+import { ScanResult, ScanHistory, ScanAnalysis, FoodItem, GutCondition, SeverityLevel } from '../types';
 
 const { width, height } = Dimensions.get('window');
 
@@ -32,6 +32,7 @@ export const ScannerScreen: React.FC = () => {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
+  const [scanHistory, setScanHistory] = useState<ScanHistory[]>([]);
   
   const scanLineAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -77,16 +78,94 @@ export const ScannerScreen: React.FC = () => {
     setHasPermission(status === 'granted');
   };
 
+  const generateMockAnalysis = (result: ScanResult, barcode: string): ScanAnalysis => {
+    const mockFoods = [
+      {
+        name: 'Greek Yogurt',
+        brand: 'Chobani',
+        category: 'Dairy',
+        histamineLevel: 'low' as const,
+      },
+      {
+        name: 'Wheat Bread',
+        brand: 'Wonder',
+        category: 'Bakery',
+      },
+      {
+        name: 'Aged Cheddar Cheese',
+        brand: 'Cabot',
+        category: 'Dairy',
+        histamineLevel: 'high' as const,
+      },
+      {
+        name: 'Banana',
+        brand: null,
+        category: 'Fruit',
+      },
+      {
+        name: 'Energy Drink',
+        brand: 'Red Bull',
+        category: 'Beverages',
+      },
+    ];
+
+    const randomFood = mockFoods[Math.floor(Math.random() * mockFoods.length)];
+    
+    const analysis: ScanAnalysis = {
+      result,
+      confidence: 0.7 + Math.random() * 0.25,
+      flaggedIngredients: result === 'safe' ? [] : [
+        {
+          ingredient: 'Wheat',
+          reason: 'Contains gluten which may trigger IBS symptoms',
+          severity: 'moderate' as SeverityLevel,
+          condition: 'IBS' as GutCondition,
+        },
+        {
+          ingredient: 'Fructans',
+          reason: 'High FODMAP content may cause bloating',
+          severity: 'mild' as SeverityLevel,
+          condition: 'FODMAP sensitivity' as GutCondition,
+        },
+      ],
+      safeAlternatives: ['Alternative option 1', 'Alternative option 2'],
+      explanation: result === 'safe' 
+        ? 'This food appears safe for your gut health profile.'
+        : 'This food may contain ingredients that could trigger symptoms.',
+    };
+
+    return analysis;
+  };
+
   const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
     setScanned(true);
     // Mock scan result - in real app, this would call food database API
     const mockResult: ScanResult = Math.random() > 0.5 ? 'safe' : 'caution';
     setScanResult(mockResult);
     
+    // Generate mock analysis and save to history
+    const analysis = generateMockAnalysis(mockResult, data);
+    const newScan: ScanHistory = {
+      id: Date.now().toString(),
+      foodItem: {
+        name: 'Scanned Food',
+        brand: 'Unknown Brand',
+        category: 'Unknown',
+        barcode: data,
+      },
+      analysis,
+      timestamp: new Date(),
+    };
+    
+    setScanHistory(prev => [newScan, ...prev]);
+    
     Alert.alert(
       'Scan Complete',
       `Barcode: ${data}\nResult: ${mockResult.toUpperCase()}`,
-      [{ text: 'OK', onPress: () => setScanned(false) }]
+      [
+        { text: 'OK', onPress: () => setScanned(false) },
+        { text: 'View History', onPress: () => navigation.navigate('ScanHistory') }
+      ]
     );
   };
 
@@ -176,6 +255,12 @@ export const ScannerScreen: React.FC = () => {
             <Text style={styles.overlaySubtitle}>
               Point your camera at a barcode or menu item
             </Text>
+            <TouchableOpacity
+              style={styles.historyButton}
+              onPress={() => navigation.navigate('ScanHistory')}
+            >
+              <Text style={styles.historyButtonText}>View Scan History</Text>
+            </TouchableOpacity>
           </LinearGradient>
 
           {/* Scanning frame */}
@@ -301,6 +386,20 @@ const styles = StyleSheet.create({
     color: Colors.white,
     textAlign: 'center',
     opacity: 0.9,
+    marginBottom: Spacing.md,
+  },
+  historyButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    alignSelf: 'center',
+  },
+  historyButtonText: {
+    fontSize: Typography.fontSize.bodySmall,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.white,
+    textAlign: 'center',
   },
   scanFrame: {
     position: 'absolute',

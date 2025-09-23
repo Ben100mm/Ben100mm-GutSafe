@@ -9,6 +9,7 @@ import {
   useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
@@ -16,6 +17,7 @@ import { HealthCard } from '../components/HealthCard';
 import { HealthSection } from '../components/HealthSection';
 
 export const SummaryScreen: React.FC = () => {
+  const navigation = useNavigation();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = isDark ? Colors.dark : Colors.light;
@@ -51,7 +53,7 @@ export const SummaryScreen: React.FC = () => {
             unit="today"
             icon="scan"
             color={colors.accent}
-            onPress={() => console.log('Recent scans pressed')}
+            onPress={() => navigation.navigate('Scan', { screen: 'ScanHistory' })}
           />
           <HealthCard
             title="Safe Foods"

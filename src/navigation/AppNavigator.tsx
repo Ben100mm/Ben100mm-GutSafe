@@ -12,6 +12,8 @@ import DashboardScreen from '../screens/DashboardScreen';
 import { ScanScreen } from '../screens/ScanScreen';
 import { BrowseScreen } from '../screens/BrowseScreen';
 import { ScannerScreen } from '../screens/ScannerScreen';
+import { ScanHistoryScreen } from '../screens/ScanHistoryScreen';
+import { ScanDetailScreen } from '../screens/ScanDetailScreen';
 
 // Tab Icons
 import { TabIcon } from '../components/TabIcon';
@@ -29,6 +31,8 @@ const ScanStack = () => (
   >
     <Stack.Screen name="ScanMain" component={ScanScreen} />
     <Stack.Screen name="Scanner" component={ScannerScreen} />
+    <Stack.Screen name="ScanHistory" component={ScanHistoryScreen} />
+    <Stack.Screen name="ScanDetail" component={ScanDetailScreen} />
   </Stack.Navigator>
 );
 
