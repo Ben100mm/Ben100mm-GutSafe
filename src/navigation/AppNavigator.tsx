@@ -14,6 +14,7 @@ import { BrowseScreen } from '../screens/BrowseScreen';
 import { ScannerScreen } from '../screens/ScannerScreen';
 import { ScanHistoryScreen } from '../screens/ScanHistoryScreen';
 import { ScanDetailScreen } from '../screens/ScanDetailScreen';
+import AnalyticsScreen from '../screens/AnalyticsScreen';
 
 // Tab Icons
 import { TabIcon } from '../components/TabIcon';
@@ -87,6 +88,15 @@ const MainTabs = () => {
         options={{
           tabBarIcon: ({ focused, color }) => (
             <TabIcon name="grid" focused={focused} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Analytics"
+        component={AnalyticsScreen}
+        options={{
+          tabBarIcon: ({ focused, color }) => (
+            <TabIcon name="trend" focused={focused} color={color} />
           ),
         }}
       />

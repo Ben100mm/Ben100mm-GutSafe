@@ -9,9 +9,12 @@ import {
 } from 'react-native';
 import { HealthCard } from '../components/HealthCard';
 import { HealthSection } from '../components/HealthSection';
+import { MultipleProgressRings } from '../components/ProgressRing';
+import { TrendChart } from '../components/TrendChart';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
+import { ProgressRing as ProgressRingType, TrendAnalysis, ChartDataPoint } from '../types';
 
 const DashboardScreen: React.FC = () => {
   const colorScheme = useColorScheme();
@@ -24,6 +27,58 @@ const DashboardScreen: React.FC = () => {
 
   const handleCardPress = (cardType: string) => {
     console.log(`${cardType} card pressed`);
+  };
+
+  // Mock data for progress rings
+  const progressRings: ProgressRingType[] = [
+    {
+      id: 'gut-health',
+      label: 'Gut Health',
+      value: 85,
+      goal: 90,
+      color: Colors.primary,
+      unit: 'score',
+    },
+    {
+      id: 'safe-foods',
+      label: 'Safe Foods',
+      value: 75,
+      goal: 100,
+      color: Colors.safe,
+      unit: 'foods',
+    },
+    {
+      id: 'energy',
+      label: 'Energy',
+      value: 80,
+      goal: 100,
+      color: Colors.primaryLight,
+      unit: 'level',
+    },
+  ];
+
+  // Mock trend data
+  const gutHealthTrend: TrendAnalysis = {
+    period: 'week',
+    trend: 'up',
+    changePercentage: 12.5,
+    dataPoints: [
+      { x: 1, y: 75 },
+      { x: 2, y: 78 },
+      { x: 3, y: 82 },
+      { x: 4, y: 80 },
+      { x: 5, y: 85 },
+      { x: 6, y: 88 },
+      { x: 7, y: 85 },
+    ],
+    insights: [
+      'Your gut health has improved by 12.5% this week',
+      'Consistent improvement in daily scores',
+    ],
+    recommendations: [
+      'Continue tracking your food intake',
+      'Consider adding more probiotic foods',
+    ],
   };
 
   return (
@@ -41,6 +96,20 @@ const DashboardScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        {/* Progress Rings Section */}
+        <HealthSection
+          title="Today's Progress"
+          rightButton="View All"
+          onRightPress={() => handleCardPress('View All Progress')}
+        >
+          <MultipleProgressRings
+            rings={progressRings}
+            size={100}
+            strokeWidth={8}
+            layout="horizontal"
+          />
+        </HealthSection>
+
         {/* Pinned Section */}
         <HealthSection
           title="Pinned"
@@ -63,17 +132,16 @@ const DashboardScreen: React.FC = () => {
             color={Colors.safe}
             onPress={() => handleCardPress('Safe Foods')}
           />
-          <HealthCard
-            title="Gut Health Score"
-            value="85"
-            unit="this week"
-            icon="trend"
-            color={Colors.primary}
-            showChart={true}
-            description="Your gut health has improved over the last 4 weeks"
-            onPress={() => handleCardPress('Gut Health Score')}
-          />
         </HealthSection>
+
+        {/* Gut Health Trend Chart */}
+        <TrendChart
+          data={gutHealthTrend}
+          title="Gut Health Trend"
+          subtitle="Your weekly progress"
+          color={Colors.primary}
+          height={180}
+        />
 
         {/* Show All Health Data */}
         <TouchableOpacity 

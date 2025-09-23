@@ -71,3 +71,60 @@ export type OnboardingStep =
   | 'severity'
   | 'triggers'
   | 'complete';
+
+// Analytics and Visualization Types
+export interface GutHealthMetrics {
+  date: Date;
+  overallScore: number; // 0-100
+  safeFoodsCount: number;
+  cautionFoodsCount: number;
+  avoidFoodsCount: number;
+  symptomsReported: number; // 0-10 scale
+  energyLevel: number; // 0-10 scale
+  sleepQuality: number; // 0-10 scale
+}
+
+export interface FoodTrendData {
+  foodName: string;
+  totalScans: number;
+  safeCount: number;
+  cautionCount: number;
+  avoidCount: number;
+  lastScanned: Date;
+  trend: 'improving' | 'stable' | 'declining';
+  confidence: number; // 0-1
+}
+
+export interface WeeklyProgress {
+  week: string; // "2024-W01"
+  goal: number;
+  achieved: number;
+  percentage: number;
+  streak: number;
+  insights: string[];
+}
+
+export interface ProgressRing {
+  id: string;
+  label: string;
+  value: number; // 0-100
+  goal: number;
+  color: string;
+  unit: string;
+}
+
+export interface ChartDataPoint {
+  x: number | string;
+  y: number;
+  label?: string;
+  color?: string;
+}
+
+export interface TrendAnalysis {
+  period: 'week' | 'month' | 'quarter' | 'year';
+  trend: 'up' | 'down' | 'stable';
+  changePercentage: number;
+  dataPoints: ChartDataPoint[];
+  insights: string[];
+  recommendations: string[];
+}
