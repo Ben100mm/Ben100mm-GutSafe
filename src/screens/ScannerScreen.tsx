@@ -7,10 +7,12 @@ import {
   TouchableOpacity,
   Alert,
   Animated,
+  useColorScheme,
 } from 'react-native';
 import { Camera, CameraType } from 'expo-camera';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
+import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
@@ -22,6 +24,11 @@ import { ScanResult } from '../types';
 const { width, height } = Dimensions.get('window');
 
 export const ScannerScreen: React.FC = () => {
+  const navigation = useNavigation();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const colors = isDark ? Colors.dark : Colors.light;
+  
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
@@ -157,6 +164,14 @@ export const ScannerScreen: React.FC = () => {
             colors={['rgba(0,0,0,0.7)', 'transparent']}
             style={styles.topOverlay}
           >
+            <View style={styles.topHeader}>
+              <TouchableOpacity
+                style={[styles.closeButton, { backgroundColor: colors.surface }]}
+                onPress={() => navigation.goBack()}
+              >
+                <Text style={[styles.closeButtonText, { color: colors.text }]}>✕</Text>
+              </TouchableOpacity>
+            </View>
             <Text style={styles.overlayTitle}>Scan Barcode</Text>
             <Text style={styles.overlaySubtitle}>
               Point your camera at a barcode or menu item
@@ -253,6 +268,22 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.xl,
+  },
+  topHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: Spacing.lg,
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeButtonText: {
+    fontSize: Typography.fontSize.body,
+    fontFamily: Typography.fontFamily.semiBold,
   },
   overlayTitle: {
     fontSize: Typography.fontSize.h2,

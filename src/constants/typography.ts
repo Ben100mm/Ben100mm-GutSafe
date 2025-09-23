@@ -1,27 +1,27 @@
-// GutSafe Design System - Typography
+// GutSafe Design System - Typography (Apple Health App Style)
 import { Platform } from 'react-native';
 
 export const Typography = {
-  // Font Families
+  // Font Families - SF Pro (Apple System Font)
   fontFamily: {
     regular: Platform.select({
-      ios: 'Inter-Regular',
-      android: 'Inter-Regular',
+      ios: 'SF Pro Display',
+      android: 'SF Pro Display',
       default: 'System',
     }),
     medium: Platform.select({
-      ios: 'Inter-Medium',
-      android: 'Inter-Medium',
+      ios: 'SF Pro Display',
+      android: 'SF Pro Display',
       default: 'System',
     }),
     semiBold: Platform.select({
-      ios: 'Inter-SemiBold',
-      android: 'Inter-SemiBold',
+      ios: 'SF Pro Display',
+      android: 'SF Pro Display',
       default: 'System',
     }),
     bold: Platform.select({
-      ios: 'Inter-Bold',
-      android: 'Inter-Bold',
+      ios: 'SF Pro Display',
+      android: 'SF Pro Display',
       default: 'System',
     }),
   },

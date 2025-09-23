@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GutSafe - Apple Health App Style</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'Roboto', sans-serif;
+            background: #F8F9FB;
+            color: #000000;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 375px;
+            margin: 0 auto;
+            background: #F8F9FB;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 16px 16px;
+            background: #F8F9FB;
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #000000;
+        }
+
+        .profile-button {
+            width: 32px;
+            height: 32px;
+            border-radius: 16px;
+            background: #0F5257;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        /* Content */
+        .content {
+            padding: 0 16px 20px;
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 24px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 16px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #000000;
+        }
+
+        .edit-button {
+            font-size: 16px;
+            font-weight: 500;
+            color: #0F5257;
+        }
+
+        /* Cards */
+        .card {
+            background: #FFFFFF;
+            border-radius: 12px;
+            margin: 0 16px 8px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .card-title-row {
+            display: flex;
+            align-items: center;
+        }
+
+        .card-icon {
+            font-size: 16px;
+            margin-right: 8px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0F5257;
+        }
+
+        .chevron {
+            font-size: 16px;
+            color: #8E8E93;
+            font-weight: 300;
+        }
+
+        .card-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .value-row {
+            display: flex;
+            align-items: baseline;
+            margin-bottom: 8px;
+        }
+
+        .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #000000;
+            margin-right: 4px;
+        }
+
+        .unit {
+            font-size: 14px;
+            color: #8E8E93;
+        }
+
+        .chart {
+            display: flex;
+            align-items: flex-end;
+            height: 30px;
+            margin-bottom: 8px;
+        }
+
+        .chart-bar {
+            flex: 1;
+            margin: 0 1px;
+            border-radius: 2px;
+            background: #0F5257;
+        }
+
+        .description {
+            font-size: 14px;
+            color: #8E8E93;
+            line-height: 1.4;
+        }
+
+        /* Show All Card */
+        .show-all-card {
+            background: #FFFFFF;
+            border-radius: 12px;
+            margin: 0 16px 24px;
+            padding: 16px;
+        }
+
+        .show-all-content {
+            display: flex;
+            align-items: center;
+        }
+
+        .show-all-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 12px;
+            background: #0F5257;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .show-all-text {
+            flex: 1;
+            font-size: 16px;
+            font-weight: 500;
+            color: #000000;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 375px;
+            background: #FFFFFF;
+            border-top: 0.5px solid #E5E5EA;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0 20px;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .nav-item.active .nav-icon {
+            color: #0F5257;
+        }
+
+        .nav-item.active .nav-label {
+            color: #0F5257;
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+            color: #8E8E93;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 500;
+            color: #8E8E93;
+        }
+
+        /* Heart Icon */
+        .heart-icon {
+            width: 20px;
+            height: 18px;
+            border: 2px solid currentColor;
+            border-radius: 10px 10px 0 0;
+            transform: rotate(-45deg);
+            position: relative;
+        }
+
+        .heart-icon::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            background: currentColor;
+            border-radius: 8px 8px 0 0;
+            transform: rotate(45deg);
+        }
+
+        /* Camera Icon */
+        .camera-icon {
+            width: 20px;
+            height: 16px;
+            border: 2px solid currentColor;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .camera-icon::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            background: currentColor;
+            border-radius: 2px;
+        }
+
+        /* Grid Icon */
+        .grid-icon {
+            width: 16px;
+            height: 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px;
+        }
+
+        .grid-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 3px;
+            background: currentColor;
+        }
+
+        /* Dark Mode */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #000000;
+                color: #FFFFFF;
+            }
+
+            .container {
+                background: #000000;
+            }
+
+            .title {
+                color: #FFFFFF;
+            }
+
+            .card {
+                background: #1C1C1E;
+            }
+
+            .card-title {
+                color: #56CFE1;
+            }
+
+            .value {
+                color: #FFFFFF;
+            }
+
+            .show-all-card {
+                background: #1C1C1E;
+            }
+
+            .show-all-text {
+                color: #FFFFFF;
+            }
+
+            .bottom-nav {
+                background: #1C1C1E;
+                border-top-color: #38383A;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="title">Summary</h1>
+            <div class="profile-button">B</div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Pinned Section -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Pinned</h2>
+                    <button class="edit-button">Edit</button>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title-row">
+                            <span class="card-icon">📱</span>
+                            <span class="card-title">Recent Scans</span>
+                        </div>
+                        <span class="chevron">›</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="value-row">
+                            <span class="value">12</span>
+                            <span class="unit">today</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title-row">
+                            <span class="card-icon">❤️</span>
+                            <span class="card-title">Safe Foods</span>
+                        </div>
+                        <span class="chevron">›</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="value-row">
+                            <span class="value">8</span>
+                            <span class="unit">favorites</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Show All Health Data -->
+            <div class="show-all-card">
+                <div class="show-all-content">
+                    <div class="show-all-icon">G</div>
+                    <span class="show-all-text">Show All Gut Health Data</span>
+                    <span class="chevron">›</span>
+                </div>
+            </div>
+
+            <!-- Trends Section -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Trends</h2>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title-row">
+                            <span class="card-icon">📈</span>
+                            <span class="card-title">Gut Health Score</span>
+                        </div>
+                        <span class="chevron">›</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="value-row">
+                            <span class="value">85</span>
+                            <span class="unit">this week</span>
+                        </div>
+                        <div class="chart">
+                            <div class="chart-bar" style="height: 20px;"></div>
+                            <div class="chart-bar" style="height: 15px;"></div>
+                            <div class="chart-bar" style="height: 25px;"></div>
+                            <div class="chart-bar" style="height: 18px;"></div>
+                            <div class="chart-bar" style="height: 22px;"></div>
+                            <div class="chart-bar" style="height: 16px;"></div>
+                            <div class="chart-bar" style="height: 28px;"></div>
+                        </div>
+                        <div class="description">
+                            Your gut health has improved over the last 4 weeks
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-item active">
+                <div class="nav-icon">
+                    <div class="heart-icon"></div>
+                </div>
+                <span class="nav-label">Summary</span>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">
+                    <div class="camera-icon"></div>
+                </div>
+                <span class="nav-label">Scan</span>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">
+                    <div class="grid-icon">
+                        <div class="grid-dot"></div>
+                        <div class="grid-dot"></div>
+                        <div class="grid-dot"></div>
+                        <div class="grid-dot"></div>
+                    </div>
+                </div>
+                <span class="nav-label">Browse</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Card interactions
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('click', function() {
+                console.log('Card clicked:', this.querySelector('.card-title').textContent);
+            });
+        });
+    </script>
+</body>
+</html>

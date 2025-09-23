@@ -3,195 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GutSafe - Peace of mind for your gut</title>
+    <title>GutSafe</title>
     <style>
         body {
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #0F5257 0%, #56CFE1 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'Roboto', sans-serif;
         }
-        .container {
-            text-align: center;
-            color: white;
-            padding: 2rem;
-            max-width: 400px;
-        }
-        .title {
-            font-size: 3rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-        .subtitle {
-            font-size: 1.5rem;
-            font-weight: 500;
-            margin-bottom: 1.5rem;
-            opacity: 0.9;
-        }
-        .description {
-            font-size: 1rem;
-            line-height: 1.5;
-            margin-bottom: 2rem;
-            opacity: 0.8;
-        }
-        .button {
-            background: linear-gradient(135deg, #0F5257 0%, #56CFE1 100%);
-            border: none;
-            color: white;
-            padding: 1rem 2rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 12px;
-            cursor: pointer;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin: 0.5rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .button-icon {
-            width: 20px;
-            height: 20px;
-        }
-        .button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.4);
-        }
-        .feature-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin: 1rem 0;
-            text-align: left;
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-        }
-        .feature-icon {
-            width: 24px;
-            height: 24px;
-            flex-shrink: 0;
-            margin-top: 0.2rem;
-        }
-        .feature-content {
-            flex: 1;
-        }
-        .feature-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-        .feature-text {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            line-height: 1.4;
-        }
-        .scan-demo {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 20px;
-            padding: 2rem;
-            margin: 2rem 0;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-        .scan-frame {
-            width: 200px;
-            height: 200px;
-            border: 3px solid #0F5257;
-            border-radius: 12px;
-            margin: 0 auto;
-            position: relative;
-            box-shadow: 0 0 20px rgba(15, 82, 87, 0.5);
-        }
-        .scan-line {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #56CFE1, transparent);
-            animation: scan 2s linear infinite;
-        }
-        @keyframes scan {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(200px); }
+        #root {
+            width: 100%;
+            height: 100vh;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="title">GutSafe</h1>
-        <p class="subtitle">Peace of mind for your gut</p>
-        <p class="description">
-            Scan barcodes and menus to instantly know if foods are safe for your gut health.
-        </p>
-        
-        <div class="feature-card">
-            <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                <path d="M2 17l10 5 10-5"/>
-                <path d="M2 12l10 5 10-5"/>
-            </svg>
-            <div class="feature-content">
-                <div class="feature-title">Instant Scanning</div>
-                <div class="feature-text">Point, scan, and get instant gut health insights</div>
-            </div>
-        </div>
-        
-        <div class="feature-card">
-            <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-            </svg>
-            <div class="feature-content">
-                <div class="feature-title">Personalized</div>
-                <div class="feature-text">Tailored to your specific sensitivities and conditions</div>
-            </div>
-        </div>
-        
-        <div class="feature-card">
-            <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="13,2 3,14 12,14 11,22 21,10 12,10 13,2"/>
-            </svg>
-            <div class="feature-content">
-                <div class="feature-title">Real-time</div>
-                <div class="feature-text">No more guessing - get answers in seconds</div>
-            </div>
-        </div>
-        
-        <div class="scan-demo">
-            <div class="scan-frame">
-                <div class="scan-line"></div>
-            </div>
-            <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.8;">
-                Scanner Demo - Point at any barcode
-            </p>
-        </div>
-        
-        <button class="button" onclick="alert('Scanner would open here!')">
-            <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-                <line x1="8" y1="21" x2="16" y2="21"/>
-                <line x1="12" y1="17" x2="12" y2="21"/>
-            </svg>
-            Start Scanning
-        </button>
-        
-        <button class="button" onclick="alert('Profile setup would open here!')">
-            <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-            </svg>
-            Set Up Gut Profile
-        </button>
-        
-    </div>
+    <div id="root"></div>
 </body>
 </html>
