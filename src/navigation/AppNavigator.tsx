@@ -16,6 +16,7 @@ import { ScanHistoryScreen } from '../screens/ScanHistoryScreen';
 import { ScanDetailScreen } from '../screens/ScanDetailScreen';
 import { SafeFoodsScreen } from '../screens/SafeFoodsScreen';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
+import { GutProfileScreen } from '../screens/GutProfileScreen';
 
 // Tab Icons
 import { TabIcon } from '../components/TabIcon';
@@ -36,6 +37,7 @@ const ScanStack = () => (
     <Stack.Screen name="ScanHistory" component={ScanHistoryScreen} />
     <Stack.Screen name="ScanDetail" component={ScanDetailScreen} />
     <Stack.Screen name="SafeFoods" component={SafeFoodsScreen} />
+    <Stack.Screen name="GutProfile" component={GutProfileScreen} />
   </Stack.Navigator>
 );
 

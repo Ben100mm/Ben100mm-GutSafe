@@ -9,6 +9,7 @@ import {
   Modal,
   Alert,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { HealthCard } from '../components/HealthCard';
 import { HealthSection } from '../components/HealthSection';
 import { MultipleProgressRings } from '../components/ProgressRing';
@@ -20,6 +21,7 @@ import { ProgressRing as ProgressRingType, TrendAnalysis, ChartDataPoint, SafeFo
 import { SharingService } from '../utils/sharing';
 
 const DashboardScreen: React.FC = () => {
+  const navigation = useNavigation();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = isDark ? Colors.dark : Colors.light;
@@ -98,7 +100,7 @@ const DashboardScreen: React.FC = () => {
   ]);
 
   const handleEditPress = () => {
-    console.log('Edit pressed');
+    (navigation as any).navigate('GutProfile');
   };
 
   const handleCardPress = (cardType: string) => {
@@ -238,18 +240,23 @@ const DashboardScreen: React.FC = () => {
           height={180}
         />
 
-        {/* Show All Health Data */}
+        {/* Gut Profile Card */}
         <TouchableOpacity 
           style={[styles.showAllCard, { backgroundColor: colors.surface }]}
-          onPress={() => handleCardPress('Show All Health Data')}
+          onPress={handleEditPress}
         >
           <View style={styles.showAllContent}>
             <View style={styles.showAllIcon}>
-              <Text style={styles.showAllIconText}>G</Text>
+              <Text style={styles.showAllIconText}>⚙️</Text>
             </View>
-            <Text style={[styles.showAllText, { color: colors.text }]}>
-              Show All Gut Health Data
-            </Text>
+            <View style={styles.showAllTextContainer}>
+              <Text style={[styles.showAllText, { color: colors.text }]}>
+                Gut Profile Settings
+              </Text>
+              <Text style={[styles.showAllSubtext, { color: colors.textSecondary }]}>
+                Manage conditions, track symptoms & medications
+              </Text>
+            </View>
             <Text style={[styles.chevron, { color: colors.textSecondary }]}>›</Text>
           </View>
         </TouchableOpacity>
@@ -481,11 +488,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
   },
-  showAllText: {
+  showAllTextContainer: {
     flex: 1,
+  },
+  showAllText: {
     fontSize: 17,
     fontWeight: '700',
     letterSpacing: -0.2,
+    marginBottom: 2,
+  },
+  showAllSubtext: {
+    fontSize: 14,
+    fontWeight: '400',
+    opacity: 0.8,
   },
   chevron: {
     fontSize: 18,

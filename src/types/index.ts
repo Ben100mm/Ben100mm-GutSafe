@@ -152,3 +152,37 @@ export interface TrendAnalysis {
   insights: string[];
   recommendations: string[];
 }
+
+// Gut-Specific Types
+export interface GutSymptom {
+  id: string;
+  type: 'bloating' | 'cramping' | 'diarrhea' | 'constipation' | 'gas' | 'nausea' | 'reflux' | 'fatigue' | 'headache' | 'skin_irritation' | 'other';
+  severity: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10; // 1-10 scale
+  description?: string;
+  duration: number; // minutes
+  timestamp: Date;
+  potentialTriggers?: string[];
+  location?: 'upper_abdomen' | 'lower_abdomen' | 'full_abdomen' | 'chest' | 'general';
+}
+
+export interface MedicationSupplement {
+  id: string;
+  name: string;
+  type: 'medication' | 'supplement' | 'probiotic' | 'enzyme' | 'antacid' | 'other';
+  dosage: string;
+  frequency: 'daily' | 'twice_daily' | 'as_needed' | 'weekly' | 'monthly';
+  startDate: Date;
+  endDate?: Date;
+  isActive: boolean;
+  notes?: string;
+  gutRelated: boolean;
+  category?: 'digestive_aid' | 'anti_inflammatory' | 'probiotic' | 'enzyme_support' | 'acid_control' | 'immune_support' | 'other';
+}
+
+export interface GutConditionToggle {
+  condition: GutCondition;
+  enabled: boolean;
+  severity: SeverityLevel;
+  knownTriggers: string[];
+  lastUpdated: Date;
+}
