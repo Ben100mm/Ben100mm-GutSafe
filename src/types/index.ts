@@ -49,11 +49,15 @@ export interface FoodItem {
 }
 
 export interface ScanAnalysis {
-  result: ScanResult;
-  confidence: number;
+  overallSafety: ScanResult;
   flaggedIngredients: {
     ingredient: string;
     reason: string;
+    severity: SeverityLevel;
+    condition: GutCondition;
+  }[];
+  conditionWarnings: {
+    ingredient: string;
     severity: SeverityLevel;
     condition: GutCondition;
   }[];

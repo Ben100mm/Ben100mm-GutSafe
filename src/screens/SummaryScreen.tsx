@@ -53,7 +53,7 @@ export const SummaryScreen: React.FC = () => {
             unit="today"
             icon="scan"
             color={colors.accent}
-            onPress={() => navigation.navigate('Scan', { screen: 'ScanHistory' })}
+            onPress={() => navigation.navigate('ScanHistory')}
           />
           <HealthCard
             title="Safe Foods"
@@ -118,7 +118,7 @@ export const SummaryScreen: React.FC = () => {
         <HealthSection title="Get More from GutSafe">
           <TouchableOpacity style={[styles.premiumCard, { backgroundColor: colors.surface }]}>
             <View style={styles.premiumContent}>
-              <View style={[styles.premiumIcon, { backgroundColor: Colors.luxury }]}>
+              <View style={[styles.premiumIcon, { backgroundColor: Colors.primary }]}>
                 <Text style={styles.premiumIconText}>★</Text>
               </View>
               <View style={styles.premiumText}>

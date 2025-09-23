@@ -1,52 +1,136 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { View, StyleSheet, Animated } from 'react-native';
 import { Colors } from '../constants/colors';
+import { HapticFeedback } from '../utils/haptics';
+import { AnimationPresets, TransformUtils } from '../utils/animations';
+import AccessibilityService from '../utils/accessibility';
 
 interface TabIconProps {
   name: 'heart' | 'camera' | 'grid' | 'trend';
   focused: boolean;
   color: string;
+  enable3D?: boolean;
+  accessibilityLabel?: string;
 }
 
-export const TabIcon: React.FC<TabIconProps> = ({ name, focused, color }) => {
+export const TabIcon: React.FC<TabIconProps> = ({ 
+  name, 
+  focused, 
+  color, 
+  enable3D = false,
+  accessibilityLabel 
+}) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (focused) {
+      // Focus animation
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 1.1,
+          useNativeDriver: true,
+        }),
+        Animated.timing(rotateAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+
+      // Pulse animation for focused state
+      const pulseAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.05,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      pulseAnimation.start();
+
+      return () => pulseAnimation.stop();
+    } else {
+      // Unfocus animation
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          useNativeDriver: true,
+        }),
+        Animated.timing(rotateAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [focused]);
+
+  // 3D transform styles
+  const transform3DStyle = enable3D ? {
+    transform: [
+      { scale: Animated.multiply(scaleAnim, pulseAnim) },
+      { rotateY: rotateAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', '360deg'],
+      })},
+    ],
+    ...TransformUtils.createPerspective(1000),
+  } : {
+    transform: [{ scale: Animated.multiply(scaleAnim, pulseAnim) }],
+  };
+
+  // Accessibility config
+  const accessibilityConfig = AccessibilityService.createTabConfig(
+    accessibilityLabel || name,
+    focused,
+    `Navigate to ${name} tab`
+  );
   const getIconPath = () => {
     switch (name) {
       case 'heart':
         return (
-          <View style={styles.iconContainer}>
+          <Animated.View style={[styles.iconContainer, transform3DStyle]} {...accessibilityConfig}>
             <View style={[styles.heart, { borderColor: color }]}>
               <View style={[styles.heartFill, { backgroundColor: focused ? color : 'transparent' }]} />
             </View>
-          </View>
+          </Animated.View>
         );
       case 'camera':
         return (
-          <View style={styles.iconContainer}>
+          <Animated.View style={[styles.iconContainer, transform3DStyle]} {...accessibilityConfig}>
             <View style={[styles.camera, { borderColor: color }]}>
               <View style={[styles.cameraLens, { backgroundColor: focused ? color : 'transparent' }]} />
             </View>
-          </View>
+          </Animated.View>
         );
       case 'grid':
         return (
-          <View style={styles.iconContainer}>
+          <Animated.View style={[styles.iconContainer, transform3DStyle]} {...accessibilityConfig}>
             <View style={styles.grid}>
               <View style={[styles.gridDot, { backgroundColor: focused ? color : 'transparent' }]} />
               <View style={[styles.gridDot, { backgroundColor: focused ? color : 'transparent' }]} />
               <View style={[styles.gridDot, { backgroundColor: focused ? color : 'transparent' }]} />
               <View style={[styles.gridDot, { backgroundColor: focused ? color : 'transparent' }]} />
             </View>
-          </View>
+          </Animated.View>
         );
       case 'trend':
         return (
-          <View style={styles.iconContainer}>
+          <Animated.View style={[styles.iconContainer, transform3DStyle]} {...accessibilityConfig}>
             <View style={[styles.trend, { borderColor: color }]}>
               <View style={[styles.trendLine, { backgroundColor: focused ? color : 'transparent' }]} />
               <View style={[styles.trendLine, styles.trendLine2, { backgroundColor: focused ? color : 'transparent' }]} />
               <View style={[styles.trendLine, styles.trendLine3, { backgroundColor: focused ? color : 'transparent' }]} />
             </View>
-          </View>
+          </Animated.View>
         );
       default:
         return null;

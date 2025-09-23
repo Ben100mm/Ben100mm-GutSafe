@@ -79,11 +79,9 @@ export class SharingService {
 
   private static generateScanDescription(scanHistory: ScanHistory): string {
     const { foodItem, analysis } = scanHistory;
-    const resultEmoji = this.getResultEmoji(analysis.result);
-    const confidence = Math.round(analysis.confidence * 100);
+    const resultEmoji = this.getResultEmoji(analysis.overallSafety);
     
-    let description = `${resultEmoji} ${analysis.result.toUpperCase()}\n`;
-    description += `Confidence: ${confidence}%\n`;
+    let description = `${resultEmoji} ${analysis.overallSafety.toUpperCase()}\n`;
     description += `Source: ${analysis.dataSource}\n\n`;
     
     if (analysis.flaggedIngredients.length > 0) {

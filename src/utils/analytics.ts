@@ -109,7 +109,7 @@ export class AnalyticsUtils {
       existing.timestamps.push(scan.timestamp);
       existing.lastScanned = scan.timestamp > existing.lastScanned ? scan.timestamp : existing.lastScanned;
 
-      switch (scan.analysis.result) {
+      switch (scan.analysis.overallSafety) {
         case 'safe':
           existing.safeCount++;
           break;

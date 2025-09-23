@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, Animated } from 'react-native';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
+import { HapticFeedback } from '../utils/haptics';
+import AccessibilityService from '../utils/accessibility';
 
 // Screens
 import DashboardScreen from '../screens/DashboardScreen';
@@ -47,6 +49,15 @@ const MainTabs = () => {
   const isDark = colorScheme === 'dark';
   const colors = isDark ? Colors.dark : Colors.light;
 
+  useEffect(() => {
+    // Initialize accessibility service
+    AccessibilityService.initialize();
+  }, []);
+
+  const handleTabPress = (routeName: string) => {
+    HapticFeedback.navigation();
+  };
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -58,6 +69,13 @@ const MainTabs = () => {
           paddingBottom: Spacing.sm,
           paddingTop: Spacing.sm,
           height: 88,
+          ...(isDark ? {
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            elevation: 8,
+          } : {}),
         },
         tabBarLabelStyle: {
           fontFamily: Typography.fontFamily.medium,
@@ -66,6 +84,17 @@ const MainTabs = () => {
         },
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textTertiary,
+        tabBarItemStyle: {
+          paddingVertical: Spacing.xs,
+        },
+      }}
+      screenListeners={{
+        tabPress: (e: any) => {
+          const routeName = e.target?.split('-')[0];
+          if (routeName) {
+            handleTabPress(routeName);
+          }
+        },
       }}
     >
       <Tab.Screen

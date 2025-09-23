@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   useColorScheme,
   TouchableOpacity,
   RefreshControl,
+  Animated,
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
@@ -14,6 +15,10 @@ import { Spacing } from '../constants/spacing';
 import { ProgressRing, MultipleProgressRings } from '../components/ProgressRing';
 import { TrendChart, MultiTrendChart, PeriodSelector } from '../components/TrendChart';
 import { FoodTrendAnalysis } from '../components/FoodTrendAnalysis';
+import { Animated3DCard } from '../components/Animated3DCard';
+import { HapticFeedback, HapticType } from '../utils/haptics';
+import { AnimationPresets, AnimationUtils } from '../utils/animations';
+import AccessibilityService from '../utils/accessibility';
 import { 
   GutHealthMetrics, 
   FoodTrendData, 
@@ -98,11 +103,41 @@ const AnalyticsScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [mockData] = useState(generateMockData());
 
+  // Animation values
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+
+  useEffect(() => {
+    // Initialize accessibility
+    AccessibilityService.initialize();
+    
+    // Entrance animations
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
   const onRefresh = () => {
+    HapticFeedback.buttonPress();
     setRefreshing(true);
     // Simulate data refresh
     setTimeout(() => {
       setRefreshing(false);
+      HapticFeedback.success();
     }, 1000);
   };
 

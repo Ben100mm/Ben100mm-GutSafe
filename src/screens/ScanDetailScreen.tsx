@@ -332,12 +332,6 @@ export const ScanDetailScreen: React.FC = () => {
                   <Text style={styles.brandName}>{foodItem.brand}</Text>
                 )}
               </View>
-              <View style={styles.confidenceContainer}>
-                <Text style={styles.confidenceValue}>
-                  {Math.round(analysis.confidence * 100)}%
-                </Text>
-                <Text style={styles.confidenceLabel}>Confidence</Text>
-              </View>
             </View>
           </LinearGradient>
 
@@ -657,7 +651,7 @@ const styles = StyleSheet.create({
   severityBadge: {
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
-    borderRadius: BorderRadius.xs,
+    borderRadius: BorderRadius.sm,
   },
   severityText: {
     fontSize: Typography.fontSize.caption,

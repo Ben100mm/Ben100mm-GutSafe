@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,16 +7,49 @@ import {
   ScrollView,
   StatusBar,
   useColorScheme,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
+import { Animated3DCard } from '../components/Animated3DCard';
+import { HapticFeedback, HapticType } from '../utils/haptics';
+import { AnimationPresets, AnimationUtils } from '../utils/animations';
+import AccessibilityService from '../utils/accessibility';
 
 export const BrowseScreen: React.FC = () => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = isDark ? Colors.dark : Colors.light;
+
+  // Animation values
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+
+  useEffect(() => {
+    // Initialize accessibility
+    AccessibilityService.initialize();
+    
+    // Entrance animations
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   const browseCategories = [
     {
@@ -72,12 +105,30 @@ export const BrowseScreen: React.FC = () => {
         contentContainerStyle={styles.scrollContent}
       >
         {/* Categories Grid */}
-        <View style={styles.categoriesGrid}>
+        <Animated.View style={[
+          styles.categoriesGrid,
+          {
+            opacity: fadeAnim,
+            transform: [
+              { translateY: slideAnim },
+              { scale: scaleAnim }
+            ]
+          }
+        ]}>
           {browseCategories.map((category, index) => (
-            <TouchableOpacity
+            <Animated3DCard
               key={index}
+              variant="solid"
+              enable3D={true}
+              enableHover={true}
+              hapticType={HapticType.LIGHT}
+              accessibilityLabel={category.title}
+              accessibilityHint={category.description}
+              onPress={() => {
+                HapticFeedback.buttonPress();
+                console.log(`${category.title} pressed`);
+              }}
               style={[styles.categoryCard, { backgroundColor: colors.surface }]}
-              onPress={() => console.log(`${category.title} pressed`)}
             >
               <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
                 <Text style={styles.categoryIconText}>{category.icon}</Text>
@@ -88,9 +139,9 @@ export const BrowseScreen: React.FC = () => {
               <Text style={[styles.categoryDescription, { color: colors.textSecondary }]}>
                 {category.description}
               </Text>
-            </TouchableOpacity>
+            </Animated3DCard>
           ))}
-        </View>
+        </Animated.View>
 
         {/* Recent Activity */}
         <View style={styles.recentSection}>

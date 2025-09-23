@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,17 +8,23 @@ import {
   useColorScheme,
   Modal,
   Alert,
+  Animated,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { HealthCard } from '../components/HealthCard';
 import { HealthSection } from '../components/HealthSection';
 import { MultipleProgressRings } from '../components/ProgressRing';
 import { TrendChart } from '../components/TrendChart';
+import { Animated3DCard } from '../components/Animated3DCard';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
+import { HapticFeedback, HapticType } from '../utils/haptics';
+import { AnimationPresets, TransformUtils, AnimationUtils } from '../utils/animations';
+import AccessibilityService from '../utils/accessibility';
 import { ProgressRing as ProgressRingType, TrendAnalysis, ChartDataPoint, SafeFood, ShareableContent } from '../types';
 import { SharingService } from '../utils/sharing';
+import DataService from '../services/DataService';
 
 const DashboardScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -27,83 +33,47 @@ const DashboardScreen: React.FC = () => {
   const colors = isDark ? Colors.dark : Colors.light;
 
   const [showSafeFoods, setShowSafeFoods] = useState(false);
-  const [safeFoods] = useState<SafeFood[]>([
-    {
-      id: '1',
-      foodItem: {
-        id: '1',
-        name: 'Greek Yogurt',
-        brand: 'Chobani',
-        category: 'Dairy',
-        ingredients: ['Cultured pasteurized grade A milk', 'Live active cultures'],
-        allergens: ['Milk'],
-        additives: [],
-        fodmapLevel: 'low',
-        glutenFree: true,
-        lactoseFree: false,
-        histamineLevel: 'low',
-        dataSource: 'USDA Food Database',
-        isSafeFood: true,
-        addedToSafeFoods: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-      },
-      addedDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-      lastUsed: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      usageCount: 12,
-      notes: 'Great for breakfast, low histamine',
-    },
-    {
-      id: '2',
-      foodItem: {
-        id: '2',
-        name: 'Banana',
-        brand: undefined,
-        category: 'Fruit',
-        ingredients: ['Banana'],
-        allergens: [],
-        additives: [],
-        fodmapLevel: 'low',
-        glutenFree: true,
-        lactoseFree: true,
-        histamineLevel: 'low',
-        dataSource: 'FODMAP Database',
-        isSafeFood: true,
-        addedToSafeFoods: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-      },
-      addedDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-      lastUsed: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      usageCount: 8,
-      notes: 'Best when slightly green',
-    },
-    {
-      id: '3',
-      foodItem: {
-        id: '3',
-        name: 'Quinoa',
-        brand: 'Bob\'s Red Mill',
-        category: 'Grains',
-        ingredients: ['Quinoa'],
-        allergens: [],
-        additives: [],
-        fodmapLevel: 'low',
-        glutenFree: true,
-        lactoseFree: true,
-        histamineLevel: 'low',
-        dataSource: 'Monash FODMAP Database',
-        isSafeFood: true,
-        addedToSafeFoods: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000),
-      },
-      addedDate: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000),
-      lastUsed: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      usageCount: 15,
-      notes: 'Perfect protein source',
-    },
-  ]);
+  const dataService = DataService.getInstance();
+  
+  // Animation values
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+
+  useEffect(() => {
+    // Initialize accessibility service
+    AccessibilityService.initialize();
+    
+    // Initialize data service
+    dataService.initialize();
+    
+    // Entrance animations
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+  const [safeFoods] = useState<SafeFood[]>(dataService.getSafeFoods());
 
   const handleEditPress = () => {
+    HapticFeedback.buttonPress();
     (navigation as any).navigate('GutProfile');
   };
 
   const handleCardPress = (cardType: string) => {
+    HapticFeedback.buttonPress();
     if (cardType === 'Safe Foods') {
       setShowSafeFoods(true);
     } else {
@@ -179,11 +149,35 @@ const DashboardScreen: React.FC = () => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <Animated.View style={[
+      styles.container, 
+      { 
+        backgroundColor: colors.background,
+        opacity: fadeAnim,
+        transform: [
+          { translateY: slideAnim },
+          { scale: scaleAnim }
+        ]
+      }
+    ]}>
       {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.title, { color: colors.text }]}>Summary</Text>
-        <TouchableOpacity style={styles.profileButton} onPress={handleEditPress}>
+        <Text 
+          style={[styles.title, { color: colors.text }]}
+          {...AccessibilityService.createHeaderConfig('Summary', 1)}
+        >
+          Summary
+        </Text>
+        <TouchableOpacity 
+          style={styles.profileButton} 
+          onPress={handleEditPress}
+          {...AccessibilityService.createButtonConfig(
+            'Profile Settings',
+            'Open gut profile settings',
+            false,
+            false
+          )}
+        >
           <Text style={styles.profileButtonText}>B</Text>
         </TouchableOpacity>
       </View>
@@ -199,12 +193,21 @@ const DashboardScreen: React.FC = () => {
           rightButton="View All"
           onRightPress={() => handleCardPress('View All Progress')}
         >
-          <MultipleProgressRings
-            rings={progressRings}
-            size={100}
-            strokeWidth={8}
-            layout="horizontal"
-          />
+          <Animated3DCard
+            variant="glass"
+            enable3D={true}
+            enableHover={true}
+            hapticType={"light"}
+            accessibilityLabel="Today's Progress Rings"
+            accessibilityHint="View your daily progress metrics"
+          >
+            <MultipleProgressRings
+              rings={progressRings}
+              size={100}
+              strokeWidth={8}
+              layout="horizontal"
+            />
+          </Animated3DCard>
         </HealthSection>
 
         {/* Pinned Section */}
@@ -213,37 +216,72 @@ const DashboardScreen: React.FC = () => {
           rightButton="Edit"
           onRightPress={handleEditPress}
         >
-          <HealthCard
-            title="Recent Scans"
-            value="12"
-            unit="today"
-            icon="scan"
-            color={Colors.primary}
+          <Animated3DCard
+            variant="solid"
+            enable3D={true}
+            enableHover={true}
+            hapticType={"light"}
+            accessibilityLabel="Recent Scans Card"
+            accessibilityHint="View your recent food scans"
             onPress={() => handleCardPress('Recent Scans')}
-          />
-          <HealthCard
-            title="Safe Foods"
-            value="8"
-            unit="favorites"
-            icon="heart"
-            color={Colors.safe}
+          >
+            <HealthCard
+              title="Recent Scans"
+              value="12"
+              unit="today"
+              icon="scan"
+              color={Colors.primary}
+              onPress={() => handleCardPress('Recent Scans')}
+            />
+          </Animated3DCard>
+          <Animated3DCard
+            variant="solid"
+            enable3D={true}
+            enableHover={true}
+            hapticType={"light"}
+            accessibilityLabel="Safe Foods Card"
+            accessibilityHint="View your safe foods list"
             onPress={() => handleCardPress('Safe Foods')}
-          />
+          >
+            <HealthCard
+              title="Safe Foods"
+              value="8"
+              unit="favorites"
+              icon="heart"
+              color={Colors.safe}
+              onPress={() => handleCardPress('Safe Foods')}
+            />
+          </Animated3DCard>
         </HealthSection>
 
         {/* Gut Health Trend Chart */}
-        <TrendChart
-          data={gutHealthTrend}
-          title="Gut Health Trend"
-          subtitle="Your weekly progress"
-          color={Colors.primary}
-          height={180}
-        />
+        <Animated3DCard
+          variant="gradient"
+          enable3D={true}
+          enableHover={true}
+          hapticType={"light"}
+          accessibilityLabel="Gut Health Trend Chart"
+          accessibilityHint="View your weekly gut health progress"
+        >
+          <TrendChart
+            data={gutHealthTrend}
+            title="Gut Health Trend"
+            subtitle="Your weekly progress"
+            color={Colors.primary}
+            height={180}
+          />
+        </Animated3DCard>
 
         {/* Gut Profile Card */}
-        <TouchableOpacity 
-          style={[styles.showAllCard, { backgroundColor: colors.surface }]}
+        <Animated3DCard
+          variant="solid"
+          enable3D={true}
+          enableHover={true}
+          hapticType={HapticType.MEDIUM}
+          accessibilityLabel="Gut Profile Settings"
+          accessibilityHint="Manage your gut health conditions, symptoms and medications"
           onPress={handleEditPress}
+          style={styles.showAllCard}
         >
           <View style={styles.showAllContent}>
             <View style={styles.showAllIcon}>
@@ -259,7 +297,7 @@ const DashboardScreen: React.FC = () => {
             </View>
             <Text style={[styles.chevron, { color: colors.textSecondary }]}>›</Text>
           </View>
-        </TouchableOpacity>
+        </Animated3DCard>
 
         {/* Trends Section */}
         <HealthSection title="Trends">
@@ -407,7 +445,7 @@ const DashboardScreen: React.FC = () => {
           </ScrollView>
         </View>
       </Modal>
-    </View>
+    </Animated.View>
   );
 };
 

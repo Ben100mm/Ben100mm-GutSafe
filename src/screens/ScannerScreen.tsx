@@ -19,7 +19,11 @@ import { Spacing, BorderRadius } from '../constants/spacing';
 import { AnimatedButton } from '../components/AnimatedButton';
 import { GlassmorphicCard } from '../components/GlassmorphicCard';
 import { StatusIndicator } from '../components/StatusIndicator';
+import { HapticFeedback, HapticType } from '../utils/haptics';
+import { AnimationPresets, TransformUtils, AnimationUtils } from '../utils/animations';
+import AccessibilityService from '../utils/accessibility';
 import { ScanResult, ScanHistory, ScanAnalysis, FoodItem, GutCondition, SeverityLevel } from '../types';
+import DataService from '../services/DataService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -33,11 +37,22 @@ export const ScannerScreen: React.FC = () => {
   const [scanned, setScanned] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [scanHistory, setScanHistory] = useState<ScanHistory[]>([]);
+  const dataService = DataService.getInstance();
   
   const scanLineAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // Initialize accessibility
+    AccessibilityService.initialize();
+    
+    // Initialize data service and load scan history
+    dataService.initialize();
+    setScanHistory(dataService.getScanHistory());
+    
     // Animate scanning line
     const scanAnimation = Animated.loop(
       Animated.sequence([
@@ -112,8 +127,7 @@ export const ScannerScreen: React.FC = () => {
     const randomFood = mockFoods[Math.floor(Math.random() * mockFoods.length)];
     
     const analysis: ScanAnalysis = {
-      result,
-      confidence: 0.7 + Math.random() * 0.25,
+      overallSafety: result,
       flaggedIngredients: result === 'safe' ? [] : [
         {
           ingredient: 'Wheat',
@@ -138,30 +152,70 @@ export const ScannerScreen: React.FC = () => {
   };
 
   const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
-    setScanned(true);
-    // Mock scan result - in real app, this would call food database API
-    const mockResult: ScanResult = Math.random() > 0.5 ? 'safe' : 'caution';
-    setScanResult(mockResult);
+    // Haptic feedback for scan start
+    HapticFeedback.scanStart();
     
-    // Generate mock analysis and save to history
-    const analysis = generateMockAnalysis(mockResult, data);
+    setScanned(true);
+    
+    // 3D animation for scan completion
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 1.1,
+        useNativeDriver: true,
+      }),
+      Animated.timing(glowAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    
+    // Generate mock food item - in real app, this would call food database API
+    const mockFoodItem: FoodItem = {
+      id: Date.now().toString(),
+      name: 'Scanned Food Item',
+      brand: 'Unknown Brand',
+      category: 'Unknown',
+      barcode: data,
+      ingredients: ['Unknown ingredients'],
+      allergens: [],
+      additives: [],
+      glutenFree: Math.random() > 0.5,
+      lactoseFree: Math.random() > 0.5,
+      fodmapLevel: Math.random() > 0.5 ? 'low' : 'high',
+      histamineLevel: 'low',
+      dataSource: 'Mock Database'
+    };
+    
+    // Generate analysis using DataService
+    const analysis = dataService.generateScanAnalysis(mockFoodItem);
+    setScanResult(analysis.overallSafety);
+    
+    // Create scan history entry
     const newScan: ScanHistory = {
       id: Date.now().toString(),
-      foodItem: {
-        name: 'Scanned Food',
-        brand: 'Unknown Brand',
-        category: 'Unknown',
-        barcode: data,
-      },
+      foodItem: mockFoodItem,
       analysis,
       timestamp: new Date(),
     };
     
-    setScanHistory(prev => [newScan, ...prev]);
+    // Add to DataService and update local state
+    dataService.addScanHistory(newScan);
+    setScanHistory(dataService.getScanHistory());
+    
+    // Haptic feedback based on result
+    if (analysis.overallSafety === 'safe') {
+      HapticFeedback.foodSafe();
+    } else {
+      HapticFeedback.foodCaution();
+    }
+    
+    // Announce to screen reader
+    AccessibilityService.announceForAccessibility(`Scan complete. Result: ${analysis.overallSafety}. ${analysis.explanation}`);
     
     Alert.alert(
       'Scan Complete',
-      `Barcode: ${data}\nResult: ${mockResult.toUpperCase()}`,
+      `Barcode: ${data}\nResult: ${analysis.overallSafety.toUpperCase()}`,
       [
         { text: 'OK', onPress: () => setScanned(false) },
         { text: 'View History', onPress: () => (navigation as any).navigate('ScanHistory') }
@@ -170,8 +224,22 @@ export const ScannerScreen: React.FC = () => {
   };
 
   const resetScanner = () => {
+    HapticFeedback.buttonPress();
     setScanned(false);
     setScanResult(null);
+    
+    // Reset animations
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+      }),
+      Animated.timing(glowAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
   };
 
   if (hasPermission === null) {
@@ -232,11 +300,7 @@ export const ScannerScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Camera
-        style={styles.camera}
-        type={CameraType.back}
-        onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-      >
+      <View style={styles.camera}>
         <View style={styles.overlay}>
           {/* Top overlay */}
           <LinearGradient
@@ -294,19 +358,40 @@ export const ScannerScreen: React.FC = () => {
             style={styles.bottomOverlay}
           >
             <View style={styles.scanButtonContainer}>
-              <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+              <Animated.View style={{ 
+                transform: [
+                  { scale: Animated.multiply(pulseAnim, scaleAnim) },
+                  { rotateY: rotateAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0deg', '360deg'],
+                  })}
+                ]
+              }}>
                 <TouchableOpacity
                   style={styles.scanButton}
                   onPress={resetScanner}
                   disabled={!scanned}
+                  {...AccessibilityService.createButtonConfig(
+                    scanned ? 'Scan Again Button' : 'Scanning in Progress',
+                    scanned ? 'Start a new scan' : 'Camera is ready to scan barcodes',
+                    !scanned,
+                    false
+                  )}
                 >
                   <LinearGradient
                     colors={scanned ? Colors.primaryGradient : [Colors.body, Colors.body]}
                     style={styles.scanButtonGradient}
                   >
-                    <Text style={styles.scanButtonText}>
-                      {scanned ? 'Scan Again' : 'Scanning...'}
-                    </Text>
+                    <Animated.View style={{
+                      opacity: glowAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [1, 0.8],
+                      })
+                    }}>
+                      <Text style={styles.scanButtonText}>
+                        {scanned ? 'Scan Again' : 'Scanning...'}
+                      </Text>
+                    </Animated.View>
                   </LinearGradient>
                 </TouchableOpacity>
               </Animated.View>

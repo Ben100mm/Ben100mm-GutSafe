@@ -22,15 +22,21 @@ const mockScanHistory: ScanHistory[] = [
   {
     id: '1',
     foodItem: {
+      id: '1',
       name: 'Greek Yogurt',
       brand: 'Chobani',
       category: 'Dairy',
       barcode: '1234567890123',
+      ingredients: ['Cultured pasteurized grade A milk', 'Live active cultures'],
+      allergens: ['Milk'],
+      additives: [],
+      glutenFree: true,
+      lactoseFree: false,
       histamineLevel: 'low',
+      dataSource: 'USDA Database',
     },
     analysis: {
-      result: 'safe' as ScanResult,
-      confidence: 0.92,
+      overallSafety: 'safe' as ScanResult,
       flaggedIngredients: [],
       safeAlternatives: ['Coconut yogurt', 'Almond yogurt'],
       explanation: 'This Greek yogurt is low in histamine and contains probiotics that may benefit gut health. No problematic ingredients detected.',
@@ -43,14 +49,21 @@ const mockScanHistory: ScanHistory[] = [
   {
     id: '2',
     foodItem: {
+      id: '2',
       name: 'Wheat Bread',
       brand: 'Wonder',
       category: 'Bakery',
       barcode: '1234567890124',
+      ingredients: ['Wheat Flour', 'Water', 'Yeast', 'Salt', 'Sugar'],
+      allergens: ['Wheat', 'Gluten'],
+      additives: [],
+      glutenFree: false,
+      lactoseFree: true,
+      histamineLevel: 'low',
+      dataSource: 'Product Database',
     },
     analysis: {
-      result: 'caution' as ScanResult,
-      confidence: 0.78,
+      overallSafety: 'caution' as ScanResult,
       flaggedIngredients: [
         {
           ingredient: 'Wheat',
@@ -75,15 +88,21 @@ const mockScanHistory: ScanHistory[] = [
   {
     id: '3',
     foodItem: {
+      id: '3',
       name: 'Aged Cheddar Cheese',
       brand: 'Cabot',
       category: 'Dairy',
       barcode: '1234567890125',
+      ingredients: ['Pasteurized milk', 'Salt', 'Cheese cultures', 'Enzymes'],
+      allergens: ['Milk'],
+      additives: [],
+      glutenFree: true,
+      lactoseFree: false,
       histamineLevel: 'high',
+      dataSource: 'USDA Database',
     },
     analysis: {
-      result: 'avoid' as ScanResult,
-      confidence: 0.95,
+      overallSafety: 'avoid' as ScanResult,
       flaggedIngredients: [
         {
           ingredient: 'Histamine',
@@ -108,14 +127,21 @@ const mockScanHistory: ScanHistory[] = [
   {
     id: '4',
     foodItem: {
+      id: '4',
       name: 'Banana',
-      brand: null,
+      brand: undefined,
       category: 'Fruit',
-      barcode: null,
+      barcode: undefined,
+      ingredients: ['Banana'],
+      allergens: [],
+      additives: [],
+      glutenFree: true,
+      lactoseFree: true,
+      histamineLevel: 'low',
+      dataSource: 'FODMAP Database',
     },
     analysis: {
-      result: 'safe' as ScanResult,
-      confidence: 0.88,
+      overallSafety: 'safe' as ScanResult,
       flaggedIngredients: [],
       safeAlternatives: ['Green banana', 'Plantain'],
       explanation: 'Bananas are generally well-tolerated and contain prebiotic fiber that supports gut health. Choose slightly green bananas for lower sugar content.',
@@ -127,14 +153,21 @@ const mockScanHistory: ScanHistory[] = [
   {
     id: '5',
     foodItem: {
+      id: '5',
       name: 'Energy Drink',
       brand: 'Red Bull',
       category: 'Beverages',
       barcode: '1234567890126',
+      ingredients: ['Carbonated water', 'Sucrose', 'Glucose', 'Citric acid', 'Taurine', 'Sodium citrate', 'Caffeine'],
+      allergens: [],
+      additives: ['Artificial flavors', 'Colors'],
+      glutenFree: true,
+      lactoseFree: true,
+      histamineLevel: 'low',
+      dataSource: 'Product Database',
     },
     analysis: {
-      result: 'caution' as ScanResult,
-      confidence: 0.82,
+      overallSafety: 'caution' as ScanResult,
       flaggedIngredients: [
         {
           ingredient: 'Caffeine',
@@ -177,7 +210,7 @@ export const ScanHistoryScreen: React.FC = () => {
 
   const filteredHistory = useMemo(() => {
     if (filter === 'all') return scanHistory;
-    return scanHistory.filter(scan => scan.analysis.result === filter);
+    return scanHistory.filter(scan => scan.analysis.overallSafety === filter);
   }, [scanHistory, filter]);
 
   const onRefresh = async () => {
@@ -198,7 +231,7 @@ export const ScanHistoryScreen: React.FC = () => {
   };
 
   const getFilterCount = (result: ScanResult) => {
-    return scanHistory.filter(scan => scan.analysis.result === result).length;
+    return scanHistory.filter(scan => scan.analysis.overallSafety === result).length;
   };
 
   const getStatsSummary = () => {

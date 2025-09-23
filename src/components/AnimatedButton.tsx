@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -7,11 +7,15 @@ import {
   TextStyle,
   Animated,
   ActivityIndicator,
+  View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
+import { HapticFeedback, HapticType } from '../utils/haptics';
+import { AnimationPresets, TransformUtils, HapticAnimations } from '../utils/animations';
+import AccessibilityService from '../utils/accessibility';
 
 interface AnimatedButtonProps {
   title: string;
@@ -23,6 +27,10 @@ interface AnimatedButtonProps {
   style?: ViewStyle;
   textStyle?: TextStyle;
   icon?: React.ReactNode;
+  hapticType?: HapticType;
+  enable3D?: boolean;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
@@ -35,12 +43,29 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   style,
   textStyle,
   icon,
+  hapticType = HapticType.LIGHT,
+  enable3D = false,
+  accessibilityLabel,
+  accessibilityHint,
 }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const glowAnim = useRef(new Animated.Value(0)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const translateZAnim = useRef(new Animated.Value(0)).current;
+  const shadowAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Initialize 3D animations if enabled
+    if (enable3D) {
+      const initialAnimation = AnimationPresets.scale3D({ duration: 300 });
+      initialAnimation.start();
+    }
+  }, [enable3D]);
 
   const handlePressIn = () => {
-    Animated.parallel([
+    HapticFeedback.trigger(hapticType);
+    
+    const animations = [
       Animated.spring(scaleAnim, {
         toValue: 0.95,
         useNativeDriver: true,
@@ -50,11 +75,28 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
         duration: 200,
         useNativeDriver: true,
       }),
-    ]).start();
+    ];
+
+    if (enable3D) {
+      animations.push(
+        Animated.timing(translateZAnim, {
+          toValue: -5,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shadowAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        })
+      );
+    }
+
+    Animated.parallel(animations).start();
   };
 
   const handlePressOut = () => {
-    Animated.parallel([
+    const animations = [
       Animated.spring(scaleAnim, {
         toValue: 1,
         useNativeDriver: true,
@@ -64,7 +106,30 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
         duration: 200,
         useNativeDriver: true,
       }),
-    ]).start();
+    ];
+
+    if (enable3D) {
+      animations.push(
+        Animated.timing(translateZAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shadowAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        })
+      );
+    }
+
+    Animated.parallel(animations).start();
+  };
+
+  const handlePress = () => {
+    if (!disabled && !loading) {
+      onPress();
+    }
   };
 
   const buttonStyle = [
@@ -90,15 +155,58 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
     transform: [{ scale: glowAnim }],
   };
 
+  // 3D transform styles
+  const transform3DStyle = enable3D ? {
+    transform: [
+      { scale: scaleAnim },
+      { translateZ: translateZAnim },
+      ...TransformUtils.createRotation3D(rotateAnim, 'y'),
+    ],
+    ...TransformUtils.createPerspective(1000),
+  } : {
+    transform: [{ scale: scaleAnim }],
+  };
+
+  // Shadow style for 3D effect
+  const shadowStyle = enable3D ? {
+    shadowOpacity: shadowAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.1, 0.3],
+    }),
+    shadowRadius: shadowAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [4, 12],
+    }),
+    shadowOffset: {
+      width: shadowAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 4],
+      }),
+      height: shadowAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [2, 8],
+      }),
+    },
+  } : {};
+
+  // Accessibility config
+  const accessibilityConfig = AccessibilityService.createButtonConfig(
+    accessibilityLabel || title,
+    accessibilityHint,
+    disabled,
+    false
+  );
+
   if (variant === 'primary') {
     return (
-      <Animated.View style={[{ transform: [{ scale: scaleAnim }] }]}>
+      <Animated.View style={[transform3DStyle, shadowStyle]}>
         <TouchableOpacity
-          onPress={onPress}
+          onPress={handlePress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
           disabled={disabled || loading}
           style={[buttonStyle, { overflow: 'hidden' }]}
+          {...accessibilityConfig}
         >
           <LinearGradient
             colors={disabled ? [Colors.body, Colors.body] : Colors.primaryGradient}
@@ -122,13 +230,14 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   }
 
   return (
-    <Animated.View style={[{ transform: [{ scale: scaleAnim }] }]}>
+    <Animated.View style={[transform3DStyle, shadowStyle]}>
       <TouchableOpacity
-        onPress={onPress}
+        onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         disabled={disabled || loading}
         style={buttonStyle}
+        {...accessibilityConfig}
       >
         {loading ? (
           <ActivityIndicator 
