@@ -8,7 +8,7 @@ import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
 
 // Screens
-import { SummaryScreen } from '../screens/SummaryScreen';
+import DashboardScreen from '../screens/DashboardScreen';
 import { ScanScreen } from '../screens/ScanScreen';
 import { BrowseScreen } from '../screens/BrowseScreen';
 import { ScannerScreen } from '../screens/ScannerScreen';
@@ -61,7 +61,7 @@ const MainTabs = () => {
     >
       <Tab.Screen
         name="Summary"
-        component={SummaryScreen}
+        component={DashboardScreen}
         options={{
           tabBarIcon: ({ focused, color }) => (
             <TabIcon name="heart" focused={focused} color={color} />
