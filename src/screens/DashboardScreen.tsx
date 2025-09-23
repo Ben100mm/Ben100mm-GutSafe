@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   ScrollView,
   StyleSheet,
   useColorScheme,
+  Modal,
+  Alert,
 } from 'react-native';
 import { HealthCard } from '../components/HealthCard';
 import { HealthSection } from '../components/HealthSection';
@@ -14,19 +16,112 @@ import { TrendChart } from '../components/TrendChart';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
-import { ProgressRing as ProgressRingType, TrendAnalysis, ChartDataPoint } from '../types';
+import { ProgressRing as ProgressRingType, TrendAnalysis, ChartDataPoint, SafeFood, ShareableContent } from '../types';
+import { SharingService } from '../utils/sharing';
 
 const DashboardScreen: React.FC = () => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = isDark ? Colors.dark : Colors.light;
 
+  const [showSafeFoods, setShowSafeFoods] = useState(false);
+  const [safeFoods] = useState<SafeFood[]>([
+    {
+      id: '1',
+      foodItem: {
+        id: '1',
+        name: 'Greek Yogurt',
+        brand: 'Chobani',
+        category: 'Dairy',
+        ingredients: ['Cultured pasteurized grade A milk', 'Live active cultures'],
+        allergens: ['Milk'],
+        additives: [],
+        fodmapLevel: 'low',
+        glutenFree: true,
+        lactoseFree: false,
+        histamineLevel: 'low',
+        dataSource: 'USDA Food Database',
+        isSafeFood: true,
+        addedToSafeFoods: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      },
+      addedDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      lastUsed: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+      usageCount: 12,
+      notes: 'Great for breakfast, low histamine',
+    },
+    {
+      id: '2',
+      foodItem: {
+        id: '2',
+        name: 'Banana',
+        brand: undefined,
+        category: 'Fruit',
+        ingredients: ['Banana'],
+        allergens: [],
+        additives: [],
+        fodmapLevel: 'low',
+        glutenFree: true,
+        lactoseFree: true,
+        histamineLevel: 'low',
+        dataSource: 'FODMAP Database',
+        isSafeFood: true,
+        addedToSafeFoods: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+      },
+      addedDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+      lastUsed: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      usageCount: 8,
+      notes: 'Best when slightly green',
+    },
+    {
+      id: '3',
+      foodItem: {
+        id: '3',
+        name: 'Quinoa',
+        brand: 'Bob\'s Red Mill',
+        category: 'Grains',
+        ingredients: ['Quinoa'],
+        allergens: [],
+        additives: [],
+        fodmapLevel: 'low',
+        glutenFree: true,
+        lactoseFree: true,
+        histamineLevel: 'low',
+        dataSource: 'Monash FODMAP Database',
+        isSafeFood: true,
+        addedToSafeFoods: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000),
+      },
+      addedDate: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000),
+      lastUsed: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      usageCount: 15,
+      notes: 'Perfect protein source',
+    },
+  ]);
+
   const handleEditPress = () => {
     console.log('Edit pressed');
   };
 
   const handleCardPress = (cardType: string) => {
-    console.log(`${cardType} card pressed`);
+    if (cardType === 'Safe Foods') {
+      setShowSafeFoods(true);
+    } else {
+      console.log(`${cardType} card pressed`);
+    }
+  };
+
+  const handleShareGutHealth = async () => {
+    const shareContent: ShareableContent = {
+      type: 'gut_report',
+      title: 'My Gut Health Report',
+      description: 'Check out my gut health insights from GutSafe!',
+      data: { score: 85, improvement: '+12%' },
+      shareUrl: 'gutsafe://report',
+    };
+    await SharingService.shareWithOptions(shareContent);
+  };
+
+  const handleShareSafeFood = async (safeFood: SafeFood) => {
+    await SharingService.shareSafeFood(safeFood);
   };
 
   // Mock data for progress rings
@@ -250,6 +345,61 @@ const DashboardScreen: React.FC = () => {
         {/* Bottom spacing for navigation */}
         <View style={styles.bottomSpacing} />
       </ScrollView>
+
+      {/* Safe Foods Modal */}
+      <Modal
+        visible={showSafeFoods}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+          <View style={[styles.modalHeader, { backgroundColor: colors.surface }]}>
+            <TouchableOpacity onPress={() => setShowSafeFoods(false)}>
+              <Text style={[styles.modalCloseButton, { color: colors.accent }]}>Done</Text>
+            </TouchableOpacity>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Safe Foods</Text>
+            <TouchableOpacity onPress={handleShareGutHealth}>
+              <Text style={[styles.modalShareButton, { color: colors.accent }]}>Share</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <ScrollView style={styles.modalContent}>
+            {safeFoods.map((safeFood) => (
+              <View key={safeFood.id} style={[styles.safeFoodCard, { backgroundColor: colors.surface }]}>
+                <View style={styles.safeFoodHeader}>
+                  <Text style={[styles.safeFoodName, { color: colors.text }]}>
+                    {safeFood.foodItem.name}
+                  </Text>
+                  <TouchableOpacity onPress={() => handleShareSafeFood(safeFood)}>
+                    <Text style={styles.shareIcon}>📤</Text>
+                  </TouchableOpacity>
+                </View>
+                {safeFood.foodItem.brand && (
+                  <Text style={[styles.safeFoodBrand, { color: colors.textSecondary }]}>
+                    {safeFood.foodItem.brand}
+                  </Text>
+                )}
+                <Text style={[styles.dataSource, { color: colors.textTertiary }]}>
+                  Source: {safeFood.foodItem.dataSource}
+                </Text>
+                <View style={styles.safeFoodStats}>
+                  <Text style={[styles.statText, { color: colors.textSecondary }]}>
+                    Used {safeFood.usageCount} times
+                  </Text>
+                  <Text style={[styles.statText, { color: colors.textSecondary }]}>
+                    FODMAP: {safeFood.foodItem.fodmapLevel}
+                  </Text>
+                </View>
+                {safeFood.notes && (
+                  <Text style={[styles.safeFoodNotes, { color: colors.textSecondary }]}>
+                    💭 {safeFood.notes}
+                  </Text>
+                )}
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -343,6 +493,84 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 100, // Space for bottom navigation
+  },
+  modalContainer: {
+    flex: 1,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 44,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.lg,
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  modalCloseButton: {
+    fontSize: 17,
+    fontWeight: '600',
+  },
+  modalTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+  },
+  modalShareButton: {
+    fontSize: 17,
+    fontWeight: '600',
+  },
+  modalContent: {
+    flex: 1,
+    padding: Spacing.lg,
+  },
+  safeFoodCard: {
+    borderRadius: 12,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  safeFoodHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
+  },
+  safeFoodName: {
+    fontSize: Typography.fontSize.body,
+    fontFamily: Typography.fontFamily.semiBold,
+    flex: 1,
+  },
+  shareIcon: {
+    fontSize: 16,
+  },
+  safeFoodBrand: {
+    fontSize: Typography.fontSize.caption,
+    fontFamily: Typography.fontFamily.regular,
+    marginBottom: 2,
+  },
+  dataSource: {
+    fontSize: Typography.fontSize.caption,
+    fontFamily: Typography.fontFamily.regular,
+    marginBottom: Spacing.sm,
+  },
+  safeFoodStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.xs,
+  },
+  statText: {
+    fontSize: Typography.fontSize.caption,
+    fontFamily: Typography.fontFamily.regular,
+  },
+  safeFoodNotes: {
+    fontSize: Typography.fontSize.caption,
+    fontFamily: Typography.fontFamily.regular,
+    fontStyle: 'italic',
+    marginTop: Spacing.xs,
   },
 });
 

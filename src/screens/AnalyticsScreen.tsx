@@ -20,8 +20,10 @@ import {
   WeeklyProgress, 
   ProgressRing as ProgressRingType,
   TrendAnalysis,
-  ChartDataPoint 
+  ChartDataPoint,
+  ShareableContent
 } from '../types';
+import { SharingService } from '../utils/sharing';
 
 // Mock data - in a real app, this would come from your data store
 const generateMockData = () => {
@@ -102,6 +104,21 @@ const AnalyticsScreen: React.FC = () => {
     setTimeout(() => {
       setRefreshing(false);
     }, 1000);
+  };
+
+  const handleShareAnalytics = async () => {
+    const shareContent: ShareableContent = {
+      type: 'gut_report',
+      title: 'My Gut Health Analytics',
+      description: `Check out my gut health progress! Score: ${Math.round(mockData.last30Days[mockData.last30Days.length - 1].overallScore)}/100`,
+      data: {
+        score: Math.round(mockData.last30Days[mockData.last30Days.length - 1].overallScore),
+        improvement: gutHealthTrend.changePercentage,
+        period: selectedPeriod,
+      },
+      shareUrl: 'gutsafe://analytics',
+    };
+    await SharingService.shareWithOptions(shareContent);
   };
 
   // Process data for charts
@@ -200,10 +217,15 @@ const AnalyticsScreen: React.FC = () => {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.title, { color: colors.text }]}>Analytics</Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          Track your gut health progress
-        </Text>
+        <View>
+          <Text style={[styles.title, { color: colors.text }]}>Analytics</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+            Track your gut health progress
+          </Text>
+        </View>
+        <TouchableOpacity onPress={handleShareAnalytics} style={styles.shareButton}>
+          <Text style={[styles.shareButtonText, { color: colors.accent }]}>Share</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -312,11 +334,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingTop: 44,
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.lg,
     borderBottomWidth: 0.5,
     borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  shareButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  shareButtonText: {
+    fontSize: 17,
+    fontWeight: '600',
   },
   title: {
     fontSize: 34,

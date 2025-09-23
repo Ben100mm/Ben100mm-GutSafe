@@ -7,7 +7,6 @@ import {
   Dimensions,
   useColorScheme,
 } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
@@ -63,31 +62,19 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
   return (
     <View style={styles.container}>
       <View style={[styles.ringContainer, { width: size, height: size }]}>
-        <Svg width={size} height={size} style={styles.svg}>
-          {/* Background circle */}
-          <Circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            stroke={colors.border}
-            strokeWidth={strokeWidth}
-            fill="none"
-            opacity={0.3}
-          />
-          {/* Progress circle */}
-          <Circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            stroke={data.color}
-            strokeWidth={strokeWidth}
-            fill="none"
-            strokeDasharray={strokeDasharray}
-            strokeDashoffset={animated ? animatedStrokeDashoffset : strokeDashoffset}
-            strokeLinecap="round"
-            transform={`rotate(-90 ${size / 2} ${size / 2})`}
-          />
-        </Svg>
+        {/* Simple circular progress using View with border */}
+        <View style={[
+          styles.progressCircle,
+          {
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            borderWidth: strokeWidth,
+            borderColor: colors.border,
+            borderTopColor: data.color,
+            transform: [{ rotate: `${(data.value / 100) * 360}deg` }],
+          }
+        ]} />
         
         {/* Center content */}
         <View style={styles.centerContent}>
@@ -159,7 +146,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  svg: {
+  progressCircle: {
     position: 'absolute',
   },
   centerContent: {

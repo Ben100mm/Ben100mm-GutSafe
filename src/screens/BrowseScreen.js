@@ -91,6 +91,45 @@ const BrowseScreen = () => {
             <h2 className="section-title">Recent Activity</h2>
           </div>
           
+          <div className="activity-item">
+            <div className="activity-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M9.5,6.5V9H6.5V6.5H9.5M11,5H5V10.5H11V5M9.5,13.5V16H6.5V13.5H9.5M11,12H5V17.5H11V12M16.5,6.5V9H13.5V6.5H16.5M18,5H12V10.5H18V5M16.5,13.5V16H13.5V13.5H16.5M18,12H12V17.5H18V12Z"/>
+              </svg>
+            </div>
+            <div className="activity-content">
+              <div className="activity-title">Scanned: Organic Quinoa</div>
+              <div className="activity-time">2 hours ago • Source: Monash FODMAP Database</div>
+            </div>
+            <div className="activity-status safe">Safe</div>
+          </div>
+
+          <div className="activity-item">
+            <div className="activity-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+              </svg>
+            </div>
+            <div className="activity-content">
+              <div className="activity-title">Scanned: Restaurant Menu</div>
+              <div className="activity-time">Yesterday • Source: Restaurant Database</div>
+            </div>
+            <div className="activity-status caution">Caution</div>
+          </div>
+
+          <div className="activity-item">
+            <div className="activity-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
+              </svg>
+            </div>
+            <div className="activity-content">
+              <div className="activity-title">Scanned: Greek Yogurt</div>
+              <div className="activity-time">3 days ago • Source: USDA Food Database</div>
+            </div>
+            <div className="activity-status safe">Safe</div>
+          </div>
+
           <div className="card">
             <div className="card-header">
               <div className="card-title-row">

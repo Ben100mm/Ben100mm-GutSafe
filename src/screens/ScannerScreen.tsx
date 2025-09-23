@@ -164,7 +164,7 @@ export const ScannerScreen: React.FC = () => {
       `Barcode: ${data}\nResult: ${mockResult.toUpperCase()}`,
       [
         { text: 'OK', onPress: () => setScanned(false) },
-        { text: 'View History', onPress: () => navigation.navigate('ScanHistory') }
+        { text: 'View History', onPress: () => (navigation as any).navigate('ScanHistory') }
       ]
     );
   };
@@ -257,7 +257,7 @@ export const ScannerScreen: React.FC = () => {
             </Text>
             <TouchableOpacity
               style={styles.historyButton}
-              onPress={() => navigation.navigate('ScanHistory')}
+              onPress={() => (navigation as any).navigate('ScanHistory')}
             >
               <Text style={styles.historyButtonText}>View Scan History</Text>
             </TouchableOpacity>

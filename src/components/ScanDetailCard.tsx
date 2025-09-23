@@ -43,7 +43,7 @@ export const ScanDetailCard: React.FC<ScanDetailCardProps> = ({
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
   const { foodItem, analysis, timestamp } = scanHistory;
-  const { result, confidence, flaggedIngredients, safeAlternatives, explanation } = analysis;
+  const { result, confidence, flaggedIngredients, safeAlternatives, explanation, dataSource } = analysis;
 
   const getResultConfig = () => {
     switch (result) {
@@ -179,6 +179,9 @@ export const ScanDetailCard: React.FC<ScanDetailCardProps> = ({
             {foodItem.brand}
           </Text>
         )}
+        <Text style={[styles.dataSource, { color: colors.textTertiary }]}>
+          Source: {dataSource}
+        </Text>
       </View>
 
       {/* Expanded Content */}
@@ -365,6 +368,11 @@ const styles = StyleSheet.create({
   brand: {
     fontSize: Typography.fontSize.caption,
     fontFamily: Typography.fontFamily.regular,
+  },
+  dataSource: {
+    fontSize: Typography.fontSize.caption,
+    fontFamily: Typography.fontFamily.regular,
+    marginTop: 2,
   },
   expandedContent: {
     marginTop: Spacing.sm,

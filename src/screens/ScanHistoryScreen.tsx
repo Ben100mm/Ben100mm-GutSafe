@@ -34,6 +34,8 @@ const mockScanHistory: ScanHistory[] = [
       flaggedIngredients: [],
       safeAlternatives: ['Coconut yogurt', 'Almond yogurt'],
       explanation: 'This Greek yogurt is low in histamine and contains probiotics that may benefit gut health. No problematic ingredients detected.',
+      dataSource: 'USDA Food Database',
+      lastUpdated: new Date(Date.now() - 2 * 60 * 60 * 1000),
     },
     timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
     userFeedback: 'accurate',
@@ -65,6 +67,8 @@ const mockScanHistory: ScanHistory[] = [
       ],
       safeAlternatives: ['Sourdough bread', 'Gluten-free bread', 'Rice cakes'],
       explanation: 'This wheat bread contains gluten and fructans that may trigger digestive symptoms in sensitive individuals.',
+      dataSource: 'Monash FODMAP Database',
+      lastUpdated: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
     },
     timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
   },
@@ -96,6 +100,8 @@ const mockScanHistory: ScanHistory[] = [
       ],
       safeAlternatives: ['Fresh mozzarella', 'Cottage cheese', 'Ricotta cheese'],
       explanation: 'This aged cheddar cheese contains very high levels of histamine and tyramine, which can trigger severe reactions in sensitive individuals.',
+      dataSource: 'Histamine Intolerance Database',
+      lastUpdated: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
     },
     timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
   },
@@ -113,6 +119,8 @@ const mockScanHistory: ScanHistory[] = [
       flaggedIngredients: [],
       safeAlternatives: ['Green banana', 'Plantain'],
       explanation: 'Bananas are generally well-tolerated and contain prebiotic fiber that supports gut health. Choose slightly green bananas for lower sugar content.',
+      dataSource: 'FODMAP Database',
+      lastUpdated: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
     },
     timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
   },
@@ -149,6 +157,8 @@ const mockScanHistory: ScanHistory[] = [
       ],
       safeAlternatives: ['Green tea', 'Herbal tea', 'Coconut water'],
       explanation: 'This energy drink contains high levels of caffeine and artificial ingredients that may irritate the digestive system.',
+      dataSource: 'Caffeine Database',
+      lastUpdated: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
     },
     timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 1 week ago
   },
@@ -180,7 +190,7 @@ export const ScanHistoryScreen: React.FC = () => {
 
   const handleCardPress = (scanId: string) => {
     // Navigate to detailed view
-    navigation.navigate('ScanDetail', { scanId });
+    (navigation as any).navigate('ScanDetail', { scanId });
   };
 
   const handleCardExpand = (scanId: string) => {
@@ -215,7 +225,12 @@ export const ScanHistoryScreen: React.FC = () => {
           <Text style={[styles.backButtonText, { color: colors.accent }]}>‹ Back</Text>
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>Scan History</Text>
-        <View style={styles.headerRight} />
+        <TouchableOpacity
+          style={styles.safeFoodsButton}
+          onPress={() => (navigation as any).navigate('SafeFoods')}
+        >
+          <Text style={[styles.safeFoodsButtonText, { color: colors.accent }]}>Safe Foods</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Stats Summary */}
@@ -333,8 +348,12 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.h2,
     fontFamily: Typography.fontFamily.bold,
   },
-  headerRight: {
-    width: 60, // Balance the back button
+  safeFoodsButton: {
+    padding: Spacing.xs,
+  },
+  safeFoodsButtonText: {
+    fontSize: Typography.fontSize.body,
+    fontFamily: Typography.fontFamily.semiBold,
   },
   statsContainer: {
     marginHorizontal: Spacing.lg,

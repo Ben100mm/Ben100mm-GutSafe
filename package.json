@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "ajv": "^8.17.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-native-svg": "^15.13.0",
     "react-scripts": "5.0.1",
-    "victory-native": "^41.20.1"
+    "typescript": "^5.9.2"
   },
   "scripts": {
     "start": "PORT=9001 react-scripts start",

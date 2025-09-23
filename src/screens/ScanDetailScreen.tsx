@@ -8,7 +8,6 @@ import {
   StatusBar,
   useColorScheme,
   Animated,
-  Share,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,6 +17,7 @@ import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
 import { ScanHistory, ScanResult, SeverityLevel, GutCondition } from '../types';
+import { SharingService } from '../utils/sharing';
 
 type ScanDetailRouteParams = {
   ScanDetail: {
@@ -44,6 +44,8 @@ const mockScanData: { [key: string]: ScanHistory } = {
       flaggedIngredients: [],
       safeAlternatives: ['Coconut yogurt', 'Almond yogurt'],
       explanation: 'This Greek yogurt is low in histamine and contains probiotics that may benefit gut health. No problematic ingredients detected.',
+      dataSource: 'USDA Food Database',
+      lastUpdated: new Date(Date.now() - 2 * 60 * 60 * 1000),
     },
     timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
     userFeedback: 'accurate',
@@ -75,6 +77,8 @@ const mockScanData: { [key: string]: ScanHistory } = {
       ],
       safeAlternatives: ['Sourdough bread', 'Gluten-free bread', 'Rice cakes'],
       explanation: 'This wheat bread contains gluten and fructans that may trigger digestive symptoms in sensitive individuals.',
+      dataSource: 'Monash FODMAP Database',
+      lastUpdated: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
     },
     timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
   },
@@ -106,6 +110,8 @@ const mockScanData: { [key: string]: ScanHistory } = {
       ],
       safeAlternatives: ['Fresh mozzarella', 'Cottage cheese', 'Ricotta cheese'],
       explanation: 'This aged cheddar cheese contains very high levels of histamine and tyramine, which can trigger severe reactions in sensitive individuals.',
+      dataSource: 'Histamine Intolerance Database',
+      lastUpdated: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
     },
     timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
   },
@@ -218,17 +224,37 @@ export const ScanDetailScreen: React.FC = () => {
 
   const handleShare = async () => {
     if (!scanData) return;
+    await SharingService.shareScanResult(scanData);
+  };
 
-    const shareContent = {
-      message: `GutSafe Scan Result: ${scanData.foodItem.name} - ${getResultConfig()?.title}`,
-      url: `gutsafe://scan/${scanId}`,
-    };
+  const handleShareWithOptions = async () => {
+    if (!scanData) return;
+    await SharingService.shareWithOptions({
+      type: 'scan_result',
+      title: `GutSafe Scan: ${scanData.foodItem.name}`,
+      description: `Scan result: ${scanData.analysis.result.toUpperCase()}`,
+      data: scanData,
+      shareUrl: `gutsafe://scan/${scanId}`,
+    });
+  };
 
-    try {
-      await Share.share(shareContent);
-    } catch (error) {
-      console.error('Error sharing:', error);
-    }
+  const handleAddToSafeFoods = () => {
+    if (!scanData) return;
+    
+    Alert.alert(
+      'Add to Safe Foods',
+      `Add "${scanData.foodItem.name}" to your safe foods list?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Add',
+          onPress: () => {
+            // In real app, this would save to backend
+            Alert.alert('Success', 'Added to safe foods!');
+          },
+        },
+      ]
+    );
   };
 
   const handleFeedback = (feedback: 'accurate' | 'inaccurate') => {
@@ -268,9 +294,14 @@ export const ScanDetailScreen: React.FC = () => {
         >
           <Text style={[styles.backButtonText, { color: colors.accent }]}>‹ Back</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
-          <Text style={[styles.shareButtonText, { color: colors.accent }]}>Share</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity style={styles.actionButton} onPress={handleAddToSafeFoods}>
+            <Text style={[styles.actionButtonText, { color: colors.accent }]}>+ Safe</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton} onPress={handleShareWithOptions}>
+            <Text style={[styles.actionButtonText, { color: colors.accent }]}>Share</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
@@ -376,6 +407,26 @@ export const ScanDetailScreen: React.FC = () => {
               </View>
             </View>
           )}
+
+          {/* Data Source Information */}
+          <View style={[styles.section, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Data Source
+            </Text>
+            <View style={styles.dataSourceContainer}>
+              <View style={styles.dataSourceInfo}>
+                <Text style={[styles.dataSourceName, { color: colors.text }]}>
+                  {analysis.dataSource}
+                </Text>
+                <Text style={[styles.dataSourceDescription, { color: colors.textSecondary }]}>
+                  Last updated: {analysis.lastUpdated.toLocaleDateString()}
+                </Text>
+              </View>
+              <View style={styles.dataSourceIcon}>
+                <Text style={styles.dataSourceIconText}>📊</Text>
+              </View>
+            </View>
+          </View>
 
           {/* Food Details */}
           <View style={[styles.section, { backgroundColor: colors.surface }]}>
@@ -497,10 +548,14 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.body,
     fontFamily: Typography.fontFamily.semiBold,
   },
-  shareButton: {
+  headerActions: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  actionButton: {
     padding: Spacing.xs,
   },
-  shareButtonText: {
+  actionButtonText: {
     fontSize: Typography.fontSize.body,
     fontFamily: Typography.fontFamily.semiBold,
   },
@@ -676,5 +731,28 @@ const styles = StyleSheet.create({
   feedbackButtonText: {
     fontSize: Typography.fontSize.body,
     fontFamily: Typography.fontFamily.semiBold,
+  },
+  dataSourceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dataSourceInfo: {
+    flex: 1,
+  },
+  dataSourceName: {
+    fontSize: Typography.fontSize.body,
+    fontFamily: Typography.fontFamily.semiBold,
+    marginBottom: 2,
+  },
+  dataSourceDescription: {
+    fontSize: Typography.fontSize.caption,
+    fontFamily: Typography.fontFamily.regular,
+  },
+  dataSourceIcon: {
+    marginLeft: Spacing.md,
+  },
+  dataSourceIconText: {
+    fontSize: 24,
   },
 });

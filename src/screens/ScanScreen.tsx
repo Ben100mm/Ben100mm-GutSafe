@@ -21,7 +21,7 @@ export const ScanScreen: React.FC = () => {
   const colors = isDark ? Colors.dark : Colors.light;
 
   const handleBarcodeScan = () => {
-    navigation.navigate('Scanner' as never);
+    (navigation as any).navigate('Scanner');
   };
 
   const handleMenuScan = () => {
@@ -32,6 +32,14 @@ export const ScanScreen: React.FC = () => {
   const handleRecipeScan = () => {
     // TODO: Implement recipe scanning
     console.log('Recipe scan pressed');
+  };
+
+  const handleRecentScans = () => {
+    (navigation as any).navigate('ScanHistory');
+  };
+
+  const handleSafeFoods = () => {
+    (navigation as any).navigate('SafeFoods');
   };
 
   return (
@@ -123,14 +131,14 @@ export const ScanScreen: React.FC = () => {
           <View style={styles.actionButtons}>
             <AnimatedButton
               title="Recent Scans"
-              onPress={() => console.log('Recent scans')}
+              onPress={handleRecentScans}
               variant="outline"
               size="medium"
               style={styles.actionButton}
             />
             <AnimatedButton
-              title="Favorites"
-              onPress={() => console.log('Favorites')}
+              title="Safe Foods"
+              onPress={handleSafeFoods}
               variant="outline"
               size="medium"
               style={styles.actionButton}

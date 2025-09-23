@@ -106,7 +106,7 @@ export const BrowseScreen: React.FC = () => {
                   Scanned: Organic Quinoa
                 </Text>
                 <Text style={[styles.activityTime, { color: colors.textSecondary }]}>
-                  2 hours ago
+                  2 hours ago • Source: Monash FODMAP Database
                 </Text>
               </View>
               <Text style={[styles.activityStatus, { color: Colors.safe }]}>
@@ -121,11 +121,26 @@ export const BrowseScreen: React.FC = () => {
                   Scanned: Restaurant Menu
                 </Text>
                 <Text style={[styles.activityTime, { color: colors.textSecondary }]}>
-                  Yesterday
+                  Yesterday • Source: Restaurant Database
                 </Text>
               </View>
               <Text style={[styles.activityStatus, { color: Colors.caution }]}>
                 Caution
+              </Text>
+            </View>
+
+            <View style={styles.activityItem}>
+              <Text style={styles.activityIcon}>🥛</Text>
+              <View style={styles.activityContent}>
+                <Text style={[styles.activityTitle, { color: colors.text }]}>
+                  Scanned: Greek Yogurt
+                </Text>
+                <Text style={[styles.activityTime, { color: colors.textSecondary }]}>
+                  3 days ago • Source: USDA Food Database
+                </Text>
+              </View>
+              <Text style={[styles.activityStatus, { color: Colors.safe }]}>
+                Safe
               </Text>
             </View>
           </View>

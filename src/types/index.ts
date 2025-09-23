@@ -35,6 +35,7 @@ export interface FoodItem {
   name: string;
   barcode?: string;
   brand?: string;
+  category?: string;
   ingredients: string[];
   allergens: string[];
   additives: string[];
@@ -42,6 +43,9 @@ export interface FoodItem {
   glutenFree: boolean;
   lactoseFree: boolean;
   histamineLevel?: 'low' | 'moderate' | 'high';
+  dataSource?: string;
+  isSafeFood?: boolean;
+  addedToSafeFoods?: Date;
 }
 
 export interface ScanAnalysis {
@@ -55,6 +59,8 @@ export interface ScanAnalysis {
   }[];
   safeAlternatives: string[];
   explanation: string;
+  dataSource: string;
+  lastUpdated: Date;
 }
 
 export interface ScanHistory {
@@ -63,6 +69,24 @@ export interface ScanHistory {
   analysis: ScanAnalysis;
   timestamp: Date;
   userFeedback?: 'accurate' | 'inaccurate';
+}
+
+export interface SafeFood {
+  id: string;
+  foodItem: FoodItem;
+  addedDate: Date;
+  lastUsed?: Date;
+  usageCount: number;
+  notes?: string;
+}
+
+export interface ShareableContent {
+  type: 'scan_result' | 'gut_report' | 'safe_food';
+  title: string;
+  description: string;
+  imageUrl?: string;
+  data: any;
+  shareUrl?: string;
 }
 
 export type OnboardingStep = 
