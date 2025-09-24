@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    alignItems: 'space-between',
+    alignItems: 'center',
   },
   gridDot: {
     width: 6,

@@ -53,7 +53,7 @@ export const SummaryScreen: React.FC = () => {
             unit="today"
             icon="scan"
             color={colors.accent}
-            onPress={() => navigation.navigate('ScanHistory')}
+            onPress={() => (navigation as any).navigate('ScanHistory')}
           />
           <HealthCard
             title="Safe Foods"

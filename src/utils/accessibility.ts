@@ -1,10 +1,10 @@
-import { AccessibilityInfo, Platform } from 'react-native';
+import { AccessibilityInfo, Platform, AccessibilityRole } from 'react-native';
 
 export interface AccessibilityConfig {
   accessible?: boolean;
   accessibilityLabel?: string;
   accessibilityHint?: string;
-  accessibilityRole?: string;
+  accessibilityRole?: AccessibilityRole;
   accessibilityState?: {
     disabled?: boolean;
     selected?: boolean;
@@ -383,6 +383,321 @@ export class AccessibilityService {
       return baseColor === '#000000' ? '#FFFFFF' : '#000000';
     }
     return baseColor;
+  }
+
+  /**
+   * Check if color combination meets WCAG AA contrast requirements
+   */
+  static checkColorContrast(foreground: string, background: string): {
+    ratio: number;
+    meetsAA: boolean;
+    meetsAAA: boolean;
+  } {
+    // Simplified contrast calculation - in a real app, use a proper color contrast library
+    const getLuminance = (color: string): number => {
+      const hex = color.replace('#', '');
+      const r = parseInt(hex.substr(0, 2), 16) / 255;
+      const g = parseInt(hex.substr(2, 2), 16) / 255;
+      const b = parseInt(hex.substr(4, 2), 16) / 255;
+      
+      const [rs, gs, bs] = [r, g, b].map(c => 
+        c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+      );
+      
+      return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+    };
+
+    const lum1 = getLuminance(foreground);
+    const lum2 = getLuminance(background);
+    const brightest = Math.max(lum1, lum2);
+    const darkest = Math.min(lum1, lum2);
+    const ratio = (brightest + 0.05) / (darkest + 0.05);
+
+    return {
+      ratio: Math.round(ratio * 100) / 100,
+      meetsAA: ratio >= 4.5,
+      meetsAAA: ratio >= 7,
+    };
+  }
+
+  /**
+   * Get accessible font size based on user preferences
+   */
+  static getAccessibleFontSize(baseSize: number, isLargeText: boolean = false): number {
+    if (isLargeText || this.isBoldTextActive()) {
+      return Math.max(baseSize * 1.2, 16); // Minimum 16px for accessibility
+    }
+    return Math.max(baseSize, 12); // Minimum 12px
+  }
+
+  /**
+   * Create accessibility config for modal dialogs
+   */
+  static createModalConfig(
+    title: string,
+    isVisible: boolean,
+    onClose?: () => void
+  ): AccessibilityConfig {
+    return {
+      accessible: true,
+      accessibilityRole: 'dialog',
+      accessibilityLabel: title,
+      accessibilityHint: isVisible ? 'Modal dialog is open' : 'Modal dialog is closed',
+      accessibilityState: {
+        expanded: isVisible,
+      },
+      accessibilityActions: onClose ? [
+        {
+          name: 'close',
+          label: 'Close dialog',
+        },
+      ] : undefined,
+      onAccessibilityAction: onClose ? (event) => {
+        if (event.nativeEvent.actionName === 'close') {
+          onClose();
+        }
+      } : undefined,
+      testID: `modal-${title.toLowerCase().replace(/\s+/g, '-')}`,
+    };
+  }
+
+  /**
+   * Create accessibility config for search inputs
+   */
+  static createSearchConfig(
+    label: string,
+    placeholder?: string,
+    resultsCount?: number
+  ): AccessibilityConfig {
+    const hint = resultsCount !== undefined 
+      ? `Search ${label}. ${resultsCount} results found.`
+      : `Search ${label}`;
+    
+    return {
+      accessible: true,
+      accessibilityRole: 'search',
+      accessibilityLabel: label,
+      accessibilityHint: hint,
+      accessibilityPlaceholder: placeholder,
+      testID: `search-${label.toLowerCase().replace(/\s+/g, '-')}`,
+    };
+  }
+
+  /**
+   * Create accessibility config for navigation landmarks
+   */
+  static createLandmarkConfig(
+    type: 'main' | 'navigation' | 'banner' | 'contentinfo' | 'complementary',
+    label: string
+  ): AccessibilityConfig {
+    const roleMap = {
+      main: 'main',
+      navigation: 'navigation',
+      banner: 'banner',
+      contentinfo: 'contentinfo',
+      complementary: 'complementary',
+    };
+
+    return {
+      accessible: true,
+      accessibilityRole: roleMap[type] as any,
+      accessibilityLabel: label,
+      testID: `landmark-${type}-${label.toLowerCase().replace(/\s+/g, '-')}`,
+    };
+  }
+
+  /**
+   * Create accessibility config for form fields
+   */
+  static createFormFieldConfig(
+    label: string,
+    type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url',
+    required: boolean = false,
+    error?: string,
+    hint?: string
+  ): AccessibilityConfig {
+    const accessibilityLabel = required ? `${label} (required)` : label;
+    const accessibilityHint = error ? `${hint || ''} Error: ${error}` : hint;
+    
+    return {
+      accessible: true,
+      accessibilityRole: 'text',
+      accessibilityLabel,
+      accessibilityHint,
+      accessibilityState: {
+        disabled: !!error,
+      },
+      testID: `form-field-${label.toLowerCase().replace(/\s+/g, '-')}`,
+    };
+  }
+
+  /**
+   * Create accessibility config for loading states
+   */
+  static createLoadingConfig(
+    label: string,
+    progress?: number
+  ): AccessibilityConfig {
+    const hint = progress !== undefined 
+      ? `Loading ${label}, ${progress}% complete`
+      : `Loading ${label}`;
+    
+    return {
+      accessible: true,
+      accessibilityRole: 'progressbar',
+      accessibilityLabel: label,
+      accessibilityHint: hint,
+      accessibilityState: {
+        busy: true,
+      },
+      accessibilityValue: progress !== undefined ? {
+        min: 0,
+        max: 100,
+        now: progress,
+        text: `${progress}% complete`,
+      } : undefined,
+      testID: `loading-${label.toLowerCase().replace(/\s+/g, '-')}`,
+    };
+  }
+
+  /**
+   * Create accessibility config for error messages
+   */
+  static createErrorConfig(
+    message: string,
+    field?: string
+  ): AccessibilityConfig {
+    const label = field ? `Error in ${field}: ${message}` : `Error: ${message}`;
+    
+    return {
+      accessible: true,
+      accessibilityRole: 'alert',
+      accessibilityLabel: label,
+      testID: `error-${field ? field.toLowerCase().replace(/\s+/g, '-') : 'general'}`,
+    };
+  }
+
+  /**
+   * Create accessibility config for success messages
+   */
+  static createSuccessConfig(
+    message: string,
+    field?: string
+  ): AccessibilityConfig {
+    const label = field ? `Success in ${field}: ${message}` : `Success: ${message}`;
+    
+    return {
+      accessible: true,
+      accessibilityRole: 'text',
+      accessibilityLabel: label,
+      testID: `success-${field ? field.toLowerCase().replace(/\s+/g, '-') : 'general'}`,
+    };
+  }
+
+  /**
+   * Create accessibility config for skip links
+   */
+  static createSkipLinkConfig(
+    target: string,
+    label: string = `Skip to ${target}`
+  ): AccessibilityConfig {
+    return {
+      accessible: true,
+      accessibilityRole: 'button',
+      accessibilityLabel: label,
+      accessibilityHint: `Skip to ${target} section`,
+      testID: `skip-link-${target.toLowerCase().replace(/\s+/g, '-')}`,
+    };
+  }
+
+  /**
+   * Create accessibility config for breadcrumbs
+   */
+  static createBreadcrumbConfig(
+    items: string[],
+    currentIndex: number
+  ): AccessibilityConfig {
+    const breadcrumbText = items.join(', ');
+    const currentItem = items[currentIndex];
+    
+    return {
+      accessible: true,
+      accessibilityRole: 'navigation',
+      accessibilityLabel: `Breadcrumb navigation: ${breadcrumbText}`,
+      accessibilityHint: `Currently on ${currentItem}`,
+      testID: 'breadcrumb-navigation',
+    };
+  }
+
+  /**
+   * Create accessibility config for pagination
+   */
+  static createPaginationConfig(
+    currentPage: number,
+    totalPages: number,
+    onPageChange?: (page: number) => void
+  ): AccessibilityConfig {
+    const label = `Page ${currentPage} of ${totalPages}`;
+    const hint = totalPages > 1 ? 'Navigate between pages' : 'Single page';
+    
+    return {
+      accessible: true,
+      accessibilityRole: 'navigation',
+      accessibilityLabel: label,
+      accessibilityHint: hint,
+      accessibilityValue: {
+        min: 1,
+        max: totalPages,
+        now: currentPage,
+        text: `Page ${currentPage} of ${totalPages}`,
+      },
+      testID: 'pagination-navigation',
+    };
+  }
+
+  /**
+   * Get accessibility-friendly spacing
+   */
+  static getAccessibleSpacing(baseSpacing: number): number {
+    // Ensure minimum touch target size of 44x44 points
+    return Math.max(baseSpacing, 11); // 11 points minimum for 44pt touch target
+  }
+
+  /**
+   * Create accessibility config for data tables
+   */
+  static createTableConfig(
+    title: string,
+    rowCount: number,
+    columnCount: number
+  ): AccessibilityConfig {
+    return {
+      accessible: true,
+      accessibilityRole: 'table',
+      accessibilityLabel: `${title}, ${rowCount} rows, ${columnCount} columns`,
+      testID: `table-${title.toLowerCase().replace(/\s+/g, '-')}`,
+    };
+  }
+
+  /**
+   * Create accessibility config for table cells
+   */
+  static createTableCellConfig(
+    content: string,
+    row: number,
+    column: number,
+    isHeader: boolean = false
+  ): AccessibilityConfig {
+    const role = isHeader ? 'header' : 'cell';
+    const label = isHeader ? `${content} (header)` : content;
+    
+    return {
+      accessible: true,
+      accessibilityRole: role,
+      accessibilityLabel: label,
+      accessibilityHint: `Row ${row}, Column ${column}`,
+      testID: `table-${role}-${row}-${column}`,
+    };
   }
 
   // Event handlers

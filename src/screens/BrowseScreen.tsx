@@ -128,7 +128,7 @@ export const BrowseScreen: React.FC = () => {
                 HapticFeedback.buttonPress();
                 console.log(`${category.title} pressed`);
               }}
-              style={[styles.categoryCard, { backgroundColor: colors.surface }]}
+              style={[styles.categoryCard, { backgroundColor: colors.surface }] as any}
             >
               <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
                 <Text style={styles.categoryIconText}>{category.icon}</Text>

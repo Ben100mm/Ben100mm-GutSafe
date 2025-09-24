@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-web-linear-gradient';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
@@ -32,16 +32,23 @@ const mockScanData: { [key: string]: ScanHistory } = {
   '1': {
     id: '1',
     foodItem: {
+      id: '1',
       name: 'Greek Yogurt',
       brand: 'Chobani',
       category: 'Dairy',
       barcode: '1234567890123',
+      ingredients: ['Milk', 'Live cultures'],
+      allergens: ['Milk'],
+      additives: [],
+      glutenFree: true,
+      lactoseFree: false,
       histamineLevel: 'low',
+      dataSource: 'USDA Database',
     },
     analysis: {
-      result: 'safe' as ScanResult,
-      confidence: 0.92,
+      overallSafety: 'safe' as ScanResult,
       flaggedIngredients: [],
+      conditionWarnings: [],
       safeAlternatives: ['Coconut yogurt', 'Almond yogurt'],
       explanation: 'This Greek yogurt is low in histamine and contains probiotics that may benefit gut health. No problematic ingredients detected.',
       dataSource: 'USDA Food Database',
@@ -53,26 +60,40 @@ const mockScanData: { [key: string]: ScanHistory } = {
   '2': {
     id: '2',
     foodItem: {
+      id: '2',
       name: 'Wheat Bread',
       brand: 'Wonder',
       category: 'Bakery',
       barcode: '1234567890124',
+      ingredients: ['Wheat flour', 'Water', 'Yeast', 'Salt'],
+      allergens: ['Wheat', 'Gluten'],
+      additives: [],
+      glutenFree: false,
+      lactoseFree: true,
+      histamineLevel: 'low',
+      dataSource: 'Product Database',
     },
     analysis: {
-      result: 'caution' as ScanResult,
-      confidence: 0.78,
+      overallSafety: 'caution' as ScanResult,
       flaggedIngredients: [
         {
           ingredient: 'Wheat',
           reason: 'Contains gluten which may trigger IBS symptoms',
           severity: 'moderate' as SeverityLevel,
-          condition: 'IBS' as GutCondition,
+          condition: 'gluten' as GutCondition,
         },
         {
           ingredient: 'Fructans',
           reason: 'High FODMAP content may cause bloating',
           severity: 'mild' as SeverityLevel,
-          condition: 'FODMAP sensitivity' as GutCondition,
+          condition: 'ibs-fodmap' as GutCondition,
+        },
+      ],
+      conditionWarnings: [
+        {
+          ingredient: 'Wheat',
+          severity: 'moderate' as SeverityLevel,
+          condition: 'gluten' as GutCondition,
         },
       ],
       safeAlternatives: ['Sourdough bread', 'Gluten-free bread', 'Rice cakes'],
@@ -85,27 +106,40 @@ const mockScanData: { [key: string]: ScanHistory } = {
   '3': {
     id: '3',
     foodItem: {
+      id: '3',
       name: 'Aged Cheddar Cheese',
       brand: 'Cabot',
       category: 'Dairy',
       barcode: '1234567890125',
+      ingredients: ['Milk', 'Salt', 'Enzymes', 'Annatto'],
+      allergens: ['Milk'],
+      additives: ['Annatto'],
+      glutenFree: true,
+      lactoseFree: false,
       histamineLevel: 'high',
+      dataSource: 'USDA Database',
     },
     analysis: {
-      result: 'avoid' as ScanResult,
-      confidence: 0.95,
+      overallSafety: 'avoid' as ScanResult,
       flaggedIngredients: [
         {
           ingredient: 'Histamine',
           reason: 'Aged cheese contains high levels of histamine',
           severity: 'severe' as SeverityLevel,
-          condition: 'Histamine intolerance' as GutCondition,
+          condition: 'histamine' as GutCondition,
         },
         {
           ingredient: 'Tyramine',
           reason: 'May cause headaches and digestive issues',
           severity: 'moderate' as SeverityLevel,
-          condition: 'Tyramine sensitivity' as GutCondition,
+          condition: 'histamine' as GutCondition,
+        },
+      ],
+      conditionWarnings: [
+        {
+          ingredient: 'Histamine',
+          severity: 'severe' as SeverityLevel,
+          condition: 'histamine' as GutCondition,
         },
       ],
       safeAlternatives: ['Fresh mozzarella', 'Cottage cheese', 'Ricotta cheese'],
@@ -161,7 +195,7 @@ export const ScanDetailScreen: React.FC = () => {
   const getResultConfig = () => {
     if (!scanData) return null;
     
-    switch (scanData.analysis.result) {
+    switch (scanData.analysis.overallSafety) {
       case 'safe':
         return {
           color: Colors.safe,
@@ -232,7 +266,7 @@ export const ScanDetailScreen: React.FC = () => {
     await SharingService.shareWithOptions({
       type: 'scan_result',
       title: `GutSafe Scan: ${scanData.foodItem.name}`,
-      description: `Scan result: ${scanData.analysis.result.toUpperCase()}`,
+      description: `Scan result: ${scanData.analysis.overallSafety.toUpperCase()}`,
       data: scanData,
       shareUrl: `gutsafe://scan/${scanId}`,
     });
@@ -320,7 +354,7 @@ export const ScanDetailScreen: React.FC = () => {
         >
           {/* Result Header */}
           <LinearGradient
-            colors={resultConfig.gradient}
+            colors={resultConfig.gradient as any}
             style={styles.resultHeader}
           >
             <View style={styles.resultHeaderContent}>

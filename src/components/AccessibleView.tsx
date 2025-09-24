@@ -8,6 +8,7 @@ import {
   TextStyle,
   Animated,
   AccessibilityInfo,
+  AccessibilityRole,
 } from 'react-native';
 import { useColorScheme } from 'react-native';
 import { Colors } from '../constants/colors';
@@ -22,7 +23,7 @@ interface AccessibleViewProps {
   style?: ViewStyle;
   accessibilityLabel?: string;
   accessibilityHint?: string;
-  accessibilityRole?: string;
+  accessibilityRole?: AccessibilityRole;
   onPress?: () => void;
   disabled?: boolean;
   selected?: boolean;

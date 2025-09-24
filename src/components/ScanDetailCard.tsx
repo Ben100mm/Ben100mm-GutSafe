@@ -43,10 +43,10 @@ export const ScanDetailCard: React.FC<ScanDetailCardProps> = ({
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
   const { foodItem, analysis, timestamp } = scanHistory;
-  const { result, confidence, flaggedIngredients, safeAlternatives, explanation, dataSource } = analysis;
+  const { overallSafety, flaggedIngredients, safeAlternatives, explanation, dataSource } = analysis;
 
   const getResultConfig = () => {
-    switch (result) {
+    switch (overallSafety) {
       case 'safe':
         return {
           color: Colors.safe,
@@ -121,6 +121,10 @@ export const ScanDetailCard: React.FC<ScanDetailCardProps> = ({
   };
 
   const resultConfig = getResultConfig();
+  
+  if (!resultConfig) {
+    return null;
+  }
   const chevronRotation = rotateAnim.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '90deg'],
@@ -168,10 +172,10 @@ export const ScanDetailCard: React.FC<ScanDetailCardProps> = ({
       <View style={styles.basicInfo}>
         <View style={styles.confidenceRow}>
           <Text style={[styles.confidenceLabel, { color: colors.textSecondary }]}>
-            Confidence
+            Data Source
           </Text>
-          <Text style={[styles.confidenceValue, { color: resultConfig.color }]}>
-            {Math.round(confidence * 100)}%
+          <Text style={[styles.confidenceValue, { color: colors.text }]}>
+            {dataSource}
           </Text>
         </View>
         {foodItem.brand && (
@@ -294,11 +298,15 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
     borderRadius: 12,
     padding: Spacing.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+    } : {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    }),
   },
   header: {
     flexDirection: 'row',

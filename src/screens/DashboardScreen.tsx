@@ -197,7 +197,7 @@ const DashboardScreen: React.FC = () => {
             variant="glass"
             enable3D={true}
             enableHover={true}
-            hapticType={"light"}
+            hapticType={HapticType.LIGHT}
             accessibilityLabel="Today's Progress Rings"
             accessibilityHint="View your daily progress metrics"
           >
@@ -220,7 +220,7 @@ const DashboardScreen: React.FC = () => {
             variant="solid"
             enable3D={true}
             enableHover={true}
-            hapticType={"light"}
+            hapticType={HapticType.LIGHT}
             accessibilityLabel="Recent Scans Card"
             accessibilityHint="View your recent food scans"
             onPress={() => handleCardPress('Recent Scans')}
@@ -238,7 +238,7 @@ const DashboardScreen: React.FC = () => {
             variant="solid"
             enable3D={true}
             enableHover={true}
-            hapticType={"light"}
+            hapticType={HapticType.LIGHT}
             accessibilityLabel="Safe Foods Card"
             accessibilityHint="View your safe foods list"
             onPress={() => handleCardPress('Safe Foods')}
@@ -259,7 +259,7 @@ const DashboardScreen: React.FC = () => {
           variant="gradient"
           enable3D={true}
           enableHover={true}
-          hapticType={"light"}
+          hapticType={HapticType.LIGHT}
           accessibilityLabel="Gut Health Trend Chart"
           accessibilityHint="View your weekly gut health progress"
         >
@@ -475,11 +475,15 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 5,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: `0 4px 12px ${Colors.primary}4D`,
+    } : {
+      shadowColor: Colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 12,
+      elevation: 5,
+    }),
   },
   profileButtonText: {
     color: Colors.white,
@@ -497,11 +501,15 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xl,
     borderRadius: 16,
     padding: Spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 3,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+    } : {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.08,
+      shadowRadius: 20,
+      elevation: 3,
+    }),
   },
   showAllContent: {
     flexDirection: 'row',
@@ -515,11 +523,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Spacing.md,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 4,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: `0 4px 12px ${Colors.primary}4D`,
+    } : {
+      shadowColor: Colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 12,
+      elevation: 4,
+    }),
   },
   showAllIconText: {
     color: Colors.white,
@@ -580,11 +592,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: Spacing.md,
     marginBottom: Spacing.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+    } : {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    }),
   },
   safeFoodHeader: {
     flexDirection: 'row',

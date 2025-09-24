@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useColorScheme, Animated } from 'react-native';
+import { useColorScheme, Animated, Platform } from 'react-native';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
@@ -19,6 +19,7 @@ import { ScanDetailScreen } from '../screens/ScanDetailScreen';
 import { SafeFoodsScreen } from '../screens/SafeFoodsScreen';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
 import { GutProfileScreen } from '../screens/GutProfileScreen';
+import { OnboardingScreen } from '../screens/OnboardingScreen';
 
 // Tab Icons
 import { TabIcon } from '../components/TabIcon';
@@ -40,6 +41,7 @@ const ScanStack = () => (
     <Stack.Screen name="ScanDetail" component={ScanDetailScreen} />
     <Stack.Screen name="SafeFoods" component={SafeFoodsScreen} />
     <Stack.Screen name="GutProfile" component={GutProfileScreen} />
+    <Stack.Screen name="Onboarding" component={OnboardingScreen} />
   </Stack.Navigator>
 );
 
@@ -70,11 +72,15 @@ const MainTabs = () => {
           paddingTop: Spacing.sm,
           height: 88,
           ...(isDark ? {
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: -2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 8,
-            elevation: 8,
+            ...(Platform.OS === 'web' ? {
+              boxShadow: '0 -2px 8px rgba(0, 0, 0, 0.1)',
+            } : {
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: -2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 8,
+              elevation: 8,
+            }),
           } : {}),
         },
         tabBarLabelStyle: {

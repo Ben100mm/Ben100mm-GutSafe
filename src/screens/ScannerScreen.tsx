@@ -8,9 +8,11 @@ import {
   Alert,
   Animated,
   useColorScheme,
+  Modal,
+  Platform,
 } from 'react-native';
 import { Camera, CameraType } from 'expo-camera';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-web-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
 import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../constants/colors';
@@ -19,11 +21,14 @@ import { Spacing, BorderRadius } from '../constants/spacing';
 import { AnimatedButton } from '../components/AnimatedButton';
 import { GlassmorphicCard } from '../components/GlassmorphicCard';
 import { StatusIndicator } from '../components/StatusIndicator';
+import { OfflineScanner } from '../components/OfflineScanner';
 import { HapticFeedback, HapticType } from '../utils/haptics';
 import { AnimationPresets, TransformUtils, AnimationUtils } from '../utils/animations';
 import AccessibilityService from '../utils/accessibility';
 import { ScanResult, ScanHistory, ScanAnalysis, FoodItem, GutCondition, SeverityLevel } from '../types';
 import DataService from '../services/DataService';
+import OfflineService from '../services/OfflineService';
+import NetworkService from '../services/NetworkService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -37,7 +42,13 @@ export const ScannerScreen: React.FC = () => {
   const [scanned, setScanned] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [scanHistory, setScanHistory] = useState<ScanHistory[]>([]);
+  const [isOnline, setIsOnline] = useState(true);
+  const [showOfflineScanner, setShowOfflineScanner] = useState(false);
+  const [networkQuality, setNetworkQuality] = useState(0);
+  
   const dataService = DataService.getInstance();
+  const offlineService = OfflineService.getInstance();
+  const networkService = NetworkService.getInstance();
   
   const scanLineAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -49,9 +60,30 @@ export const ScannerScreen: React.FC = () => {
     // Initialize accessibility
     AccessibilityService.initialize();
     
-    // Initialize data service and load scan history
+    // Initialize services
     dataService.initialize();
+    offlineService.initialize();
+    
+    // Load scan history
     setScanHistory(dataService.getScanHistory());
+    
+    // Check network status
+    const updateNetworkStatus = async () => {
+      const online = networkService.isOnline();
+      const quality = await networkService.getNetworkQuality();
+      setIsOnline(online);
+      setNetworkQuality(quality.score);
+    };
+
+    updateNetworkStatus();
+    
+    // Listen for network changes
+    const handleNetworkChange = () => {
+      updateNetworkStatus();
+    };
+
+    networkService.on('online', handleNetworkChange);
+    networkService.on('offline', handleNetworkChange);
     
     // Animate scanning line
     const scanAnimation = Animated.loop(
@@ -86,6 +118,15 @@ export const ScannerScreen: React.FC = () => {
       ])
     );
     pulseAnimation.start();
+
+    return () => {
+      networkService.off('online', handleNetworkChange);
+      networkService.off('offline', handleNetworkChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    requestCameraPermission();
   }, []);
 
   const requestCameraPermission = async () => {
@@ -133,25 +174,34 @@ export const ScannerScreen: React.FC = () => {
           ingredient: 'Wheat',
           reason: 'Contains gluten which may trigger IBS symptoms',
           severity: 'moderate' as SeverityLevel,
-          condition: 'IBS' as GutCondition,
+          condition: 'gluten' as GutCondition,
         },
         {
           ingredient: 'Fructans',
           reason: 'High FODMAP content may cause bloating',
           severity: 'mild' as SeverityLevel,
-          condition: 'FODMAP sensitivity' as GutCondition,
+          condition: 'ibs-fodmap' as GutCondition,
+        },
+      ],
+      conditionWarnings: result === 'safe' ? [] : [
+        {
+          ingredient: 'Wheat',
+          severity: 'moderate' as SeverityLevel,
+          condition: 'gluten' as GutCondition,
         },
       ],
       safeAlternatives: ['Alternative option 1', 'Alternative option 2'],
       explanation: result === 'safe' 
         ? 'This food appears safe for your gut health profile.'
         : 'This food may contain ingredients that could trigger symptoms.',
+      dataSource: 'GutSafe Database',
+      lastUpdated: new Date(),
     };
 
     return analysis;
   };
 
-  const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
+  const handleBarCodeScanned = async ({ type, data }: { type: string; data: string }) => {
     // Haptic feedback for scan start
     HapticFeedback.scanStart();
     
@@ -170,52 +220,126 @@ export const ScannerScreen: React.FC = () => {
       }),
     ]).start();
     
-    // Generate mock food item - in real app, this would call food database API
-    const mockFoodItem: FoodItem = {
-      id: Date.now().toString(),
-      name: 'Scanned Food Item',
-      brand: 'Unknown Brand',
-      category: 'Unknown',
-      barcode: data,
-      ingredients: ['Unknown ingredients'],
-      allergens: [],
-      additives: [],
-      glutenFree: Math.random() > 0.5,
-      lactoseFree: Math.random() > 0.5,
-      fodmapLevel: Math.random() > 0.5 ? 'low' : 'high',
-      histamineLevel: 'low',
-      dataSource: 'Mock Database'
-    };
-    
-    // Generate analysis using DataService
-    const analysis = dataService.generateScanAnalysis(mockFoodItem);
-    setScanResult(analysis.overallSafety);
-    
-    // Create scan history entry
-    const newScan: ScanHistory = {
-      id: Date.now().toString(),
-      foodItem: mockFoodItem,
-      analysis,
-      timestamp: new Date(),
-    };
-    
-    // Add to DataService and update local state
-    dataService.addScanHistory(newScan);
-    setScanHistory(dataService.getScanHistory());
-    
-    // Haptic feedback based on result
-    if (analysis.overallSafety === 'safe') {
-      HapticFeedback.foodSafe();
-    } else {
-      HapticFeedback.foodCaution();
+    try {
+      let foodItem: FoodItem;
+      let analysis: ScanAnalysis;
+
+      if (isOnline) {
+        // Online scanning - use full API
+        // In a real app, this would call the food database API
+        foodItem = {
+          id: Date.now().toString(),
+          name: 'Scanned Food Item',
+          brand: 'Unknown Brand',
+          category: 'Unknown',
+          barcode: data,
+          ingredients: ['Unknown ingredients'],
+          allergens: [],
+          additives: [],
+          glutenFree: Math.random() > 0.5,
+          lactoseFree: Math.random() > 0.5,
+          histamineLevel: 'low',
+          dataSource: 'Online Database'
+        };
+        
+        analysis = dataService.generateScanAnalysis(foodItem);
+        
+        // Cache the food item for offline use
+        await offlineService.cacheFoodItem(foodItem);
+      } else {
+        // Offline scanning - use cached data or basic analysis
+        const cachedFood = await offlineService.getCachedFoodItem(data);
+        
+        if (cachedFood) {
+          foodItem = cachedFood;
+          analysis = dataService.generateScanAnalysis(cachedFood);
+        } else {
+          // Create basic food item for offline analysis
+          foodItem = {
+            id: Date.now().toString(),
+            name: 'Unknown Food Item',
+            brand: 'Unknown Brand',
+            category: 'Unknown',
+            barcode: data,
+            ingredients: ['Unknown ingredients'],
+            allergens: [],
+            additives: [],
+            glutenFree: false,
+            lactoseFree: false,
+            histamineLevel: 'unknown',
+            dataSource: 'Offline Analysis'
+          };
+          
+          // Basic offline analysis
+          analysis = {
+            overallSafety: 'caution' as ScanResult,
+            flaggedIngredients: [],
+            conditionWarnings: [],
+            safeAlternatives: ['Check online for detailed analysis'],
+            explanation: 'Offline analysis - limited data available. Please check online for complete analysis.',
+            dataSource: 'Offline Cache',
+            lastUpdated: new Date(),
+          };
+        }
+      }
+      
+      // Create scan history entry
+      const newScan: ScanHistory = {
+        id: Date.now().toString(),
+        foodItem,
+        analysis,
+        timestamp: new Date(),
+      };
+      
+      // Store scan history
+      if (isOnline) {
+        dataService.addScanHistory(newScan);
+        setScanHistory(dataService.getScanHistory());
+      } else {
+        // Store offline scan for later sync
+        await offlineService.storeOfflineScan(newScan);
+      }
+      
+      setScanResult(analysis.overallSafety);
+      
+      // Haptic feedback based on result
+      if (analysis.overallSafety === 'safe') {
+        HapticFeedback.foodSafe();
+      } else {
+        HapticFeedback.foodCaution();
+      }
+      
+      // Announce to screen reader
+      AccessibilityService.announceForAccessibility(`Scan complete. Result: ${analysis.overallSafety}. ${analysis.explanation}`);
+      
+      const alertTitle = isOnline ? 'Scan Complete' : 'Offline Scan Complete';
+      const alertMessage = isOnline 
+        ? `Barcode: ${data}\nResult: ${analysis.overallSafety.toUpperCase()}`
+        : `Barcode: ${data}\nResult: ${analysis.overallSafety.toUpperCase()}\n\nNote: This scan was performed offline and will be synced when online.`;
+      
+      Alert.alert(
+        alertTitle,
+        alertMessage,
+        [
+          { text: 'OK', onPress: () => setScanned(false) },
+          { text: 'View History', onPress: () => (navigation as any).navigate('ScanHistory') }
+        ]
+      );
+    } catch (error) {
+      console.error('Scan failed:', error);
+      Alert.alert('Scan Error', 'Failed to process scan. Please try again.');
+      setScanned(false);
     }
+  };
+
+  const handleOfflineScanComplete = (scan: ScanHistory) => {
+    setShowOfflineScanner(false);
+    setScanResult(scan.analysis.overallSafety);
     
-    // Announce to screen reader
-    AccessibilityService.announceForAccessibility(`Scan complete. Result: ${analysis.overallSafety}. ${analysis.explanation}`);
-    
+    // Show result
     Alert.alert(
-      'Scan Complete',
-      `Barcode: ${data}\nResult: ${analysis.overallSafety.toUpperCase()}`,
+      'Offline Scan Complete',
+      `Food: ${scan.foodItem.name}\nResult: ${scan.analysis.overallSafety.toUpperCase()}\n\nThis scan will be synced when online.`,
       [
         { text: 'OK', onPress: () => setScanned(false) },
         { text: 'View History', onPress: () => (navigation as any).navigate('ScanHistory') }
@@ -319,12 +443,34 @@ export const ScannerScreen: React.FC = () => {
             <Text style={styles.overlaySubtitle}>
               Point your camera at a barcode or menu item
             </Text>
-            <TouchableOpacity
-              style={styles.historyButton}
-              onPress={() => (navigation as any).navigate('ScanHistory')}
-            >
-              <Text style={styles.historyButtonText}>View Scan History</Text>
-            </TouchableOpacity>
+            
+            {/* Network Status */}
+            <View style={styles.networkStatusContainer}>
+              <Text style={styles.networkStatusText}>
+                {isOnline ? '🟢 Online' : '🔴 Offline'}
+              </Text>
+              <Text style={styles.networkQualityText}>
+                Quality: {networkQuality}%
+              </Text>
+            </View>
+            
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                style={styles.historyButton}
+                onPress={() => (navigation as any).navigate('ScanHistory')}
+              >
+                <Text style={styles.historyButtonText}>View History</Text>
+              </TouchableOpacity>
+              
+              {!isOnline && (
+                <TouchableOpacity
+                  style={styles.offlineButton}
+                  onPress={() => setShowOfflineScanner(true)}
+                >
+                  <Text style={styles.offlineButtonText}>Offline Search</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </LinearGradient>
 
           {/* Scanning frame */}
@@ -398,7 +544,7 @@ export const ScannerScreen: React.FC = () => {
             </View>
           </LinearGradient>
         </View>
-      </Camera>
+      </View>
 
       {/* Mock result for demo */}
       {scanResult && (
@@ -414,6 +560,19 @@ export const ScannerScreen: React.FC = () => {
           />
         </View>
       )}
+
+      {/* Offline Scanner Modal */}
+      <Modal
+        visible={showOfflineScanner}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowOfflineScanner(false)}
+      >
+        <OfflineScanner
+          onScanComplete={handleOfflineScanComplete}
+          onClose={() => setShowOfflineScanner(false)}
+        />
+      </Modal>
     </View>
   );
 };
@@ -473,14 +632,50 @@ const styles = StyleSheet.create({
     opacity: 0.9,
     marginBottom: Spacing.md,
   },
+  networkStatusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  networkStatusText: {
+    fontSize: Typography.fontSize.bodySmall,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.white,
+  },
+  networkQualityText: {
+    fontSize: Typography.fontSize.caption,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.white,
+    opacity: 0.8,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+  },
   historyButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
-    alignSelf: 'center',
   },
   historyButtonText: {
+    fontSize: Typography.fontSize.bodySmall,
+    fontFamily: Typography.fontFamily.semiBold,
+    color: Colors.white,
+    textAlign: 'center',
+  },
+  offlineButton: {
+    backgroundColor: 'rgba(255, 165, 0, 0.3)',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 165, 0, 0.5)',
+  },
+  offlineButtonText: {
     fontSize: Typography.fontSize.bodySmall,
     fontFamily: Typography.fontFamily.semiBold,
     color: Colors.white,
@@ -501,11 +696,15 @@ const styles = StyleSheet.create({
     height: 30,
     borderColor: Colors.primary,
     borderWidth: 3,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
-    elevation: 4,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: `0 0 4px ${Colors.primary}80`,
+    } : {
+      shadowColor: Colors.primary,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.8,
+      shadowRadius: 4,
+      elevation: 4,
+    }),
   },
   topRight: {
     top: 0,
@@ -534,11 +733,15 @@ const styles = StyleSheet.create({
     right: 0,
     height: 2,
     backgroundColor: Colors.primary,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 4,
-    elevation: 4,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: `0 0 4px ${Colors.primary}`,
+    } : {
+      shadowColor: Colors.primary,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 1,
+      shadowRadius: 4,
+      elevation: 4,
+    }),
   },
   bottomOverlay: {
     position: 'absolute',
@@ -556,11 +759,15 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     overflow: 'hidden',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: `0 8px 16px ${Colors.primary}4D`,
+    } : {
+      shadowColor: Colors.primary,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.3,
+      shadowRadius: 16,
+      elevation: 8,
+    }),
   },
   scanButtonGradient: {
     flex: 1,

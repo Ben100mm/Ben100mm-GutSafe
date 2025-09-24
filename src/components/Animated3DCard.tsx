@@ -8,7 +8,7 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-web-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
@@ -217,12 +217,12 @@ export const Animated3DCard: React.FC<Animated3DCardProps> = ({
   const cardContent = (
     <View style={styles.content}>
       {title && (
-        <Text style={[styles.title, { color: Colors.text }]}>
+        <Text style={[styles.title, { color: Colors.light.text }]}>
           {title}
         </Text>
       )}
       {subtitle && (
-        <Text style={[styles.subtitle, { color: Colors.textSecondary }]}>
+        <Text style={[styles.subtitle, { color: Colors.light.textSecondary }]}>
           {subtitle}
         </Text>
       )}
@@ -260,7 +260,7 @@ export const Animated3DCard: React.FC<Animated3DCardProps> = ({
         return (
           <LinearGradient
             colors={disabled ? [Colors.body, Colors.body] : Colors.primaryGradient}
-            style={[styles.gradientContainer, { opacity: disabled ? 0.5 : 1 }]}
+            style={[styles.gradientContainer, { opacity: disabled ? 0.5 : 1 }] as any}
           >
             <Animated.View style={[styles.glow, glowStyle]} />
             {cardContent}
