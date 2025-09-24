@@ -8,7 +8,7 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
-import LinearGradient from 'react-native-web-linear-gradient';
+import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';

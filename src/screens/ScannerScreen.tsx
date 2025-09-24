@@ -12,7 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { Camera, CameraType } from 'expo-camera';
-import LinearGradient from 'react-native-web-linear-gradient';
+import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
 import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../constants/colors';

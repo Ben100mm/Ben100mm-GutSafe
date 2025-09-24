@@ -208,3 +208,6 @@ class HapticService {
 }
 
 export const HapticFeedback = new HapticService();
+
+// Re-export HapticType for compatibility
+export { HapticType };
