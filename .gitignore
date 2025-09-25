@@ -142,6 +142,9 @@ jspm_packages/
 .nuxt
 dist
 
+# React build output
+build/
+
 # Gatsby files
 .cache/
 public
