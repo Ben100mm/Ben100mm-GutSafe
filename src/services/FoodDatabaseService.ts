@@ -354,8 +354,8 @@ export class FoodDatabaseService {
       id: product.code,
       name: product.product_name,
       barcode: product.code,
-      brand: product.brands || undefined,
-      category: product.categories?.split(',')[0]?.trim() || undefined,
+      brand: product.brands || 'Unknown',
+      category: product.categories?.split(',')[0]?.trim() || 'Unknown',
       ingredients: this.parseIngredients(product.ingredients_text || ''),
       allergens: this.parseAllergens(product.allergens_tags || []),
       additives: this.parseAdditives(product.additives_tags || []),
@@ -373,8 +373,8 @@ export class FoodDatabaseService {
     return {
       id: food.fdcId.toString(),
       name: food.description,
-      brand: food.brandOwner || undefined,
-      category: food.foodCategory?.description || undefined,
+      brand: food.brandOwner || 'Unknown',
+      category: food.foodCategory?.description || 'Unknown',
       ingredients: this.parseIngredients(food.ingredients || ''),
       allergens: this.extractAllergensFromIngredients(food.ingredients || ''),
       additives: this.extractAdditivesFromIngredients(food.ingredients || ''),
@@ -392,8 +392,8 @@ export class FoodDatabaseService {
     return {
       id: product.id.toString(),
       name: product.title,
-      brand: undefined,
-      category: undefined,
+      brand: 'Unknown',
+      category: 'Unknown',
       ingredients: this.parseIngredients(product.ingredientList || ''),
       allergens: this.extractAllergensFromIngredients(product.ingredientList || ''),
       additives: this.extractAdditivesFromIngredients(product.ingredientList || ''),
@@ -532,7 +532,7 @@ export class FoodDatabaseService {
         conditionWarnings.push({
           ingredient: analysis.ingredient,
           severity: analysis.severity,
-          condition: analysis.conditions[0], // Use first condition for warnings
+          condition: analysis.conditions[0] || 'ibs-fodmap', // Use first condition for warnings
         });
       }
     }

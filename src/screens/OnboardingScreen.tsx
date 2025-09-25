@@ -279,10 +279,10 @@ export const OnboardingScreen: React.FC = () => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>
-          {currentStepData.title}
+          {currentStepData?.title || 'Welcome'}
         </Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          {currentStepData.subtitle}
+          {currentStepData?.subtitle || 'Get started with GutSafe'}
         </Text>
       </View>
 
@@ -293,7 +293,7 @@ export const OnboardingScreen: React.FC = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {currentStepData.component}
+          {currentStepData?.component || <View />}
         </ScrollView>
       </Animated.View>
 

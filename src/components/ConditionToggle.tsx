@@ -76,7 +76,10 @@ export const ConditionToggle: React.FC<ConditionToggleProps> = ({
     const severityOrder: SeverityLevel[] = ['mild', 'moderate', 'severe'];
     const currentIndex = severityOrder.indexOf(condition.severity);
     const nextIndex = (currentIndex + 1) % severityOrder.length;
-    onSeverityChange(condition.condition, severityOrder[nextIndex]);
+    const nextSeverity = severityOrder[nextIndex];
+    if (nextSeverity) {
+      onSeverityChange(condition.condition, nextSeverity);
+    }
   };
 
   return (

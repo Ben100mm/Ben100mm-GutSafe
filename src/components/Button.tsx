@@ -18,6 +18,7 @@ import LinearGradient from './LinearGradientWrapper';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
+import { getButtonAccessibilityProps } from '../utils/accessibilityHelpers';
 
 interface ButtonProps {
   title: string;
@@ -56,12 +57,20 @@ export const Button: React.FC<ButtonProps> = ({
     textStyle,
   ];
 
+  const accessibilityProps = getButtonAccessibilityProps({
+    title,
+    disabled: disabled || loading,
+    loading,
+    variant,
+  });
+
   if (variant === 'primary') {
     return (
       <TouchableOpacity
         onPress={onPress}
         disabled={disabled || loading}
         style={[buttonStyle, { overflow: 'hidden' }]}
+        {...accessibilityProps}
       >
         <LinearGradient
           colors={disabled ? [Colors.body, Colors.body] : Colors.primaryGradient}
@@ -82,6 +91,7 @@ export const Button: React.FC<ButtonProps> = ({
       onPress={onPress}
       disabled={disabled || loading}
       style={buttonStyle}
+      {...accessibilityProps}
     >
       {loading ? (
         <ActivityIndicator 

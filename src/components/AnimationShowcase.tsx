@@ -260,15 +260,15 @@ export const AnimationShowcase: React.FC<AnimationShowcaseProps> = ({ onClose })
               colors={Colors.primaryGradient}
               style={styles.gradientOverlay}
             >
-              <Text style={styles.demoTitle}>{demos[currentDemo].title}</Text>
-              <Text style={styles.demoDescription}>{demos[currentDemo].description}</Text>
+              <Text style={styles.demoTitle}>{demos[currentDemo]?.title || 'Demo'}</Text>
+              <Text style={styles.demoDescription}>{demos[currentDemo]?.description || 'Description'}</Text>
               
               <TouchableOpacity
                 style={styles.demoButton}
-                onPress={demos[currentDemo].action}
+                onPress={demos[currentDemo]?.action || (() => {})}
                 {...AccessibilityService.createButtonConfig(
-                  `Run ${demos[currentDemo].title} animation`,
-                  demos[currentDemo].description
+                  `Run ${demos[currentDemo]?.title || 'Demo'} animation`,
+                  demos[currentDemo]?.description || 'Description'
                 )}
               >
                 <Text style={styles.demoButtonText}>Run Animation</Text>

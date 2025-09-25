@@ -151,9 +151,9 @@ const AnalyticsScreen: React.FC = () => {
     const shareContent: ShareableContent = {
       type: 'gut_report',
       title: 'My Gut Health Analytics',
-      description: `Check out my gut health progress! Score: ${Math.round(mockData.last30Days[mockData.last30Days.length - 1].overallScore)}/100`,
+      description: `Check out my gut health progress! Score: ${Math.round(mockData.last30Days[mockData.last30Days.length - 1]?.overallScore || 0)}/100`,
       data: {
-        score: Math.round(mockData.last30Days[mockData.last30Days.length - 1].overallScore),
+        score: Math.round(mockData.last30Days[mockData.last30Days.length - 1]?.overallScore || 0),
         improvement: gutHealthTrend.changePercentage,
         period: selectedPeriod,
       },
@@ -164,7 +164,16 @@ const AnalyticsScreen: React.FC = () => {
 
   // Process data for charts
   const progressRings: ProgressRingType[] = useMemo(() => {
-    const latest = mockData.last30Days[mockData.last30Days.length - 1];
+    const latest = mockData.last30Days[mockData.last30Days.length - 1] || { 
+      overallScore: 0, 
+      safeFoodsCount: 0, 
+      symptomFrequency: 0, 
+      scanAccuracy: 0,
+      energyLevel: 5,
+      sleepQuality: 5,
+      stressLevel: 5,
+      hydrationLevel: 5
+    };
     return [
       {
         id: 'gut-health',
@@ -200,9 +209,9 @@ const AnalyticsScreen: React.FC = () => {
       label: day.date.toLocaleDateString(),
     }));
 
-    const firstScore = dataPoints[0].y;
-    const lastScore = dataPoints[dataPoints.length - 1].y;
-    const changePercentage = ((lastScore - firstScore) / firstScore) * 100;
+    const firstScore = dataPoints[0]?.y || 0;
+    const lastScore = dataPoints[dataPoints.length - 1]?.y || 0;
+    const changePercentage = firstScore > 0 ? ((lastScore - firstScore) / firstScore) * 100 : 0;
 
     return {
       period: selectedPeriod,
@@ -228,9 +237,9 @@ const AnalyticsScreen: React.FC = () => {
       label: day.date.toLocaleDateString(),
     }));
 
-    const firstScore = dataPoints[0].y;
-    const lastScore = dataPoints[dataPoints.length - 1].y;
-    const changePercentage = ((lastScore - firstScore) / firstScore) * 100;
+    const firstScore = dataPoints[0]?.y || 0;
+    const lastScore = dataPoints[dataPoints.length - 1]?.y || 0;
+    const changePercentage = firstScore > 0 ? ((lastScore - firstScore) / firstScore) * 100 : 0;
 
     return {
       period: selectedPeriod,

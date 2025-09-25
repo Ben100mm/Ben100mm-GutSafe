@@ -6,6 +6,7 @@
  */
 
 import { GutCondition, GutProfile } from '../types';
+import { logger } from '../utils/logger';
 
 // User Settings Types
 export interface UserSettings {
@@ -172,7 +173,7 @@ export class UserSettingsService {
         this.settings = { ...DEFAULT_SETTINGS, ...storedSettings };
       }
     } catch (error) {
-      console.error('Failed to load settings:', error);
+      logger.error('Failed to load settings', 'UserSettingsService', error);
       // Use default settings
     }
   }
@@ -194,7 +195,7 @@ export class UserSettingsService {
       await this.saveToStorage();
       this.notifyListeners();
     } catch (error) {
-      console.error('Failed to update settings:', error);
+      logger.error('Failed to update settings', 'UserSettingsService', error);
       throw error;
     }
   }
@@ -272,7 +273,7 @@ export class UserSettingsService {
       await this.saveToStorage();
       this.notifyListeners();
     } catch (error) {
-      console.error('Failed to import settings:', error);
+      logger.error('Failed to import settings', 'UserSettingsService', error);
       throw new Error('Invalid settings format');
     }
   }
@@ -410,11 +411,13 @@ export class UserSettingsService {
       newSafeFoods: typeof notifications.newSafeFoods === 'boolean' ? notifications.newSafeFoods : true,
       weeklyReports: typeof notifications.weeklyReports === 'boolean' ? notifications.weeklyReports : true,
       scanReminders: typeof notifications.scanReminders === 'boolean' ? notifications.scanReminders : false,
-      quietHours: notifications.quietHours && typeof notifications.quietHours === 'object' ? {
-        enabled: typeof notifications.quietHours.enabled === 'boolean' ? notifications.quietHours.enabled : false,
-        start: typeof notifications.quietHours.start === 'string' ? notifications.quietHours.start : '22:00',
-        end: typeof notifications.quietHours.end === 'string' ? notifications.quietHours.end : '08:00',
-      } : DEFAULT_SETTINGS.preferences.notifications.quietHours,
+      ...(notifications.quietHours && typeof notifications.quietHours === 'object' ? {
+        quietHours: {
+          enabled: typeof notifications.quietHours.enabled === 'boolean' ? notifications.quietHours.enabled : false,
+          start: typeof notifications.quietHours.start === 'string' ? notifications.quietHours.start : '22:00',
+          end: typeof notifications.quietHours.end === 'string' ? notifications.quietHours.end : '08:00',
+        }
+      } : {}),
     };
   }
 
@@ -457,7 +460,7 @@ export class UserSettingsService {
       try {
         listener(this.settings);
       } catch (error) {
-        console.error('Settings listener error:', error);
+        logger.error('Settings listener error', 'UserSettingsService', error);
       }
     });
   }
@@ -470,7 +473,7 @@ export class UserSettingsService {
         return JSON.parse(stored);
       }
     } catch (error) {
-      console.error('Failed to load settings from storage:', error);
+      logger.error('Failed to load settings from storage', 'UserSettingsService', error);
     }
     return null;
   }
@@ -480,7 +483,7 @@ export class UserSettingsService {
     try {
       localStorage.setItem('gutsafe_user_settings', JSON.stringify(this.settings));
     } catch (error) {
-      console.error('Failed to save settings to storage:', error);
+      logger.error('Failed to save settings to storage', 'UserSettingsService', error);
       throw error;
     }
   }
@@ -604,7 +607,7 @@ export class UserSettingsService {
       this.settings = { ...DEFAULT_SETTINGS };
       this.notifyListeners();
     } catch (error) {
-      console.error('Failed to clear settings:', error);
+      logger.error('Failed to clear settings', 'UserSettingsService', error);
       throw error;
     }
   }
@@ -643,7 +646,7 @@ export class UserSettingsService {
       await this.saveToStorage();
       this.notifyListeners();
     } catch (error) {
-      console.error('Failed to restore from backup:', error);
+      logger.error('Failed to restore from backup', 'UserSettingsService', error);
       throw new Error('Invalid backup format');
     }
   }

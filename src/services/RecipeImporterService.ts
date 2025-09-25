@@ -305,18 +305,18 @@ ${text}
       // Validate and clean the parsed data
       const validatedRecipe: ParsedRecipe = {
         title: parsed.title || 'Untitled Recipe',
-        description: parsed.description || undefined,
+        description: parsed.description || '',
         ingredients: this.validateIngredients(parsed.ingredients || []),
         instructions: this.validateInstructions(parsed.instructions || []),
-        servings: parsed.servings || undefined,
-        prepTime: parsed.prepTime || undefined,
-        cookTime: parsed.cookTime || undefined,
-        totalTime: parsed.totalTime || undefined,
+        servings: parsed.servings || 1,
+        prepTime: parsed.prepTime || 0,
+        cookTime: parsed.cookTime || 0,
+        totalTime: parsed.totalTime || 0,
         difficulty: parsed.difficulty || 'medium',
-        cuisine: parsed.cuisine || undefined,
+        cuisine: parsed.cuisine || '',
         tags: Array.isArray(parsed.tags) ? parsed.tags : [],
-        source: parsed.source || undefined,
-        url: sourceUrl,
+        source: parsed.source || '',
+        url: sourceUrl || '',
         confidence: typeof parsed.confidence === 'number' 
           ? Math.max(0, Math.min(1, parsed.confidence))
           : 0.5,
@@ -337,9 +337,9 @@ ${text}
       .filter(ingredient => ingredient && typeof ingredient === 'object' && ingredient.name)
       .map(ingredient => ({
         name: String(ingredient.name).trim(),
-        amount: ingredient.amount ? String(ingredient.amount).trim() : undefined,
-        unit: ingredient.unit ? String(ingredient.unit).trim() : undefined,
-        notes: ingredient.notes ? String(ingredient.notes).trim() : undefined,
+        amount: ingredient.amount ? String(ingredient.amount).trim() : '',
+        unit: ingredient.unit ? String(ingredient.unit).trim() : '',
+        notes: ingredient.notes ? String(ingredient.notes).trim() : '',
         isOptional: Boolean(ingredient.isOptional),
       }));
   }
@@ -353,9 +353,9 @@ ${text}
         instruction: String(step.instruction).trim(),
         ingredients: Array.isArray(step.ingredients) 
           ? step.ingredients.map((ing: any) => String(ing).trim()).filter(Boolean)
-          : undefined,
-        time: step.time ? String(step.time).trim() : undefined,
-        temperature: step.temperature ? String(step.temperature).trim() : undefined,
+          : [],
+        time: step.time ? String(step.time).trim() : '',
+        temperature: step.temperature ? String(step.temperature).trim() : '',
       }))
       .sort((a, b) => a.number - b.number);
   }
@@ -407,7 +407,7 @@ ${text}
       instructions: instructions.slice(0, 20), // Limit to 20 steps
       confidence: 0.3,
       timestamp: new Date(),
-      url: sourceUrl,
+      url: sourceUrl || '',
     };
   }
 

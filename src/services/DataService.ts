@@ -300,8 +300,23 @@ class DataService {
 
   updateMedication(id: string, updates: Partial<MedicationSupplement>): void {
     const index = this.medications.findIndex(med => med.id === id);
-    if (index !== -1) {
-      this.medications[index] = { ...this.medications[index], ...updates };
+    if (index !== -1 && this.medications[index]) {
+      const existing = this.medications[index];
+      const updatedMedication: MedicationSupplement = { 
+        id: existing.id,
+        name: existing.name,
+        type: existing.type,
+        dosage: existing.dosage,
+        frequency: existing.frequency,
+        startDate: existing.startDate,
+        ...(existing.endDate && { endDate: existing.endDate }),
+        ...(existing.notes && { notes: existing.notes }),
+        isActive: existing.isActive,
+        gutRelated: existing.gutRelated,
+        ...(existing.category && { category: existing.category }),
+        ...updates,
+      };
+      this.medications[index] = updatedMedication;
     }
   }
 

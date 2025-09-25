@@ -1,11 +1,10 @@
 {
   "compilerOptions": {
-    "target": "es2015",
+    "target": "ES2022",
     "lib": [
-      "dom",
-      "dom.iterable",
-      "es6",
-      "es2015"
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
     ],
     "downlevelIteration": true,
     "allowJs": true,
@@ -15,12 +14,23 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["*"],
+      "@/components/*": ["components/*"],
+      "@/services/*": ["services/*"],
+      "@/utils/*": ["utils/*"],
+      "@/types/*": ["types/*"],
+      "@/constants/*": ["constants/*"]
+    }
   },
   "include": [
     "src"

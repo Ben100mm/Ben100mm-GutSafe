@@ -86,9 +86,9 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
       frequency: frequency as MedicationSupplement['frequency'],
       startDate: new Date(),
       isActive: true,
-      notes: notes.trim() || undefined,
+      notes: notes.trim() || '',
       gutRelated: isGutRelated,
-      category: category as MedicationSupplement['category'] || undefined,
+      category: (category as MedicationSupplement['category']) || 'other',
     };
 
     onAddMedication(medicationData);

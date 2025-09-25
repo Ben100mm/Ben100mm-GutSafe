@@ -120,6 +120,8 @@ export const ScannerScreen: React.FC = () => {
     return () => {
       networkService.off('online', handleNetworkChange);
       networkService.off('offline', handleNetworkChange);
+      scanAnimation.stop();
+      pulseAnimation.stop();
     };
   }, [dataService, networkService, offlineService, pulseAnim, scanLineAnim]);
 

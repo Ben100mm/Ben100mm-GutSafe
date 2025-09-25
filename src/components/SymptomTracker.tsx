@@ -73,11 +73,11 @@ export const SymptomTracker: React.FC<SymptomTrackerProps> = ({
     const symptomData = {
       type: selectedType as GutSymptom['type'],
       severity: severity as GutSymptom['severity'],
-      description: description.trim() || undefined,
+      description: description.trim() || '',
       duration: parseInt(duration) || 0,
       timestamp: new Date(),
-      potentialTriggers: potentialTriggers.trim() ? potentialTriggers.split(',').map(t => t.trim()) : undefined,
-      location: location as GutSymptom['location'] || undefined,
+      potentialTriggers: potentialTriggers.trim() ? potentialTriggers.split(',').map(t => t.trim()) : [],
+      location: (location as GutSymptom['location']) || 'general',
     };
 
     onLogSymptom(symptomData);

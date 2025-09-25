@@ -620,7 +620,7 @@ export class SafeAlternativesService {
         matchScore: this.calculateMatchScore(alt, originalFood, userConditions),
         pros: this.getPros(alt),
         cons: this.getCons(alt),
-        substitutionRatio: this.getSubstitutionRatio(alt, originalFood),
+        ...(this.getSubstitutionRatio(alt, originalFood) ? { substitutionRatio: this.getSubstitutionRatio(alt, originalFood)! } : {}),
       })),
       recommendations: {
         bestOverall: this.getBestOverall(allAlternatives, userConditions),
@@ -812,13 +812,35 @@ export class SafeAlternativesService {
     });
   }
 
+  // Get default alternative
+  private getDefaultAlternative(): SafeAlternative {
+    return {
+      id: 'default',
+      name: 'Generic Alternative',
+      category: 'General',
+      description: 'A safe alternative option',
+      whySafe: ['Generally well-tolerated'],
+      nutritionalInfo: {},
+      preparationTips: ['Follow package instructions'],
+      whereToFind: ['Local grocery stores'],
+      priceRange: 'mid',
+      availability: 'common',
+      userRating: 3,
+      userReviews: 0,
+      tags: ['generic', 'safe'],
+      conditions: ['ibs-fodmap'],
+      allergens: [],
+      certifications: [],
+    };
+  }
+
   // Get best budget
   private getBestBudget(alternatives: SafeAlternative[]): SafeAlternative {
     const budgetAlternatives = alternatives.filter(alt => alt.priceRange === 'budget');
     if (budgetAlternatives.length === 0) {
-      return alternatives.find(alt => alt.priceRange === 'mid') || alternatives[0];
+      return alternatives.find(alt => alt.priceRange === 'mid') || alternatives[0] || this.getDefaultAlternative();
     }
-    return budgetAlternatives[0];
+    return budgetAlternatives[0] || this.getDefaultAlternative();
   }
 
   // Get best taste
@@ -826,11 +848,12 @@ export class SafeAlternativesService {
     // This would ideally use user ratings, but for now we'll use availability and price as proxies
     return alternatives.find(alt => 
       alt.availability === 'common' && alt.priceRange !== 'premium'
-    ) || alternatives[0];
+    ) || alternatives[0] || this.getDefaultAlternative();
   }
 
   // Get best nutrition
   private getBestNutrition(alternatives: SafeAlternative[]): SafeAlternative {
+    if (alternatives.length === 0) return this.getDefaultAlternative();
     return alternatives.reduce((best, current) => {
       const bestProtein = best.nutritionalInfo.protein || 0;
       const currentProtein = current.nutritionalInfo.protein || 0;

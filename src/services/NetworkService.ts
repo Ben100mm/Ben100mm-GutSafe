@@ -7,6 +7,7 @@
 
 import { EventEmitter } from 'events';
 import { Platform } from 'react-native';
+import { logger } from '../utils/logger';
 
 /**
  * NetworkService - Handles network connectivity monitoring and status
@@ -22,6 +23,8 @@ class NetworkService extends EventEmitter {
   private reconnectAttempts: number = 0;
   private maxReconnectAttempts: number = 5;
   private reconnectDelay: number = 1000; // 1 second
+  private statusCheckInterval: NodeJS.Timeout | null = null;
+  private simulationInterval: NodeJS.Timeout | null = null;
 
   private constructor() {
     super();
@@ -38,8 +41,27 @@ class NetworkService extends EventEmitter {
   public initialize(): void {
     this.setupListeners();
     this.checkInitialStatus();
-    setInterval(() => this.getNetworkStatus(), 30000); // Check every 30 seconds
-    console.log('NetworkService: Initialized.');
+    this.statusCheckInterval = setInterval(() => this.getNetworkStatus(), 30000); // Check every 30 seconds
+    logger.info('NetworkService initialized', 'NetworkService');
+  }
+
+  public cleanup(): void {
+    if (this.statusCheckInterval) {
+      clearInterval(this.statusCheckInterval);
+      this.statusCheckInterval = null;
+    }
+    
+    if (this.simulationInterval) {
+      clearInterval(this.simulationInterval);
+      this.simulationInterval = null;
+    }
+    
+    if (Platform.OS === 'web') {
+      window.removeEventListener('online', this.handleOnline.bind(this));
+      window.removeEventListener('offline', this.handleOffline.bind(this));
+    }
+    
+    logger.info('NetworkService cleaned up', 'NetworkService');
   }
 
   private setupListeners(): void {
@@ -97,7 +119,7 @@ class NetworkService extends EventEmitter {
       timestamp: this.lastOnlineTime,
     });
     
-    console.log('Network: Connected');
+    logger.info('Network connected', 'NetworkService');
   }
 
   /**
@@ -112,7 +134,7 @@ class NetworkService extends EventEmitter {
       timestamp: this.lastOfflineTime,
     });
     
-    console.log('Network: Disconnected');
+    logger.warn('Network disconnected', 'NetworkService');
   }
 
   /**
@@ -120,7 +142,7 @@ class NetworkService extends EventEmitter {
    */
   private simulateNetworkStatus(): void {
     // Simulate network changes every 30 seconds for testing
-    setInterval(() => {
+    this.simulationInterval = setInterval(() => {
       const shouldGoOffline = Math.random() < 0.1; // 10% chance to go offline
       
       if (shouldGoOffline && this.isConnected) {

@@ -181,7 +181,7 @@ export const OfflineScanner: React.FC<OfflineScannerProps> = ({
       foodItem,
       analysis,
       timestamp: new Date(),
-      userFeedback: undefined,
+      userFeedback: 'accurate' as const,
     };
 
     return scanHistory;
@@ -225,9 +225,9 @@ export const OfflineScanner: React.FC<OfflineScannerProps> = ({
               const manualFoodItem: FoodItem = {
                 id: `manual_${Date.now()}`,
                 name: foodName.trim(),
-                brand: undefined,
+                brand: 'Unknown',
                 category: 'Unknown',
-                barcode: undefined,
+                barcode: '0000000000000',
                 ingredients: [foodName.trim()],
                 allergens: [],
                 additives: [],

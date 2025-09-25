@@ -154,9 +154,23 @@ export class SymptomLoggingService {
   // Update symptom log
   async updateSymptomLog(id: string, updates: Partial<SymptomLog>): Promise<boolean> {
     const index = this.symptomLogs.findIndex(log => log.id === id);
-    if (index === -1) return false;
+    if (index === -1 || !this.symptomLogs[index]) return false;
 
-    this.symptomLogs[index] = { ...this.symptomLogs[index], ...updates };
+    const existing = this.symptomLogs[index];
+    this.symptomLogs[index] = {
+      id: existing.id,
+      symptoms: existing.symptoms,
+      foodItems: existing.foodItems,
+      timestamp: existing.timestamp,
+      ...(existing.notes && { notes: existing.notes }),
+      ...(existing.weather && { weather: existing.weather }),
+      ...(existing.stressLevel && { stressLevel: existing.stressLevel }),
+      ...(existing.sleepQuality && { sleepQuality: existing.sleepQuality }),
+      ...(existing.exerciseLevel && { exerciseLevel: existing.exerciseLevel }),
+      ...(existing.medicationTaken && { medicationTaken: existing.medicationTaken }),
+      ...(existing.tags && { tags: existing.tags }),
+      ...updates,
+    };
     await this.saveToStorage();
     return true;
   }
@@ -274,20 +288,20 @@ export class SymptomLoggingService {
         
         // Time of day
         const hour = log.timestamp.getHours();
-        if (hour >= 6 && hour < 12) data.timeOfDay.morning++;
-        else if (hour >= 12 && hour < 18) data.timeOfDay.afternoon++;
-        else if (hour >= 18 && hour < 22) data.timeOfDay.evening++;
-        else data.timeOfDay.night++;
+        if (hour >= 6 && hour < 12) data.timeOfDay.morning = (data.timeOfDay.morning || 0) + 1;
+        else if (hour >= 12 && hour < 18) data.timeOfDay.afternoon = (data.timeOfDay.afternoon || 0) + 1;
+        else if (hour >= 18 && hour < 22) data.timeOfDay.evening = (data.timeOfDay.evening || 0) + 1;
+        else data.timeOfDay.night = (data.timeOfDay.night || 0) + 1;
         
         // Day of week
         const day = log.timestamp.toLocaleDateString('en-US', { weekday: 'long' });
         data.dayOfWeek[day] = (data.dayOfWeek[day] || 0) + 1;
         
         // Correlations
-        if (log.foodItems.length > 0) data.correlations.food++;
-        if (log.stressLevel && log.stressLevel > 5) data.correlations.stress++;
-        if (log.sleepQuality && log.sleepQuality < 5) data.correlations.sleep++;
-        if (log.weather) data.correlations.weather++;
+        if (log.foodItems.length > 0) data.correlations.food = (data.correlations.food || 0) + 1;
+        if (log.stressLevel && log.stressLevel > 5) data.correlations.stress = (data.correlations.stress || 0) + 1;
+        if (log.sleepQuality && log.sleepQuality < 5) data.correlations.sleep = (data.correlations.sleep || 0) + 1;
+        if (log.weather) data.correlations.weather = (data.correlations.weather || 0) + 1;
       });
     });
 
@@ -310,10 +324,10 @@ export class SymptomLoggingService {
         },
         dayOfWeek: data.dayOfWeek,
         correlation: {
-          food: data.correlations.food / data.occurrences,
-          stress: data.correlations.stress / data.occurrences,
-          sleep: data.correlations.sleep / data.occurrences,
-          weather: data.correlations.weather / data.occurrences,
+          food: (data.correlations.food || 0) / data.occurrences,
+          stress: (data.correlations.stress || 0) / data.occurrences,
+          sleep: (data.correlations.sleep || 0) / data.occurrences,
+          weather: (data.correlations.weather || 0) / data.occurrences,
         },
       });
     });
@@ -492,7 +506,8 @@ export class SymptomLoggingService {
     
     // Consistent logging = higher confidence
     const days = new Set(logs.map(log => log.timestamp.toDateString())).size;
-    const consistency = days / Math.max(1, Math.ceil((Date.now() - logs[logs.length - 1].timestamp.getTime()) / (24 * 60 * 60 * 1000)));
+    const lastLog = logs[logs.length - 1];
+    const consistency = lastLog ? days / Math.max(1, Math.ceil((Date.now() - lastLog.timestamp.getTime()) / (24 * 60 * 60 * 1000))) : 0;
     confidence += consistency * 0.2;
     
     return Math.min(1, confidence);

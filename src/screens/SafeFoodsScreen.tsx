@@ -56,9 +56,9 @@ const mockSafeFoods: SafeFood[] = [
     foodItem: {
       id: '2',
       name: 'Banana',
-      brand: undefined,
+      brand: 'Unknown',
       category: 'Fruit',
-      barcode: undefined,
+      barcode: '0000000000000',
       ingredients: ['Banana'],
       allergens: [],
       additives: [],

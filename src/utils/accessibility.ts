@@ -134,7 +134,7 @@ export class AccessibilityService {
       accessible: true,
       accessibilityRole: 'button' as const,
       accessibilityLabel: label,
-      accessibilityHint: hint,
+      ...(hint && { accessibilityHint: hint }),
       accessibilityState: {
         disabled,
         selected,
@@ -157,7 +157,7 @@ export class AccessibilityService {
       accessible: true,
       accessibilityRole: 'button' as const,
       accessibilityLabel: label,
-      accessibilityHint: hint,
+      ...(hint && { accessibilityHint: hint }),
       accessibilityState: {
         selected,
       },
@@ -201,7 +201,7 @@ export class AccessibilityService {
     return {
       accessible: !decorative,
       accessibilityRole: decorative ? 'none' : 'image',
-      accessibilityLabel: decorative ? undefined : label,
+      ...(label && !decorative && { accessibilityLabel: label }),
       testID: `image-${label.toLowerCase().replace(/\s+/g, '-')}`,
     };
   }
@@ -222,7 +222,7 @@ export class AccessibilityService {
       accessible: true,
       accessibilityRole: 'text',
       accessibilityLabel,
-      accessibilityHint,
+      ...(accessibilityHint && { accessibilityHint: accessibilityHint }),
       accessibilityState: {
         disabled: !!error,
       },
@@ -275,7 +275,7 @@ export class AccessibilityService {
       accessible: true,
       accessibilityRole: 'tab',
       accessibilityLabel: label,
-      accessibilityHint: hint,
+      ...(hint && { accessibilityHint: hint }),
       accessibilityState: {
         selected,
       },
@@ -295,7 +295,7 @@ export class AccessibilityService {
       accessible: true,
       accessibilityRole: 'switch',
       accessibilityLabel: label,
-      accessibilityHint: hint,
+      ...(hint && { accessibilityHint: hint }),
       accessibilityState: {
         checked,
       },
@@ -417,7 +417,7 @@ export class AccessibilityService {
         c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
       );
       
-      return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+      return 0.2126 * (rs || 0) + 0.7152 * (gs || 0) + 0.0722 * (bs || 0);
     };
 
     const lum1 = getLuminance(foreground);
@@ -459,17 +459,19 @@ export class AccessibilityService {
       accessibilityState: {
         expanded: isVisible,
       },
-      accessibilityActions: onClose ? [
-        {
-          name: 'close',
-          label: 'Close dialog',
-        },
-      ] : undefined,
-      onAccessibilityAction: onClose ? (event) => {
-        if (event.nativeEvent.actionName === 'close') {
-          onClose();
+      ...(onClose && {
+        accessibilityActions: [
+          {
+            name: 'close',
+            label: 'Close dialog',
+          },
+        ],
+        onAccessibilityAction: (event) => {
+          if (event.nativeEvent.actionName === 'close') {
+            onClose();
+          }
         }
-      } : undefined,
+      }),
       testID: `modal-${title.toLowerCase().replace(/\s+/g, '-')}`,
     };
   }
@@ -490,7 +492,7 @@ export class AccessibilityService {
       accessible: true,
       accessibilityRole: 'search',
       accessibilityLabel: label,
-      accessibilityHint: hint || placeholder,
+      ...((hint || placeholder) && { accessibilityHint: hint || placeholder }),
       testID: `search-${label.toLowerCase().replace(/\s+/g, '-')}`,
     };
   }
@@ -535,7 +537,7 @@ export class AccessibilityService {
       accessible: true,
       accessibilityRole: 'text',
       accessibilityLabel,
-      accessibilityHint,
+      ...(hint && { accessibilityHint: hint }),
       accessibilityState: {
         disabled: !!error,
       },
@@ -558,7 +560,7 @@ export class AccessibilityService {
       accessible: true,
       accessibilityRole: 'progressbar',
       accessibilityLabel: label,
-      accessibilityHint: hint,
+      ...(hint && { accessibilityHint: hint }),
       accessibilityState: {
         busy: true,
       },
@@ -656,7 +658,7 @@ export class AccessibilityService {
       accessible: true,
       accessibilityRole: 'button',
       accessibilityLabel: label,
-      accessibilityHint: hint,
+      ...(hint && { accessibilityHint: hint }),
       accessibilityValue: {
         min: 1,
         max: totalPages,

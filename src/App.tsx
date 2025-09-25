@@ -14,29 +14,36 @@ import DataService from './services/DataService';
 import OfflineService from './services/OfflineService';
 import NetworkService from './services/NetworkService';
 import AILearningService from './services/AILearningService';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { logger } from './utils/logger';
 
 export default function App() {
-  console.log('🚀 GutSafe App - Full Navigation Version 4.0');
+  logger.info('GutSafe App - Full Navigation Version 4.0', 'App');
   
   useEffect(() => {
-    DataService.getInstance().initialize();
-    OfflineService.getInstance().initialize();
-    NetworkService.getInstance().initialize();
-    AILearningService.getInstance().initialize();
-    
-    // Initialize haptic feedback
-    HapticFeedback.setEnabled(true);
-    
-    // Announce app launch to screen readers
-    setTimeout(() => {
-      AccessibilityService.announceForAccessibility('GutSafe app launched successfully');
-    }, 1000);
+    try {
+      DataService.getInstance().initialize();
+      OfflineService.getInstance().initialize();
+      NetworkService.getInstance().initialize();
+      AILearningService.getInstance().initialize();
+      
+      // Initialize haptic feedback
+      HapticFeedback.setEnabled(true);
+      
+      // Announce app launch to screen readers
+      setTimeout(() => {
+        AccessibilityService.announceForAccessibility('GutSafe app launched successfully');
+      }, 1000);
+    } catch (error) {
+      logger.error('Failed to initialize app services', 'App', error);
+    }
   }, []);
 
-  // Temporary bypass for testing
   return (
-    <SafeAreaProvider>
-      <AppNavigator />
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <AppNavigator />
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }

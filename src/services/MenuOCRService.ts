@@ -287,15 +287,15 @@ ${extractedText}
       .filter(item => item && typeof item === 'object' && item.name)
       .map(item => ({
         name: String(item.name).trim(),
-        description: item.description ? String(item.description).trim() : undefined,
+        description: item.description ? String(item.description).trim() : '',
         ingredients: Array.isArray(item.ingredients) 
           ? item.ingredients.map((ing: any) => String(ing).trim()).filter(Boolean)
           : [],
         allergens: Array.isArray(item.allergens)
           ? item.allergens.map((all: any) => String(all).trim()).filter(Boolean)
           : [],
-        price: item.price ? String(item.price).trim() : undefined,
-        category: item.category ? String(item.category).trim() : undefined,
+        price: item.price ? String(item.price).trim() : '',
+        category: item.category ? String(item.category).trim() : '',
         confidence: typeof item.confidence === 'number' 
           ? Math.max(0, Math.min(1, item.confidence))
           : 0.5,

@@ -423,20 +423,20 @@ export default class AILearningService {
 
     if (peakTimes.length > 0) {
       const peakTime = peakTimes[0];
-      const [dayOfWeek, hour] = peakTime.time.split('_').map(Number);
+      const [dayOfWeek, hour] = peakTime?.time?.split('_').map(Number) || [0, 0];
       
       patterns.push({
         type: 'timing_pattern',
-        confidence: Math.min(0.8, peakTime.count / 10),
-        description: `Symptoms peak on ${this.getDayName(dayOfWeek)} at ${hour}:00`,
+        confidence: Math.min(0.8, (peakTime?.count || 0) / 10),
+        description: `Symptoms peak on ${this.getDayName(dayOfWeek || 0)} at ${hour || 0}:00`,
         evidence: {
-          frequency: peakTime.count / this.learningData.symptomLogs.length,
-          severity: peakTime.averageSeverity,
+          frequency: (peakTime?.count || 0) / this.learningData.symptomLogs.length,
+          severity: peakTime?.averageSeverity || 0,
           consistency: 0.7,
         },
         recommendations: [
-          `Be extra careful with food choices on ${this.getDayName(dayOfWeek)}s`,
-          `Consider meal timing around ${hour}:00`,
+          `Be extra careful with food choices on ${this.getDayName(dayOfWeek || 0)}s`,
+          `Consider meal timing around ${hour || 0}:00`,
           `Plan ahead for high-risk times`,
         ],
         affectedConditions: this.learningData.userConditions,
@@ -537,7 +537,7 @@ export default class AILearningService {
     // Calculate recency (more recent data = higher score)
     const now = new Date();
     const mostRecent = allTimestamps[allTimestamps.length - 1];
-    const daysSinceRecent = (now.getTime() - mostRecent.getTime()) / (24 * 60 * 60 * 1000);
+    const daysSinceRecent = mostRecent ? (now.getTime() - mostRecent.getTime()) / (24 * 60 * 60 * 1000) : 30;
     const recency = Math.max(0, 1 - daysSinceRecent / 30); // 30 days = 0 recency
 
     return { completeness, consistency, recency };
@@ -669,7 +669,11 @@ export default class AILearningService {
 
     const intervals: number[] = [];
     for (let i = 1; i < timestamps.length; i++) {
-      intervals.push(timestamps[i].getTime() - timestamps[i - 1].getTime());
+      const current = timestamps[i];
+      const previous = timestamps[i - 1];
+      if (current && previous) {
+        intervals.push(current.getTime() - previous.getTime());
+      }
     }
 
     const averageInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
@@ -722,13 +726,13 @@ export default class AILearningService {
 
   private getDayName(dayOfWeek: number): string {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    return days[dayOfWeek];
+    return days[dayOfWeek] || 'Unknown';
   }
 
   private extractIngredientFromDescription(description: string): string {
     // Extract ingredient name from description
     const match = description.match(/([a-zA-Z\s]+) appears to trigger/);
-    return match ? match[1].trim() : '';
+    return match?.[1]?.trim() || '';
   }
 
   private getCurrentTriggers(): string[] {
@@ -807,7 +811,7 @@ export default class AILearningService {
     const oldest = sorted[0];
     const newest = sorted[sorted.length - 1];
 
-    return (newest.getTime() - oldest.getTime()) / (24 * 60 * 60 * 1000); // days
+    return newest && oldest ? (newest.getTime() - oldest.getTime()) / (24 * 60 * 60 * 1000) : 0; // days
   }
 
   private calculatePredictionAccuracy(): number {

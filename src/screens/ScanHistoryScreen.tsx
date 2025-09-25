@@ -10,6 +10,7 @@ import {
   View,
   Text,
   StyleSheet,
+  FlatList,
   ScrollView,
   TouchableOpacity,
   StatusBar,
@@ -156,9 +157,9 @@ const mockScanHistory: ScanHistory[] = [
     foodItem: {
       id: '4',
       name: 'Banana',
-      brand: undefined,
+      brand: 'Unknown',
       category: 'Fruit',
-      barcode: undefined,
+      barcode: '1234567890123',
       ingredients: ['Banana'],
       allergens: [],
       additives: [],
@@ -647,15 +648,44 @@ Explanation: ${scan.analysis.explanation}
       </View>
 
       {/* Scan History List */}
-      <ScrollView
+      <FlatList
+        data={filteredAndSortedHistory}
+        keyExtractor={(item) => item.id}
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-      >
-        {filteredAndSortedHistory.length === 0 ? (
+        renderItem={({ item: scan }) => (
+          <View style={styles.scanItemContainer}>
+            {isSelectionMode && (
+              <TouchableOpacity
+                style={[
+                  styles.selectionCheckbox,
+                  {
+                    backgroundColor: selectedScans.has(scan.id) ? colors.accent : 'transparent',
+                    borderColor: colors.border,
+                  },
+                ]}
+                onPress={() => toggleScanSelection(scan.id)}
+              >
+                {selectedScans.has(scan.id) && (
+                  <Text style={[styles.checkmark, { color: Colors.white }]}>✓</Text>
+                )}
+              </TouchableOpacity>
+            )}
+            <View style={isSelectionMode ? styles.selectedCard : undefined}>
+              <ScanDetailCard
+                scanHistory={scan}
+                onPress={() => handleCardPress(scan.id)}
+                onExpand={() => handleCardExpand(scan.id)}
+                expanded={expandedCard === scan.id}
+              />
+            </View>
+          </View>
+        )}
+        ListEmptyComponent={() => (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>📱</Text>
             <Text style={[styles.emptyTitle, { color: colors.text }]}>
@@ -679,37 +709,17 @@ Explanation: ${scan.analysis.explanation}
               </TouchableOpacity>
             )}
           </View>
-        ) : (
-          filteredAndSortedHistory.map((scan) => (
-            <View key={scan.id} style={styles.scanItemContainer}>
-              {isSelectionMode && (
-                <TouchableOpacity
-                  style={[
-                    styles.selectionCheckbox,
-                    {
-                      backgroundColor: selectedScans.has(scan.id) ? colors.accent : 'transparent',
-                      borderColor: colors.border,
-                    },
-                  ]}
-                  onPress={() => toggleScanSelection(scan.id)}
-                >
-                  {selectedScans.has(scan.id) && (
-                    <Text style={[styles.checkmark, { color: Colors.white }]}>✓</Text>
-                  )}
-                </TouchableOpacity>
-              )}
-              <View style={isSelectionMode ? styles.selectedCard : undefined}>
-                <ScanDetailCard
-                  scanHistory={scan}
-                  onPress={() => handleCardPress(scan.id)}
-                  onExpand={() => handleCardExpand(scan.id)}
-                  expanded={expandedCard === scan.id}
-                />
-              </View>
-            </View>
-          ))
         )}
-      </ScrollView>
+        getItemLayout={(data, index) => ({
+          length: 200, // Approximate height of each item
+          offset: 200 * index,
+          index,
+        })}
+        initialNumToRender={10}
+        maxToRenderPerBatch={5}
+        windowSize={10}
+        removeClippedSubviews={true}
+      />
 
       {/* Export Modal */}
       <Modal
