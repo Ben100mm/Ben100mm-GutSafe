@@ -66,9 +66,9 @@ export class AnalyticsUtils {
       label: metric.date.toLocaleDateString(),
     }));
 
-    const firstScore = dataPoints[0].y;
-    const lastScore = dataPoints[dataPoints.length - 1].y;
-    const changePercentage = ((lastScore - firstScore) / firstScore) * 100;
+    const firstScore = dataPoints[0]?.y;
+    const lastScore = dataPoints[dataPoints.length - 1]?.y;
+    const changePercentage = firstScore && lastScore ? ((lastScore - firstScore) / firstScore) * 100 : 0;
 
     const trend: 'up' | 'down' | 'stable' = 
       changePercentage > 5 ? 'up' : 
@@ -159,9 +159,9 @@ export class AnalyticsUtils {
   ): 'improving' | 'stable' | 'declining' {
     if (totalScans < 3) return 'stable';
 
-    const recentScans = timestamps
-      .sort((a, b) => b.getTime() - a.getTime())
-      .slice(0, Math.min(5, totalScans));
+    // const recentScans = timestamps
+    //   .sort((a, b) => b.getTime() - a.getTime())
+    //   .slice(0, Math.min(5, totalScans));
 
     const recentSafeRatio = safeCount / totalScans;
     

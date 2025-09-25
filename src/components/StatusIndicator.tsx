@@ -5,7 +5,7 @@
  * @private
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -24,13 +24,13 @@ interface StatusIndicatorProps {
   style?: ViewStyle;
 }
 
-export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
+export const StatusIndicator: React.FC<StatusIndicatorProps> = React.memo(({
   result,
   title,
   subtitle,
   style,
 }) => {
-  const getStatusConfig = () => {
+  const config = useMemo(() => {
     switch (result) {
       case 'safe':
         return {
@@ -50,10 +50,14 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
           icon: '❌',
           backgroundColor: `${Colors.avoid}15`,
         };
+      default:
+        return {
+          color: Colors.safe,
+          icon: '✅',
+          backgroundColor: `${Colors.safe}15`,
+        };
     }
-  };
-
-  const config = getStatusConfig();
+  }, [result]);
 
   return (
     <View style={[styles.container, { backgroundColor: config.backgroundColor }, style]}>
@@ -68,7 +72,7 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
       </View>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

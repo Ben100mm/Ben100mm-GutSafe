@@ -7,7 +7,7 @@
 
 import { Platform, Alert } from 'react-native';
 import AsyncStorage from '../utils/AsyncStorage';
-import { GutProfile, SafeFood } from '../types';
+import { SafeFood } from '../types';
 
 /**
  * NotificationService - Handles push notifications and local notifications

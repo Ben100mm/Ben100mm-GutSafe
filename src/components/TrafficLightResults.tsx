@@ -13,7 +13,7 @@ import {
   TouchableOpacity,
   useColorScheme,
   Animated,
-  Dimensions,
+  // Dimensions,
   Platform,
 } from 'react-native';
 // import LinearGradient from 'react-native-web-linear-gradient';

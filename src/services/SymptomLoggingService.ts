@@ -6,6 +6,7 @@
  */
 
 import { GutSymptom } from '../types';
+import { logger } from '../utils/logger';
 
 // Symptom Logging Types
 export interface SymptomLog {
@@ -100,7 +101,7 @@ export class SymptomLoggingService {
         this.symptomLogs = storedLogs;
       }
     } catch (error) {
-      console.error('Failed to load symptom logs:', error);
+      logger.error('Failed to load symptom logs', 'SymptomLoggingService', error);
     }
   }
 
@@ -679,7 +680,7 @@ export class SymptomLoggingService {
         }));
       }
     } catch (error) {
-      console.error('Failed to load symptom logs from storage:', error);
+      logger.error('Failed to load symptom logs from storage', 'SymptomLoggingService', error);
     }
     return null;
   }
@@ -688,7 +689,7 @@ export class SymptomLoggingService {
     try {
       localStorage.setItem('gutsafe_symptom_logs', JSON.stringify(this.symptomLogs));
     } catch (error) {
-      console.error('Failed to save symptom logs to storage:', error);
+      logger.error('Failed to save symptom logs to storage', 'SymptomLoggingService', error);
       throw error;
     }
   }
@@ -738,7 +739,7 @@ export class SymptomLoggingService {
         await this.saveToStorage();
       }
     } catch (error) {
-      console.error('Failed to import symptom data:', error);
+      logger.error('Failed to import symptom data', 'SymptomLoggingService', error);
       throw new Error('Invalid data format');
     }
   }

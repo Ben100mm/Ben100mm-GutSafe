@@ -162,7 +162,7 @@ export const ServiceProvider: React.FC<{
     return () => {
       container.cleanupAll();
     };
-  }, []);
+  }, [container, services]);
 
   return React.createElement(React.Fragment, null, children);
 };

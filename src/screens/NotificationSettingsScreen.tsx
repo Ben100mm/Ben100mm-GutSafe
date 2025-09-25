@@ -5,7 +5,7 @@
  * @private
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -51,7 +51,7 @@ export const NotificationSettingsScreen: React.FC = () => {
 
   const notificationService = NotificationService.getInstance();
 
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     try {
       const currentSettings = notificationService.getSettings();
       setSettings(currentSettings);
@@ -59,21 +59,21 @@ export const NotificationSettingsScreen: React.FC = () => {
     } catch (error) {
       console.error('Failed to load notification settings:', error);
     }
-  };
+  }, [notificationService]);
 
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       const notificationStats = await notificationService.getNotificationStats();
       setStats(notificationStats);
     } catch (error) {
       console.error('Failed to load notification stats:', error);
     }
-  };
+  }, [notificationService]);
 
   useEffect(() => {
     loadSettings();
     loadStats();
-  }, []);
+  }, [loadSettings, loadStats]);
 
   const updateSetting = async (key: string, value: any) => {
     try {

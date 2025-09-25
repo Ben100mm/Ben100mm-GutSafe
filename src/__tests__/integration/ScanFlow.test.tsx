@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, screen } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { ScanScreen } from '../../screens/ScanScreen';
 import { ScanDetailScreen } from '../../screens/ScanDetailScreen';
@@ -143,7 +143,7 @@ describe('Scan Flow Integration Tests', () => {
       });
 
       // Simulate barcode scan
-      const scanButton = getByTestId('scan-button');
+      const scanButton = screen.getByTestId('scan-button');
       fireEvent.press(scanButton);
 
       // Wait for scan processing

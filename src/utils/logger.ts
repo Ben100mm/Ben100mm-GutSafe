@@ -5,7 +5,7 @@
  * @private
  */
 
-import { Platform } from 'react-native';
+// import { Platform } from 'react-native';
 
 export enum LogLevel {
   DEBUG = 0,
@@ -24,7 +24,7 @@ interface LogEntry {
 
 class Logger {
   private static instance: Logger;
-  private logLevel: LogLevel = __DEV__ ? LogLevel.DEBUG : LogLevel.ERROR;
+  private logLevel: LogLevel = (typeof __DEV__ !== 'undefined' && __DEV__) ? LogLevel.DEBUG : LogLevel.ERROR;
   private logs: LogEntry[] = [];
   private maxLogs = 1000;
 
@@ -52,8 +52,8 @@ class Logger {
       level,
       message,
       timestamp: new Date(),
-      context,
-      data,
+      ...(context !== undefined && { context }),
+      ...(data !== undefined && { data }),
     };
 
     this.logs.push(entry);

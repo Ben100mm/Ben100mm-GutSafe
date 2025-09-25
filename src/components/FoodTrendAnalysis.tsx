@@ -95,7 +95,7 @@ export const FoodTrendAnalysis: React.FC<FoodTrendAnalysisProps> = ({
             Top Scanned Foods
           </Text>
           <View style={styles.chartArea}>
-            {sortedData.map((food, index) => (
+            {sortedData.map((food, _index) => (
               <View key={food.foodName} style={styles.chartBar}>
                 <View style={styles.barContainer}>
                   <View
@@ -121,7 +121,7 @@ export const FoodTrendAnalysis: React.FC<FoodTrendAnalysisProps> = ({
       )}
 
       <ScrollView style={styles.foodList} showsVerticalScrollIndicator={false}>
-        {sortedData.map((food, index) => (
+        {sortedData.map((food, _index) => (
           <TouchableOpacity
             key={food.foodName}
             style={[

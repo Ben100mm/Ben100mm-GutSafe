@@ -147,7 +147,7 @@ export const validateData = <T>(schema: z.ZodSchema<T>, data: unknown): T => {
     return schema.parse(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errorMessage = error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
+      const errorMessage = error.issues.map((err: any) => `${err.path.join('.')}: ${err.message}`).join(', ');
       throw new Error(`Validation failed: ${errorMessage}`);
     }
     throw error;
@@ -160,7 +160,7 @@ export const safeValidate = <T>(schema: z.ZodSchema<T>, data: unknown): { succes
     return { success: true, data: result };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errorMessage = error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
+      const errorMessage = error.issues.map((err: any) => `${err.path.join('.')}: ${err.message}`).join(', ');
       return { success: false, error: errorMessage };
     }
     return { success: false, error: 'Unknown validation error' };

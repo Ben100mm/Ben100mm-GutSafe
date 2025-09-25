@@ -6,6 +6,7 @@
  */
 
 import { AccessibilityInfo, Platform, AccessibilityRole } from 'react-native';
+import { logger } from './logger';
 
 export interface AccessibilityConfig {
   accessible?: boolean;
@@ -46,7 +47,7 @@ export class AccessibilityService {
   static async initialize(): Promise<void> {
     if (Platform.OS === 'web') {
       // Web-specific initialization - simplified to avoid errors
-      console.log('Accessibility service initialized for web');
+      logger.info('Accessibility service initialized for web', 'AccessibilityService');
       return;
     }
 
@@ -64,7 +65,7 @@ export class AccessibilityService {
       AccessibilityInfo.addEventListener('grayscaleChanged', this.handleGrayscaleChanged);
       AccessibilityInfo.addEventListener('invertColorsChanged', this.handleInvertColorsChanged);
     } catch (error) {
-      console.warn('Failed to initialize accessibility service:', error);
+      logger.warn('Failed to initialize accessibility service', 'AccessibilityService', error);
     }
   }
 
@@ -492,7 +493,7 @@ export class AccessibilityService {
       accessible: true,
       accessibilityRole: 'search',
       accessibilityLabel: label,
-      ...((hint || placeholder) && { accessibilityHint: hint || placeholder }),
+      ...(hint || placeholder ? { accessibilityHint: hint || placeholder || '' } : {}),
       testID: `search-${label.toLowerCase().replace(/\s+/g, '-')}`,
     };
   }
@@ -531,7 +532,7 @@ export class AccessibilityService {
     hint?: string
   ): AccessibilityConfig {
     const accessibilityLabel = required ? `${label} (required)` : label;
-    const accessibilityHint = error ? `${hint || ''} Error: ${error}` : hint;
+    // const accessibilityHint = error ? `${hint || ''} Error: ${error}` : hint;
     
     return {
       accessible: true,
@@ -564,12 +565,14 @@ export class AccessibilityService {
       accessibilityState: {
         busy: true,
       },
-      accessibilityValue: progress !== undefined ? {
-        min: 0,
-        max: 100,
-        now: progress,
-        text: `${progress}% complete`,
-      } : undefined,
+      ...(progress !== undefined ? {
+        accessibilityValue: {
+          min: 0,
+          max: 100,
+          now: progress,
+          text: `${progress}% complete`,
+        }
+      } : {}),
       testID: `loading-${label.toLowerCase().replace(/\s+/g, '-')}`,
     };
   }

@@ -5,7 +5,7 @@
  * @private
  */
 
-import { AccessibilityInfo, Platform } from 'react-native';
+// import { AccessibilityInfo, Platform } from 'react-native';
 import AccessibilityService from './accessibility';
 
 /**

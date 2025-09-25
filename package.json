@@ -50,16 +50,26 @@
     "zustand": "^5.0.8"
   },
   "scripts": {
-    "start": "PORT=9001 craco start",
-    "build": "craco build",
-    "test": "craco test",
-    "eject": "react-scripts eject"
+    "start": "NODE_ENV=development PORT=9001 FAST_REFRESH=false craco start",
+    "build": "NODE_ENV=production craco build",
+    "test": "NODE_ENV=test craco test",
+    "eject": "react-scripts eject",
+    "analyze": "npm run build && npx webpack-bundle-analyzer build/static/js/*.js",
+    "analyze:serve": "npx webpack-bundle-analyzer build/static/js/*.js -p 8888",
+    "type-check": "tsc --noEmit",
+    "lint": "NODE_ENV=development eslint src --ext .ts,.tsx,.js,.jsx",
+    "lint:fix": "NODE_ENV=development eslint src --ext .ts,.tsx,.js,.jsx --fix"
   },
   "devDependencies": {
     "@babel/plugin-syntax-flow": "^7.27.1",
     "@babel/preset-flow": "^7.27.1",
+    "@testing-library/jest-native": "^5.4.3",
+    "@testing-library/react-native": "^13.3.3",
+    "@types/crypto-js": "^4.2.2",
     "@types/react": "^18.2.0",
-    "@types/react-native": "^0.72.0"
+    "@types/react-native": "^0.72.0",
+    "react-test-renderer": "^18.3.1",
+    "webpack-bundle-analyzer": "^4.10.2"
   },
   "eslintConfig": {
     "extends": [

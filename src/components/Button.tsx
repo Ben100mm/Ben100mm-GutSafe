@@ -5,7 +5,7 @@
  * @private
  */
 
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -31,7 +31,7 @@ interface ButtonProps {
   textStyle?: TextStyle;
 }
 
-export const Button: React.FC<ButtonProps> = ({
+export const Button: React.FC<ButtonProps> = React.memo(({
   title,
   onPress,
   variant = 'primary',
@@ -41,33 +41,39 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   textStyle,
 }) => {
-  const buttonStyle = [
+  const buttonStyle = useMemo(() => [
     styles.button,
     styles[size],
     variant === 'outline' && styles.outline,
     disabled && styles.disabled,
     style,
-  ];
+  ], [size, variant, disabled, style]);
 
-  const textStyleCombined = [
+  const textStyleCombined = useMemo(() => [
     styles.text,
     styles[`${size}Text`],
     variant === 'outline' && styles.outlineText,
     disabled && styles.disabledText,
     textStyle,
-  ];
+  ], [size, variant, disabled, textStyle]);
 
-  const accessibilityProps = getButtonAccessibilityProps({
+  const accessibilityProps = useMemo(() => getButtonAccessibilityProps({
     title,
     disabled: disabled || loading,
     loading,
     variant,
-  });
+  }), [title, disabled, loading, variant]);
+
+  const handlePress = useCallback(() => {
+    if (!disabled && !loading) {
+      onPress();
+    }
+  }, [onPress, disabled, loading]);
 
   if (variant === 'primary') {
     return (
       <TouchableOpacity
-        onPress={onPress}
+        onPress={handlePress}
         disabled={disabled || loading}
         style={[buttonStyle, { overflow: 'hidden' }]}
         {...accessibilityProps}
@@ -88,7 +94,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={handlePress}
       disabled={disabled || loading}
       style={buttonStyle}
       {...accessibilityProps}
@@ -103,7 +109,7 @@ export const Button: React.FC<ButtonProps> = ({
       )}
     </TouchableOpacity>
   );
-};
+});
 
 const styles = StyleSheet.create({
   button: {

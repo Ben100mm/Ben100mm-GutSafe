@@ -33,13 +33,13 @@ interface TrendChartProps {
 }
 
 export const TrendChart: React.FC<TrendChartProps> = ({
-  data,
-  title,
-  subtitle,
-  color = Colors.primary,
-  height = 200,
-  showInsights = true,
-  showRecommendations = false,
+  data: _data,
+  title: _title,
+  subtitle: _subtitle,
+  color: _color = Colors.primary,
+  height: _height = 200,
+  showInsights: _showInsights = true,
+  showRecommendations: _showRecommendations = false,
 }) => {
 
   // Simple line chart implementation

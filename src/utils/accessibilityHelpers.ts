@@ -86,7 +86,7 @@ export const getButtonAccessibilityProps = (config: {
     label: config.loading ? `${config.title}, loading` : config.title,
     hint: config.disabled ? 'Button is disabled' : `Tap to ${config.title.toLowerCase()}`,
     state: {
-      disabled: config.disabled || config.loading,
+      disabled: Boolean(config.disabled || config.loading),
     },
   });
 };
@@ -101,9 +101,9 @@ export const getCardAccessibilityProps = (config: {
   return createAccessibilityProps({
     role: config.onPress ? 'button' : 'none',
     label: `${config.title}${config.subtitle ? `, ${config.subtitle}` : ''}`,
-    hint: config.onPress ? 'Tap to view details' : undefined,
+    ...(config.onPress ? { hint: 'Tap to view details' } : {}),
     state: {
-      expanded: config.expanded,
+      expanded: Boolean(config.expanded),
     },
   });
 };
@@ -160,9 +160,9 @@ export const getImageAccessibilityProps = (config: {
 }) => {
   return createAccessibilityProps({
     role: 'image',
-    label: config.decorative ? undefined : config.alt,
+    ...(config.decorative ? {} : { label: config.alt }),
     state: {
-      disabled: config.decorative,
+      disabled: Boolean(config.decorative),
     },
   });
 };
@@ -268,7 +268,7 @@ export const testAccessibility = (component: any) => {
   return issues;
 };
 
-export default {
+const accessibilityHelpers = {
   createAccessibilityProps,
   getButtonAccessibilityProps,
   getCardAccessibilityProps,
@@ -284,3 +284,5 @@ export default {
   getAccessibleTouchTarget,
   testAccessibility,
 };
+
+export default accessibilityHelpers;

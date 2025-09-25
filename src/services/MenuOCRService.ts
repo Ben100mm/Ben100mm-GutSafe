@@ -5,8 +5,9 @@
  * @private
  */
 
-import { FoodItem, GutCondition, ScanResult, SeverityLevel } from '../types';
-import { foodDatabaseService } from './FoodDatabaseService';
+import { GutCondition, ScanResult, SeverityLevel } from '../types';
+// import { foodDatabaseService } from './FoodDatabaseService';
+import { logger } from '../utils/logger';
 
 // Menu OCR Types
 interface MenuItem {
@@ -99,7 +100,7 @@ export class MenuOCRService {
       
       return analysis;
     } catch (error) {
-      console.error('Menu OCR error:', error);
+      logger.error('Menu OCR error', 'MenuOCRService', error);
       throw new Error(`Failed to scan menu: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -145,7 +146,7 @@ export class MenuOCRService {
       this.setCache(cacheKey, extractedText);
       return extractedText;
     } catch (error) {
-      console.error('Google Vision API error:', error);
+      logger.error('Google Vision API error', 'MenuOCRService', error);
       throw new Error('Failed to extract text from image');
     }
   }
@@ -199,7 +200,7 @@ export class MenuOCRService {
       this.setCache(cacheKey, parsedMenu);
       return parsedMenu;
     } catch (error) {
-      console.error('GPT API error:', error);
+      logger.error('GPT API error', 'MenuOCRService', error);
       throw new Error('Failed to parse menu with AI');
     }
   }
@@ -264,7 +265,7 @@ ${extractedText}
 
       return validatedMenu;
     } catch (error) {
-      console.error('Error parsing GPT response:', error);
+      logger.error('Error parsing GPT response', 'MenuOCRService', error);
       // Fallback: create a basic menu structure
       return this.createFallbackMenu(originalText);
     }

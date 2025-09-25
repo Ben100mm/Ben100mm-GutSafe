@@ -54,19 +54,20 @@ export const useMemoizedCallback = <T extends (...args: any[]) => any>(
 // Memoized value hook with custom equality function
 export const useMemoizedValue = <T>(
   factory: () => T,
-  deps: React.DependencyList,
+  deps: React.DependencyList | undefined,
   equalityFn?: (a: T, b: T) => boolean
 ): T => {
   const ref = useRef<T>();
   const prevDeps = useRef<React.DependencyList>();
 
+  const currentDeps = deps ?? [];
   if (
     !ref.current ||
-    !areEqual(prevDeps.current, deps) ||
+    !areEqual(prevDeps.current ?? [], currentDeps) ||
     (equalityFn && !equalityFn(ref.current, factory()))
   ) {
     ref.current = factory();
-    prevDeps.current = deps;
+    prevDeps.current = currentDeps;
   }
 
   return ref.current;
@@ -305,7 +306,7 @@ export class PerformanceMetrics {
 export const performanceMetrics = PerformanceMetrics.getInstance();
 
 // Export all hooks and utilities
-export default {
+const performanceOptimization = {
   useDebounce,
   useThrottle,
   useMemoizedCallback,
@@ -318,3 +319,5 @@ export default {
   PerformanceMetrics,
   performanceMetrics,
 };
+
+export default performanceOptimization;

@@ -7,7 +7,7 @@
 
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { ScanHistory, ScanResult, GutProfile } from '../types';
+import { ScanHistory, GutProfile } from '../types';
 import { logger } from '../utils/logger';
 
 // App State Interface

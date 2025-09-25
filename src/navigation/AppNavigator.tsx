@@ -16,20 +16,23 @@ import { Spacing } from '../constants/spacing';
 import { HapticFeedback } from '../utils/haptics';
 import AccessibilityService from '../utils/accessibility';
 
-// Screens
-import DashboardScreen from '../screens/DashboardScreen';
-import { ScanScreen } from '../screens/ScanScreen';
-import { BrowseScreen } from '../screens/BrowseScreen';
-import { ScannerScreen } from '../screens/ScannerScreen';
-import { ScanHistoryScreen } from '../screens/ScanHistoryScreen';
-import { ScanDetailScreen } from '../screens/ScanDetailScreen';
-import { SafeFoodsScreen } from '../screens/SafeFoodsScreen';
-import AnalyticsScreen from '../screens/AnalyticsScreen';
-import { GutProfileScreen } from '../screens/GutProfileScreen';
-import { OnboardingScreen } from '../screens/OnboardingScreen';
+// Lazy loaded screens
+import {
+  LazyDashboardScreen,
+  LazyScanScreen,
+  LazyBrowseScreen,
+  LazyScannerScreen,
+  LazyScanHistoryScreen,
+  LazyScanDetailScreen,
+  LazySafeFoodsScreen,
+  LazyAnalyticsScreen,
+  LazyGutProfileScreen,
+  LazyOnboardingScreen,
+} from '../screens/lazy';
 
 // Tab Icons
 import { TabIcon } from '../components/TabIcon';
+import { LazyWrapper } from '../components/LazyWrapper';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -42,13 +45,55 @@ const ScanStack = () => (
       presentation: 'modal',
     }}
   >
-    <Stack.Screen name="ScanMain" component={ScanScreen} />
-    <Stack.Screen name="Scanner" component={ScannerScreen} />
-    <Stack.Screen name="ScanHistory" component={ScanHistoryScreen} />
-    <Stack.Screen name="ScanDetail" component={ScanDetailScreen} />
-    <Stack.Screen name="SafeFoods" component={SafeFoodsScreen} />
-    <Stack.Screen name="GutProfile" component={GutProfileScreen} />
-    <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+    <Stack.Screen name="ScanMain">
+      {() => (
+        <LazyWrapper>
+          <LazyScanScreen />
+        </LazyWrapper>
+      )}
+    </Stack.Screen>
+    <Stack.Screen name="Scanner">
+      {() => (
+        <LazyWrapper>
+          <LazyScannerScreen />
+        </LazyWrapper>
+      )}
+    </Stack.Screen>
+    <Stack.Screen name="ScanHistory">
+      {() => (
+        <LazyWrapper>
+          <LazyScanHistoryScreen />
+        </LazyWrapper>
+      )}
+    </Stack.Screen>
+    <Stack.Screen name="ScanDetail">
+      {() => (
+        <LazyWrapper>
+          <LazyScanDetailScreen />
+        </LazyWrapper>
+      )}
+    </Stack.Screen>
+    <Stack.Screen name="SafeFoods">
+      {() => (
+        <LazyWrapper>
+          <LazySafeFoodsScreen />
+        </LazyWrapper>
+      )}
+    </Stack.Screen>
+    <Stack.Screen name="GutProfile">
+      {() => (
+        <LazyWrapper>
+          <LazyGutProfileScreen />
+        </LazyWrapper>
+      )}
+    </Stack.Screen>
+    <Stack.Screen name="Onboarding">
+      {() => (
+        <LazyWrapper>
+          <LazyOnboardingScreen />
+        </LazyWrapper>
+      )}
+    </Stack.Screen>
   </Stack.Navigator>
 );
 
@@ -118,13 +163,18 @@ const MainTabs = () => {
     >
       <Tab.Screen
         name="Summary"
-        component={DashboardScreen}
         options={{
           tabBarIcon: ({ focused, color }) => (
             <TabIcon name="heart" focused={focused} color={color} />
           ),
         }}
-      />
+      >
+        {() => (
+          <LazyWrapper>
+            <LazyDashboardScreen />
+          </LazyWrapper>
+        )}
+      </Tab.Screen>
       <Tab.Screen
         name="Scan"
         component={ScanStack}
@@ -136,22 +186,32 @@ const MainTabs = () => {
       />
       <Tab.Screen
         name="Browse"
-        component={BrowseScreen}
         options={{
           tabBarIcon: ({ focused, color }) => (
             <TabIcon name="grid" focused={focused} color={color} />
           ),
         }}
-      />
+      >
+        {() => (
+          <LazyWrapper>
+            <LazyBrowseScreen />
+          </LazyWrapper>
+        )}
+      </Tab.Screen>
       <Tab.Screen
         name="Analytics"
-        component={AnalyticsScreen}
         options={{
           tabBarIcon: ({ focused, color }) => (
             <TabIcon name="trend" focused={focused} color={color} />
           ),
         }}
-      />
+      >
+        {() => (
+          <LazyWrapper>
+            <LazyAnalyticsScreen />
+          </LazyWrapper>
+        )}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 };

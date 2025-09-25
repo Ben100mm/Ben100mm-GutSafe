@@ -5,8 +5,9 @@
  * @private
  */
 
-import { FoodItem, GutCondition, ScanResult, SeverityLevel } from '../types';
-import { foodDatabaseService } from './FoodDatabaseService';
+import { GutCondition, ScanResult, SeverityLevel } from '../types';
+// import { foodDatabaseService } from './FoodDatabaseService';
+import { logger } from '../utils/logger';
 
 // Recipe Types
 interface RecipeIngredient {
@@ -116,7 +117,7 @@ export class RecipeImporterService {
       
       return analysis;
     } catch (error) {
-      console.error('Recipe import error:', error);
+      logger.error('Recipe import error', 'RecipeImporterService', error);
       throw new Error(`Failed to import recipe: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -147,7 +148,7 @@ export class RecipeImporterService {
       this.setCache(cacheKey, parsedRecipe);
       return parsedRecipe;
     } catch (error) {
-      console.error('URL import error:', error);
+      logger.error('URL import error', 'RecipeImporterService', error);
       throw new Error('Failed to import recipe from URL');
     }
   }
@@ -168,7 +169,7 @@ export class RecipeImporterService {
       const textContent = this.extractTextFromHtml(response.contents);
       return textContent;
     } catch (error) {
-      console.error('Text extraction error:', error);
+      logger.error('Text extraction error', 'RecipeImporterService', error);
       throw new Error('Failed to extract text from URL');
     }
   }
@@ -235,7 +236,7 @@ export class RecipeImporterService {
       this.setCache(cacheKey, parsedRecipe);
       return parsedRecipe;
     } catch (error) {
-      console.error('GPT recipe parsing error:', error);
+      logger.error('GPT recipe parsing error', 'RecipeImporterService', error);
       throw new Error('Failed to parse recipe with AI');
     }
   }
@@ -325,7 +326,7 @@ ${text}
 
       return validatedRecipe;
     } catch (error) {
-      console.error('Error parsing GPT response:', error);
+      logger.error('Error parsing GPT response', 'RecipeImporterService', error);
       // Fallback: create a basic recipe structure
       return this.createFallbackRecipe(originalText, sourceUrl);
     }

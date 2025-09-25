@@ -5,8 +5,8 @@
  * @private
  */
 
-import { GutCondition, SeverityLevel, ScanResult, GutProfile, GutSymptom } from '../types';
-import { logger } from '../utils/logger';
+import { GutCondition, ScanResult, GutProfile, GutSymptom } from '../types';
+// import { logger } from '../utils/logger';
 
 // Pattern Analysis Types
 export interface LearningData {

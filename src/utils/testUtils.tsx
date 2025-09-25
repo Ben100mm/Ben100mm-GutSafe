@@ -9,7 +9,13 @@ import { render, RenderOptions } from '@testing-library/react-native';
 import React, { ReactElement } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-import { logger } from './logger';
+// import { logger } from './logger';
+
+// Jest types
+declare global {
+  const jest: any;
+  const expect: any;
+}
 
 // Mock logger for tests
 export const mockLogger = {
@@ -234,11 +240,12 @@ export const measureRenderTime = async (renderFn: () => void) => {
 };
 
 export const measureMemoryUsage = () => {
-  if (performance.memory) {
+  const memoryInfo = (performance as any).memory;
+  if (memoryInfo) {
     return {
-      used: performance.memory.usedJSHeapSize,
-      total: performance.memory.totalJSHeapSize,
-      limit: performance.memory.jsHeapSizeLimit,
+      used: memoryInfo.usedJSHeapSize,
+      total: memoryInfo.totalJSHeapSize,
+      limit: memoryInfo.jsHeapSizeLimit,
     };
   }
   return null;
@@ -290,7 +297,7 @@ export const cleanupTestEnvironment = () => {
 // Export everything
 export * from '@testing-library/react-native';
 export { customRender as render };
-export default {
+const testUtils = {
   mockLogger,
   mockNavigation,
   mockRoute,
@@ -312,3 +319,5 @@ export default {
   setupTestEnvironment,
   cleanupTestEnvironment,
 };
+
+export default testUtils;

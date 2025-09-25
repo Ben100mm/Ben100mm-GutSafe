@@ -5,7 +5,7 @@
  * @private
  */
 
-import { GutCondition, SeverityLevel, ScanResult } from '../types';
+import { GutCondition, ScanResult } from '../types';
 
 // Safe Alternatives Types
 export interface SafeAlternative {

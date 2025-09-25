@@ -41,13 +41,29 @@ export class SecurityConfig {
 
   // Initialize allowed origins
   private initializeAllowedOrigins(): void {
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    // const isProduction = process.env.NODE_ENV === 'production';
+    
     this.allowedOrigins = [
       'https://gutsafe.app',
       'https://www.gutsafe.app',
       'https://api.gutsafe.app',
-      'http://localhost:3000',
-      'http://localhost:9001',
     ];
+    
+    if (isDevelopment) {
+      this.allowedOrigins.push(
+        'http://localhost:3000',
+        'http://localhost:9001',
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:9001'
+      );
+    }
+    
+    // Add environment-specific origins
+    if (process.env.ALLOWED_ORIGINS) {
+      const envOrigins = process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim());
+      this.allowedOrigins.push(...envOrigins);
+    }
   }
 
   // Get security headers
@@ -109,6 +125,30 @@ export class SecurityConfig {
       .replace(/[<>]/g, '') // Remove potential HTML tags
       .replace(/['"]/g, '') // Remove quotes
       .replace(/[;]/g, '') // Remove semicolons
+      .replace(/[&]/g, '&amp;') // Escape ampersands
+      .replace(/[\\]/g, '') // Remove backslashes
+      .replace(/[/]/g, '') // Remove forward slashes
+      .replace(/[()]/g, '') // Remove parentheses
+      .replace(/[[\]]/g, '') // Remove brackets
+      .replace(/[{}]/g, '') // Remove braces
+      .replace(/[|]/g, '') // Remove pipes
+      .replace(/[`]/g, '') // Remove backticks
+      .replace(/[~]/g, '') // Remove tildes
+      .replace(/[!]/g, '') // Remove exclamation marks
+      .replace(/[@]/g, '') // Remove at symbols
+      .replace(/[#]/g, '') // Remove hash symbols
+      .replace(/[$]/g, '') // Remove dollar signs
+      .replace(/[%]/g, '') // Remove percent signs
+      .replace(/[\^]/g, '') // Remove carets
+      .replace(/[+]/g, '') // Remove plus signs
+      .replace(/[=]/g, '') // Remove equals signs
+      .replace(/[?]/g, '') // Remove question marks
+      .replace(/[<]/g, '') // Remove less than
+      .replace(/[>]/g, '') // Remove greater than
+      .replace(/[,]/g, '') // Remove commas
+      .replace(/[.]/g, '') // Remove periods
+      .replace(/[/]/g, '') // Remove forward slashes
+      .replace(/[\\]/g, '') // Remove backslashes
       .trim();
   }
 
@@ -164,28 +204,27 @@ export class SecurityConfig {
     };
   }
 
-  // Generate secure random string
+  // Generate secure random string using crypto
   generateSecureToken(length: number = 32): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    
-    for (let i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      const array = new Uint8Array(length);
+      crypto.getRandomValues(array);
+      return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    } else {
+      // Fallback for environments without crypto support
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let result = '';
+      for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
     }
-    
-    return result;
   }
 
-  // Hash sensitive data
+  // Hash sensitive data using crypto-js
   hashSensitiveData(data: string): string {
-    // In a real app, use a proper hashing library like bcrypt
-    let hash = 0;
-    for (let i = 0; i < data.length; i++) {
-      const char = data.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    return Math.abs(hash).toString(16);
+    const CryptoJS = require('crypto-js');
+    return CryptoJS.SHA256(data).toString();
   }
 
   // Check for suspicious patterns

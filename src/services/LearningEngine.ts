@@ -5,7 +5,7 @@
  * @private
  */
 
-import { GutCondition, SeverityLevel, ScanResult, GutProfile, GutSymptom } from '../types';
+import { GutCondition, GutProfile } from '../types';
 import PatternAnalyzer, { LearningData, PatternInsight } from './PatternAnalyzer';
 import RecommendationEngine, { AdaptiveRecommendation } from './RecommendationEngine';
 import { logger } from '../utils/logger';

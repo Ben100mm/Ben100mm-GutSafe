@@ -5,7 +5,7 @@
  * @private
  */
 
-import { AccessibilityInfo, Platform } from 'react-native';
+import { AccessibilityInfo } from 'react-native';
 
 interface HybridAccessibilityConfig {
   // Clarity-first accessibility

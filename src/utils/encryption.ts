@@ -5,13 +5,13 @@
  * @private
  */
 
-import CryptoJS from 'crypto-js';
+import * as CryptoJS from 'crypto-js';
 import { logger } from './logger';
 
 // Encryption configuration
 const ENCRYPTION_KEY = 'gutsafe-health-data-key-2024'; // In production, this should be from secure storage
-const ALGORITHM = 'AES';
-const KEY_SIZE = 256;
+// const ALGORITHM = 'AES';
+// const KEY_SIZE = 256;
 
 // Sensitive data fields that should be encrypted
 const SENSITIVE_FIELDS = [

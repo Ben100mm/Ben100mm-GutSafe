@@ -6,7 +6,7 @@
  */
 
 import FoodDatabaseService from '../../services/FoodDatabaseService';
-import { FoodItem, GutCondition, SeverityLevel } from '../../types';
+import { FoodItem, SeverityLevel } from '../../types';
 
 // Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => ({

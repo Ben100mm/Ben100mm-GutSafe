@@ -142,7 +142,7 @@ class BundleAnalyzer {
   getUnusedDependencies(): string[] {
     const unused: string[] = [];
     
-    for (const [name, version] of this.dependencies.entries()) {
+    for (const [name] of this.dependencies.entries()) {
       const bundleSize = this.bundleData.get(name);
       if (!bundleSize || bundleSize < 1000) { // Less than 1KB
         unused.push(name);

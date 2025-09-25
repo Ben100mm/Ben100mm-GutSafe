@@ -7,7 +7,7 @@
 
 import { GutCondition, SeverityLevel, GutProfile } from '../types';
 import { PatternInsight } from './PatternAnalyzer';
-import { logger } from '../utils/logger';
+// import { logger } from '../utils/logger';
 
 // Recommendation Types
 export interface AdaptiveRecommendation {

@@ -198,8 +198,8 @@ class PerformanceOptimizer {
     const averageTime = times.reduce((sum, time) => sum + time, 0) / times.length;
     
     const sortedMetrics = metrics.sort((a, b) => b[1] - a[1]);
-    const slowestFunction = sortedMetrics[0][0];
-    const fastestFunction = sortedMetrics[sortedMetrics.length - 1][0];
+    const slowestFunction = sortedMetrics[0]?.[0];
+    const fastestFunction = sortedMetrics[sortedMetrics.length - 1]?.[0];
     
     const recommendations: string[] = [];
     
@@ -215,8 +215,8 @@ class PerformanceOptimizer {
     return {
       totalFunctions: metrics.length,
       averageTime: Math.round(averageTime * 100) / 100,
-      slowestFunction,
-      fastestFunction,
+      slowestFunction: slowestFunction || 'Unknown',
+      fastestFunction: fastestFunction || 'Unknown',
       recommendations
     };
   }

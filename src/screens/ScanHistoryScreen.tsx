@@ -29,6 +29,7 @@ import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
 import { ScanDetailCard } from '../components/ScanDetailCard';
 import { ScanHistory, ScanResult, GutCondition, SeverityLevel } from '../types';
+import { logger } from '../utils/logger';
 
 // Mock scan history data
 const mockScanHistory: ScanHistory[] = [
@@ -387,7 +388,7 @@ export const ScanHistoryScreen: React.FC = () => {
       setShowExportModal(false);
       Alert.alert('Success', 'Scan history exported successfully!');
     } catch (error) {
-      console.error('Export error:', error);
+      logger.error('Export error', 'ScanHistoryScreen', error);
       Alert.alert('Error', 'Failed to export scan history. Please try again.');
     }
   };
