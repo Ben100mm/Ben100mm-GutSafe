@@ -1,10 +1,17 @@
+/**
+ * @fileoverview ProgressRing.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Animated,
-  Dimensions,
+  // Dimensions,
   useColorScheme,
 } from 'react-native';
 import { Colors } from '../constants/colors';
@@ -21,7 +28,7 @@ interface ProgressRingProps {
   animated?: boolean;
 }
 
-const { width } = Dimensions.get('window');
+// const { width } = Dimensions.get('window');
 
 export const ProgressRing: React.FC<ProgressRingProps> = ({
   data,
@@ -36,10 +43,6 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
   const colors = isDark ? Colors.dark : Colors.light;
   
   const animatedValue = useRef(new Animated.Value(0)).current;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDasharray = circumference;
-  const strokeDashoffset = circumference - (data.value / 100) * circumference;
 
   useEffect(() => {
     if (animated) {
@@ -53,11 +56,11 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
     }
   }, [data.value, animated, animatedValue]);
 
-  const animatedStrokeDashoffset = animatedValue.interpolate({
-    inputRange: [0, 100],
-    outputRange: [circumference, 0],
-    extrapolate: 'clamp',
-  });
+  // const animatedStrokeDashoffset = animatedValue.interpolate({
+  //   inputRange: [0, 100],
+  //   outputRange: [circumference, 0],
+  //   extrapolate: 'clamp',
+  // });
 
   return (
     <View style={styles.container}>

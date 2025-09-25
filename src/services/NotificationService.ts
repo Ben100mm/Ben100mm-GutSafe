@@ -1,5 +1,12 @@
+/**
+ * @fileoverview NotificationService.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import { Platform, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '../utils/AsyncStorage';
 import { GutProfile, SafeFood } from '../types';
 
 /**
@@ -142,7 +149,7 @@ class NotificationService {
     }
 
     const notificationId = `new_safe_foods_${Date.now()}`;
-    const foodNames = safeFoods.slice(0, 3).map(food => food.name).join(', ');
+    const foodNames = safeFoods.slice(0, 3).map(food => food.foodItem.name).join(', ');
     const moreCount = safeFoods.length - 3;
     
     const message = moreCount > 0 

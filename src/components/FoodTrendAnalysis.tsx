@@ -1,3 +1,10 @@
+/**
+ * @fileoverview FoodTrendAnalysis.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useState, useMemo } from 'react';
 import {
   View,
@@ -6,14 +13,14 @@ import {
   TouchableOpacity,
   ScrollView,
   useColorScheme,
-  Dimensions,
+  // Dimensions,
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
 import { FoodTrendData } from '../types';
 
-const { width } = Dimensions.get('window');
+// const { width } = Dimensions.get('window');
 
 interface FoodTrendAnalysisProps {
   data: FoodTrendData[];

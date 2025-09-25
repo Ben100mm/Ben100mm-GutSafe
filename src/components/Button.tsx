@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Button.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React from 'react';
 import {
   TouchableOpacity,
@@ -7,7 +14,7 @@ import {
   TextStyle,
   ActivityIndicator,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from './LinearGradientWrapper';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';

@@ -1,3 +1,10 @@
+/**
+ * @fileoverview blur.web.js
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 // Web implementation of @react-native-community/blur
 export const BlurView = ({ style, children, ...props }) => {
   return (

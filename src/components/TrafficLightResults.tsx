@@ -1,3 +1,10 @@
+/**
+ * @fileoverview TrafficLightResults.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useState } from 'react';
 import {
   View,
@@ -7,14 +14,15 @@ import {
   useColorScheme,
   Animated,
   Dimensions,
+  Platform,
 } from 'react-native';
-import LinearGradient from 'react-native-web-linear-gradient';
+// import LinearGradient from 'react-native-web-linear-gradient';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
 import { ScanResult, SeverityLevel, GutCondition } from '../types';
 
-const { width } = Dimensions.get('window');
+// const { width } = Dimensions.get('window');
 
 interface TrafficLightResultsProps {
   overallSafety: ScanResult;
@@ -69,20 +77,20 @@ export const TrafficLightResults: React.FC<TrafficLightResultsProps> = ({
         useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [fadeAnim, slideAnim]);
 
-  const getSafetyColor = (safety: ScanResult) => {
-    switch (safety) {
-      case 'safe':
-        return Colors.safe;
-      case 'caution':
-        return Colors.caution;
-      case 'avoid':
-        return Colors.avoid;
-      default:
-        return colors.textSecondary;
-    }
-  };
+  // const getSafetyColor = (safety: ScanResult) => {
+  //   switch (safety) {
+  //     case 'safe':
+  //       return Colors.safe;
+  //     case 'caution':
+  //       return Colors.caution;
+  //     case 'avoid':
+  //       return Colors.avoid;
+  //     default:
+  //       return colors.textSecondary;
+  //   }
+  // };
 
   const getSafetyIcon = (safety: ScanResult) => {
     switch (safety) {

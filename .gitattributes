@@ -1,0 +1,54 @@
+# Git attributes for GutSafe proprietary project
+# Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+
+# Ensure consistent line endings
+* text=auto
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
+
+# Source code files
+*.ts text
+*.tsx text
+*.js text
+*.jsx text
+*.json text
+*.md text
+*.txt text
+
+# Configuration files
+*.config.js text
+*.config.ts text
+*.json text
+*.yml text
+*.yaml text
+
+# Lock files
+package-lock.json text
+yarn.lock text
+
+# Documentation
+*.md text
+LICENSE text
+README.md text
+PRIVACY_POLICY.md text
+TERMS_OF_SERVICE.md text
+
+# Security: Prevent accidental commits of sensitive files
+.env* filter=git-crypt diff=git-crypt
+*.key filter=git-crypt diff=git-crypt
+*.pem filter=git-crypt diff=git-crypt
+*.p12 filter=git-crypt diff=git-crypt
+*.mobileprovision filter=git-crypt diff=git-crypt
+
+# Export ignore for git archive
+.gitattributes export-ignore
+.gitignore export-ignore
+.git-crypt export-ignore

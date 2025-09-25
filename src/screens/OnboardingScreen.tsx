@@ -1,3 +1,10 @@
+/**
+ * @fileoverview OnboardingScreen.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useState, useRef } from 'react';
 import {
   View,
@@ -7,18 +14,18 @@ import {
   useColorScheme,
   TouchableOpacity,
   Animated,
-  Dimensions,
+  // Dimensions,
   Platform,
   Alert,
 } from 'react-native';
-import LinearGradient from 'react-native-web-linear-gradient';
+import LinearGradient from '../components/LinearGradientWrapper';
 import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
 import { GutCondition, SeverityLevel, GutConditionToggle } from '../types';
 
-const { width } = Dimensions.get('window');
+// const { width } = Dimensions.get('window');
 
 interface OnboardingStep {
   id: string;
@@ -62,6 +69,26 @@ export const OnboardingScreen: React.FC = () => {
     }));
     setConditionToggles(initialConditions);
   }, []);
+
+  const handleConditionToggle = (condition: GutCondition, enabled: boolean) => {
+    setConditionToggles(prev => 
+      prev.map(toggle => 
+        toggle.condition === condition 
+          ? { ...toggle, enabled, lastUpdated: new Date() }
+          : toggle
+      )
+    );
+  };
+
+  const handleSeverityChange = (condition: GutCondition, severity: SeverityLevel) => {
+    setConditionToggles(prev => 
+      prev.map(toggle => 
+        toggle.condition === condition 
+          ? { ...toggle, severity, lastUpdated: new Date() }
+          : toggle
+      )
+    );
+  };
 
   const steps: OnboardingStep[] = [
     {
@@ -108,26 +135,6 @@ export const OnboardingScreen: React.FC = () => {
       component: <CompleteStep />,
     },
   ];
-
-  const handleConditionToggle = (condition: GutCondition, enabled: boolean) => {
-    setConditionToggles(prev => 
-      prev.map(toggle => 
-        toggle.condition === condition 
-          ? { ...toggle, enabled, lastUpdated: new Date() }
-          : toggle
-      )
-    );
-  };
-
-  const handleSeverityChange = (condition: GutCondition, severity: SeverityLevel) => {
-    setConditionToggles(prev => 
-      prev.map(toggle => 
-        toggle.condition === condition 
-          ? { ...toggle, severity, lastUpdated: new Date() }
-          : toggle
-      )
-    );
-  };
 
   const nextStep = () => {
     if (currentStep < steps.length - 1) {
@@ -974,10 +981,6 @@ const styles = StyleSheet.create({
     fontFamily: Typography.fontFamily.medium,
   },
   // Triggers Step
-  triggersList: {
-    width: '100%',
-    gap: Spacing.lg,
-  },
   triggerSection: {
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
@@ -1070,15 +1073,6 @@ const styles = StyleSheet.create({
     fontFamily: Typography.fontFamily.medium,
   },
   // Complete Step
-  completeIcon: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: Colors.primary + '20',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.xl,
-  },
   completeEmoji: {
     fontSize: 60,
   },

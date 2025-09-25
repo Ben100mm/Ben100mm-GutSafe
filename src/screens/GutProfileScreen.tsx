@@ -1,3 +1,10 @@
+/**
+ * @fileoverview GutProfileScreen.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -8,7 +15,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from '../components/LinearGradientWrapper';
 import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';

@@ -1,3 +1,10 @@
+/**
+ * @fileoverview haptics.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import * as Haptics from 'expo-haptics';
 import { Platform } from 'react-native';
 
@@ -47,7 +54,7 @@ class HapticService {
   /**
    * Trigger haptic feedback based on type
    */
-  trigger(type: HapticType): void {
+  trigger(type: HapticType | string): void {
     if (!this.isHapticSupported()) {
       return;
     }
@@ -55,42 +62,55 @@ class HapticService {
     try {
       switch (type) {
         case HapticType.LIGHT:
+        case 'light':
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           break;
         case HapticType.MEDIUM:
+        case 'medium':
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           break;
         case HapticType.HEAVY:
+        case 'heavy':
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
           break;
         case HapticType.SELECTION:
+        case 'selection':
           Haptics.selectionAsync();
           break;
         case HapticType.SUCCESS:
+        case 'success':
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           break;
         case HapticType.WARNING:
+        case 'warning':
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
           break;
         case HapticType.ERROR:
+        case 'error':
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           break;
         case HapticType.IMPACT_LIGHT:
+        case 'impact_light':
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           break;
         case HapticType.IMPACT_MEDIUM:
+        case 'impact_medium':
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           break;
         case HapticType.IMPACT_HEAVY:
+        case 'impact_heavy':
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
           break;
         case HapticType.NOTIFICATION_SUCCESS:
+        case 'notification_success':
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           break;
         case HapticType.NOTIFICATION_WARNING:
+        case 'notification_warning':
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
           break;
         case HapticType.NOTIFICATION_ERROR:
+        case 'notification_error':
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           break;
         default:
@@ -209,5 +229,4 @@ class HapticService {
 
 export const HapticFeedback = new HapticService();
 
-// Re-export HapticType for compatibility
-export { HapticType };
+// HapticType is already exported above as an enum

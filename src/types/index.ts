@@ -1,3 +1,10 @@
+/**
+ * @fileoverview index.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 // GutSafe App Types
 
 export type GutCondition = 
@@ -85,9 +92,9 @@ export interface SafeFood {
 }
 
 export interface ShareableContent {
-  type: 'scan_result' | 'gut_report' | 'safe_food';
-  title: string;
-  description: string;
+  type: 'scan' | 'profile' | 'analytics' | 'scan_result' | 'gut_report' | 'safe_food';
+  title?: string;
+  description?: string;
   imageUrl?: string;
   data: any;
   shareUrl?: string;
@@ -189,4 +196,48 @@ export interface GutConditionToggle {
   severity: SeverityLevel;
   knownTriggers: string[];
   lastUpdated: Date;
+}
+
+// Additional types for IngredientAnalysisService
+export interface HiddenTrigger {
+  trigger: string;
+  condition: GutCondition;
+  severity: SeverityLevel;
+}
+
+export interface IngredientAnalysisResult {
+  ingredient: string;
+  isProblematic: boolean;
+  isHidden: boolean;
+  detectedTriggers: HiddenTrigger[];
+  confidence: number;
+  category: string;
+  riskLevel: 'low' | 'moderate' | 'high' | 'severe';
+  recommendations: {
+    avoid: boolean;
+    caution: boolean;
+    alternatives: string[];
+    modifications: string[];
+  };
+}
+
+export interface ComplexFoodAnalysis {
+  foodName: string;
+  overallRisk: ScanResult;
+  flaggedIngredients: IngredientAnalysisResult[];
+  hiddenTriggers: HiddenTrigger[];
+  riskSummary: {
+    totalIngredients: number;
+    problematicCount: number;
+    hiddenCount: number;
+    severeCount: number;
+    moderateCount: number;
+    mildCount: number;
+  };
+  recommendations: {
+    overall: string;
+    specific: string[];
+    alternatives: string[];
+  };
+  confidence: number;
 }

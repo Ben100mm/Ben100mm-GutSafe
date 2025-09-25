@@ -1,3 +1,10 @@
+/**
+ * @fileoverview NotificationSettingsScreen.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -44,11 +51,6 @@ export const NotificationSettingsScreen: React.FC = () => {
 
   const notificationService = NotificationService.getInstance();
 
-  useEffect(() => {
-    loadSettings();
-    loadStats();
-  }, []);
-
   const loadSettings = async () => {
     try {
       const currentSettings = notificationService.getSettings();
@@ -67,6 +69,11 @@ export const NotificationSettingsScreen: React.FC = () => {
       console.error('Failed to load notification stats:', error);
     }
   };
+
+  useEffect(() => {
+    loadSettings();
+    loadStats();
+  }, []);
 
   const updateSetting = async (key: string, value: any) => {
     try {

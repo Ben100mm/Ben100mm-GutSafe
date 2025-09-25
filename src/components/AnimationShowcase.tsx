@@ -1,29 +1,33 @@
+/**
+ * @fileoverview AnimationShowcase.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useRef, useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  Dimensions,
   TouchableOpacity,
   Animated,
   useColorScheme,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from './LinearGradientWrapper';
 import { BlurView } from '@react-native-community/blur';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
-import { HapticFeedback, HapticType } from '../utils/haptics';
+import { HapticFeedback } from '../utils/haptics';
 import { 
-  AnimationPresets, 
   TransformUtils, 
-  AnimationUtils, 
-  HapticAnimations 
+  AnimationUtils
 } from '../utils/animations';
 import AccessibilityService from '../utils/accessibility';
 
-const { width: screenWidth } = Dimensions.get('window');
+// const { width: screenWidth } = Dimensions.get('window');
 
 interface AnimationShowcaseProps {
   onClose?: () => void;
@@ -65,14 +69,14 @@ export const AnimationShowcase: React.FC<AnimationShowcaseProps> = ({ onClose })
         useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [fadeAnim, slideAnim, scaleAnim]);
 
   const demos = [
     {
       title: '3D Card Flip',
       description: 'Demonstrates 3D card flipping with perspective',
       action: () => {
-        HapticFeedback.trigger(HapticType.MEDIUM);
+        HapticFeedback.trigger('medium');
         Animated.sequence([
           Animated.timing(rotateAnim, {
             toValue: 1,
@@ -91,7 +95,7 @@ export const AnimationShowcase: React.FC<AnimationShowcaseProps> = ({ onClose })
       title: '3D Scale & Depth',
       description: 'Shows 3D scaling with depth and shadow effects',
       action: () => {
-        HapticFeedback.trigger(HapticType.LIGHT);
+        HapticFeedback.trigger('light');
         Animated.parallel([
           Animated.timing(translateZAnim, {
             toValue: 1,
@@ -131,7 +135,7 @@ export const AnimationShowcase: React.FC<AnimationShowcaseProps> = ({ onClose })
       title: 'Pulse Animation',
       description: 'Continuous pulsing effect for attention',
       action: () => {
-        HapticFeedback.trigger(HapticType.SELECTION);
+        HapticFeedback.trigger('selection');
         const pulseAnimation = AnimationUtils.createPulse(pulseAnim, 0.9, 1.1, 1000);
         pulseAnimation.start();
         setTimeout(() => pulseAnimation.stop(), 3000);
@@ -141,7 +145,7 @@ export const AnimationShowcase: React.FC<AnimationShowcaseProps> = ({ onClose })
       title: 'Shake Animation',
       description: 'Error state shake animation',
       action: () => {
-        HapticFeedback.trigger(HapticType.ERROR);
+        HapticFeedback.trigger('error');
         const shakeAnimation = AnimationUtils.createShake(shakeAnim, 10);
         shakeAnimation.start();
       },
@@ -150,7 +154,7 @@ export const AnimationShowcase: React.FC<AnimationShowcaseProps> = ({ onClose })
       title: 'Bounce Animation',
       description: 'Success state bounce animation',
       action: () => {
-        HapticFeedback.trigger(HapticType.SUCCESS);
+        HapticFeedback.trigger('success');
         const bounceAnimation = AnimationUtils.createBounce(bounceAnim, 0.2);
         bounceAnimation.start();
       },
@@ -159,7 +163,7 @@ export const AnimationShowcase: React.FC<AnimationShowcaseProps> = ({ onClose })
       title: 'Morphing Animation',
       description: 'Smooth morphing between states',
       action: () => {
-        HapticFeedback.trigger(HapticType.MEDIUM);
+        HapticFeedback.trigger('medium');
         const morphAnimation = AnimationUtils.createMorph(
           scaleAnim,
           0.8,
@@ -343,12 +347,12 @@ export const AnimationShowcase: React.FC<AnimationShowcaseProps> = ({ onClose })
           
           <View style={styles.hapticButtons}>
             {[
-              { type: HapticType.LIGHT, label: 'Light' },
-              { type: HapticType.MEDIUM, label: 'Medium' },
-              { type: HapticType.HEAVY, label: 'Heavy' },
-              { type: HapticType.SUCCESS, label: 'Success' },
-              { type: HapticType.WARNING, label: 'Warning' },
-              { type: HapticType.ERROR, label: 'Error' },
+              { type: 'light', label: 'Light' },
+              { type: 'medium', label: 'Medium' },
+              { type: 'heavy', label: 'Heavy' },
+              { type: 'success', label: 'Success' },
+              { type: 'warning', label: 'Warning' },
+              { type: 'error', label: 'Error' },
             ].map((haptic, index) => (
               <TouchableOpacity
                 key={index}

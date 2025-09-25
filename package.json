@@ -2,6 +2,23 @@
   "name": "gutsafe-app",
   "version": "1.0.0",
   "private": true,
+  "description": "GutSafe - Private Proprietary Gut Health Management Application",
+  "author": "Benjamin [Last Name] <[your-email@domain.com]>",
+  "license": "PROPRIETARY",
+  "copyright": "Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.",
+  "homepage": "https://github.com/Ben100mm/Ben100mm-GutSafe#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ben100mm/Ben100mm-GutSafe.git",
+    "private": true
+  },
+  "keywords": [
+    "gut-health",
+    "food-tracking",
+    "health-app",
+    "proprietary",
+    "private"
+  ],
   "dependencies": {
     "@craco/craco": "^7.1.0",
     "@react-native-async-storage/async-storage": "^2.2.0",
@@ -34,6 +51,8 @@
     "eject": "react-scripts eject"
   },
   "devDependencies": {
+    "@babel/plugin-syntax-flow": "^7.27.1",
+    "@babel/preset-flow": "^7.27.1",
     "@types/react": "^18.2.0",
     "@types/react-native": "^0.72.0"
   },

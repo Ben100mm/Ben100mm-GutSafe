@@ -1,3 +1,10 @@
+/**
+ * @fileoverview ScanDetailCard.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useState, useRef } from 'react';
 import {
   TouchableOpacity,
@@ -13,7 +20,7 @@ import {
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
-import { ScanHistory, ScanResult, SeverityLevel } from '../types';
+import { ScanHistory, SeverityLevel } from '../types';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {

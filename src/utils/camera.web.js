@@ -1,3 +1,10 @@
+/**
+ * @fileoverview camera.web.js
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 // Web implementation of expo-camera
 export const Camera = ({ style, children, ...props }) => {
   return (

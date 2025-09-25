@@ -15,6 +15,7 @@ module.exports = {
       'react-native$': 'react-native-web',
       'react-native-linear-gradient': 'react-native-web-linear-gradient',
       'expo-linear-gradient': 'react-native-web-linear-gradient',
+      '@react-native-async-storage/async-storage': path.resolve(__dirname, 'src/utils/AsyncStorage.ts'),
     },
   },
   module: {

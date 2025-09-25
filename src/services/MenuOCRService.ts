@@ -1,3 +1,10 @@
+/**
+ * @fileoverview MenuOCRService.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import { FoodItem, GutCondition, ScanResult, SeverityLevel } from '../types';
 import { foodDatabaseService } from './FoodDatabaseService';
 
@@ -93,7 +100,7 @@ export class MenuOCRService {
       return analysis;
     } catch (error) {
       console.error('Menu OCR error:', error);
-      throw new Error(`Failed to scan menu: ${error.message}`);
+      throw new Error(`Failed to scan menu: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -414,7 +421,7 @@ ${extractedText}
     const safeAlternatives: string[] = [];
 
     // Analyze each ingredient
-    for (const ingredient of item.ingredients) {
+    for (const ingredient of item.ingredients || []) {
       const analysis = this.analyzeIngredientForConditions(ingredient, userConditions, userTriggers);
       if (analysis.isProblematic) {
         flaggedIngredients.push({

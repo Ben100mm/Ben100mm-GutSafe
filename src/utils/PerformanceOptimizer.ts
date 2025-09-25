@@ -1,3 +1,11 @@
+/**
+ * @fileoverview PerformanceOptimizer.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
+import React from 'react';
 import { InteractionManager, Dimensions } from 'react-native';
 
 /**
@@ -25,7 +33,7 @@ class PerformanceOptimizer {
     importFn: () => Promise<{ default: React.ComponentType<T> }>,
     fallback?: React.ComponentType
   ): React.ComponentType<T> {
-    return React.lazy(importFn);
+    return React.lazy(importFn) as React.ComponentType<T>;
   }
 
   /**

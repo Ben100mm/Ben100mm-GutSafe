@@ -1,9 +1,16 @@
+/**
+ * @fileoverview colors.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 // GutSafe Design System - Color Palette (Apple Health App Style)
 export const Colors = {
   // Primary Colors
   primary: '#0F5257', // Petrol Blue-Teal
   primaryLight: '#56CFE1', // Aqua
-  primaryGradient: ['#0F5257', '#56CFE1'], // Teal → Aqua gradient
+  primaryGradient: ['#0F5257', '#56CFE1'] as const, // Teal → Aqua gradient
   
   // Status Colors
   safe: '#4ADE80', // Safe Green

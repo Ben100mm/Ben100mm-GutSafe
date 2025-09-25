@@ -1,9 +1,15 @@
+/**
+ * @fileoverview ScannerScreen.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  Dimensions,
   TouchableOpacity,
   Alert,
   Animated,
@@ -11,9 +17,8 @@ import {
   Modal,
   Platform,
 } from 'react-native';
-import { Camera, CameraType } from 'expo-camera';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from '@react-native-community/blur';
+import { Camera } from 'expo-camera';
+import LinearGradient from '../components/LinearGradientWrapper';
 import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
@@ -22,15 +27,12 @@ import { AnimatedButton } from '../components/AnimatedButton';
 import { GlassmorphicCard } from '../components/GlassmorphicCard';
 import { StatusIndicator } from '../components/StatusIndicator';
 import { OfflineScanner } from '../components/OfflineScanner';
-import { HapticFeedback, HapticType } from '../utils/haptics';
-import { AnimationPresets, TransformUtils, AnimationUtils } from '../utils/animations';
+import { HapticFeedback } from '../utils/haptics';
 import AccessibilityService from '../utils/accessibility';
-import { ScanResult, ScanHistory, ScanAnalysis, FoodItem, GutCondition, SeverityLevel } from '../types';
+import { ScanResult, ScanHistory } from '../types';
 import DataService from '../services/DataService';
 import OfflineService from '../services/OfflineService';
 import NetworkService from '../services/NetworkService';
-
-const { width, height } = Dimensions.get('window');
 
 export const ScannerScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -41,7 +43,6 @@ export const ScannerScreen: React.FC = () => {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
-  const [scanHistory, setScanHistory] = useState<ScanHistory[]>([]);
   const [isOnline, setIsOnline] = useState(true);
   const [showOfflineScanner, setShowOfflineScanner] = useState(false);
   const [networkQuality, setNetworkQuality] = useState(0);
@@ -63,9 +64,6 @@ export const ScannerScreen: React.FC = () => {
     // Initialize services
     dataService.initialize();
     offlineService.initialize();
-    
-    // Load scan history
-    setScanHistory(dataService.getScanHistory());
     
     // Check network status
     const updateNetworkStatus = async () => {
@@ -123,7 +121,7 @@ export const ScannerScreen: React.FC = () => {
       networkService.off('online', handleNetworkChange);
       networkService.off('offline', handleNetworkChange);
     };
-  }, []);
+  }, [dataService, networkService, offlineService, pulseAnim, scanLineAnim]);
 
   useEffect(() => {
     requestCameraPermission();
@@ -134,203 +132,13 @@ export const ScannerScreen: React.FC = () => {
     setHasPermission(status === 'granted');
   };
 
-  const generateMockAnalysis = (result: ScanResult, barcode: string): ScanAnalysis => {
-    const mockFoods = [
-      {
-        name: 'Greek Yogurt',
-        brand: 'Chobani',
-        category: 'Dairy',
-        histamineLevel: 'low' as const,
-      },
-      {
-        name: 'Wheat Bread',
-        brand: 'Wonder',
-        category: 'Bakery',
-      },
-      {
-        name: 'Aged Cheddar Cheese',
-        brand: 'Cabot',
-        category: 'Dairy',
-        histamineLevel: 'high' as const,
-      },
-      {
-        name: 'Banana',
-        brand: null,
-        category: 'Fruit',
-      },
-      {
-        name: 'Energy Drink',
-        brand: 'Red Bull',
-        category: 'Beverages',
-      },
-    ];
+  // const generateMockAnalysis = (result: ScanResult, barcode: string): ScanAnalysis => {
+  //   // Mock analysis function - commented out for now
+  // };
 
-    const randomFood = mockFoods[Math.floor(Math.random() * mockFoods.length)];
-    
-    const analysis: ScanAnalysis = {
-      overallSafety: result,
-      flaggedIngredients: result === 'safe' ? [] : [
-        {
-          ingredient: 'Wheat',
-          reason: 'Contains gluten which may trigger IBS symptoms',
-          severity: 'moderate' as SeverityLevel,
-          condition: 'gluten' as GutCondition,
-        },
-        {
-          ingredient: 'Fructans',
-          reason: 'High FODMAP content may cause bloating',
-          severity: 'mild' as SeverityLevel,
-          condition: 'ibs-fodmap' as GutCondition,
-        },
-      ],
-      conditionWarnings: result === 'safe' ? [] : [
-        {
-          ingredient: 'Wheat',
-          severity: 'moderate' as SeverityLevel,
-          condition: 'gluten' as GutCondition,
-        },
-      ],
-      safeAlternatives: ['Alternative option 1', 'Alternative option 2'],
-      explanation: result === 'safe' 
-        ? 'This food appears safe for your gut health profile.'
-        : 'This food may contain ingredients that could trigger symptoms.',
-      dataSource: 'GutSafe Database',
-      lastUpdated: new Date(),
-    };
-
-    return analysis;
-  };
-
-  const handleBarCodeScanned = async ({ type, data }: { type: string; data: string }) => {
-    // Haptic feedback for scan start
-    HapticFeedback.scanStart();
-    
-    setScanned(true);
-    
-    // 3D animation for scan completion
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 1.1,
-        useNativeDriver: true,
-      }),
-      Animated.timing(glowAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
-    
-    try {
-      let foodItem: FoodItem;
-      let analysis: ScanAnalysis;
-
-      if (isOnline) {
-        // Online scanning - use full API
-        // In a real app, this would call the food database API
-        foodItem = {
-          id: Date.now().toString(),
-          name: 'Scanned Food Item',
-          brand: 'Unknown Brand',
-          category: 'Unknown',
-          barcode: data,
-          ingredients: ['Unknown ingredients'],
-          allergens: [],
-          additives: [],
-          glutenFree: Math.random() > 0.5,
-          lactoseFree: Math.random() > 0.5,
-          histamineLevel: 'low',
-          dataSource: 'Online Database'
-        };
-        
-        analysis = dataService.generateScanAnalysis(foodItem);
-        
-        // Cache the food item for offline use
-        await offlineService.cacheFoodItem(foodItem);
-      } else {
-        // Offline scanning - use cached data or basic analysis
-        const cachedFood = await offlineService.getCachedFoodItem(data);
-        
-        if (cachedFood) {
-          foodItem = cachedFood;
-          analysis = dataService.generateScanAnalysis(cachedFood);
-        } else {
-          // Create basic food item for offline analysis
-          foodItem = {
-            id: Date.now().toString(),
-            name: 'Unknown Food Item',
-            brand: 'Unknown Brand',
-            category: 'Unknown',
-            barcode: data,
-            ingredients: ['Unknown ingredients'],
-            allergens: [],
-            additives: [],
-            glutenFree: false,
-            lactoseFree: false,
-            histamineLevel: 'unknown',
-            dataSource: 'Offline Analysis'
-          };
-          
-          // Basic offline analysis
-          analysis = {
-            overallSafety: 'caution' as ScanResult,
-            flaggedIngredients: [],
-            conditionWarnings: [],
-            safeAlternatives: ['Check online for detailed analysis'],
-            explanation: 'Offline analysis - limited data available. Please check online for complete analysis.',
-            dataSource: 'Offline Cache',
-            lastUpdated: new Date(),
-          };
-        }
-      }
-      
-      // Create scan history entry
-      const newScan: ScanHistory = {
-        id: Date.now().toString(),
-        foodItem,
-        analysis,
-        timestamp: new Date(),
-      };
-      
-      // Store scan history
-      if (isOnline) {
-        dataService.addScanHistory(newScan);
-        setScanHistory(dataService.getScanHistory());
-      } else {
-        // Store offline scan for later sync
-        await offlineService.storeOfflineScan(newScan);
-      }
-      
-      setScanResult(analysis.overallSafety);
-      
-      // Haptic feedback based on result
-      if (analysis.overallSafety === 'safe') {
-        HapticFeedback.foodSafe();
-      } else {
-        HapticFeedback.foodCaution();
-      }
-      
-      // Announce to screen reader
-      AccessibilityService.announceForAccessibility(`Scan complete. Result: ${analysis.overallSafety}. ${analysis.explanation}`);
-      
-      const alertTitle = isOnline ? 'Scan Complete' : 'Offline Scan Complete';
-      const alertMessage = isOnline 
-        ? `Barcode: ${data}\nResult: ${analysis.overallSafety.toUpperCase()}`
-        : `Barcode: ${data}\nResult: ${analysis.overallSafety.toUpperCase()}\n\nNote: This scan was performed offline and will be synced when online.`;
-      
-      Alert.alert(
-        alertTitle,
-        alertMessage,
-        [
-          { text: 'OK', onPress: () => setScanned(false) },
-          { text: 'View History', onPress: () => (navigation as any).navigate('ScanHistory') }
-        ]
-      );
-    } catch (error) {
-      console.error('Scan failed:', error);
-      Alert.alert('Scan Error', 'Failed to process scan. Please try again.');
-      setScanned(false);
-    }
-  };
+  // const handleBarCodeScanned = async ({ type, data }: { type: string; data: string }) => {
+  //   // Mock barcode scanning function - commented out for now
+  // };
 
   const handleOfflineScanComplete = (scan: ScanHistory) => {
     setShowOfflineScanner(false);

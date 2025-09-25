@@ -1,4 +1,11 @@
-import { Share, Alert, Linking, Platform } from 'react-native';
+/**
+ * @fileoverview sharing.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
+import { Share, Alert, Linking } from 'react-native';
 import { ShareableContent, ScanHistory, SafeFood } from '../types';
 
 export class SharingService {
@@ -78,7 +85,7 @@ export class SharingService {
   }
 
   private static generateScanDescription(scanHistory: ScanHistory): string {
-    const { foodItem, analysis } = scanHistory;
+    const { analysis } = scanHistory;
     const resultEmoji = this.getResultEmoji(analysis.overallSafety);
     
     let description = `${resultEmoji} ${analysis.overallSafety.toUpperCase()}\n`;

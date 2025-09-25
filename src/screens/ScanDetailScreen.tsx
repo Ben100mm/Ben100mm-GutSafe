@@ -1,3 +1,10 @@
+/**
+ * @fileoverview ScanDetailScreen.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
@@ -12,7 +19,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from '../components/LinearGradientWrapper';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
@@ -190,7 +197,7 @@ export const ScanDetailScreen: React.FC = () => {
     };
 
     loadScanData();
-  }, [scanId]);
+  }, [scanId, fadeAnim, slideAnim]);
 
   const getResultConfig = () => {
     if (!scanData) return null;
@@ -256,10 +263,10 @@ export const ScanDetailScreen: React.FC = () => {
     });
   };
 
-  const handleShare = async () => {
-    if (!scanData) return;
-    await SharingService.shareScanResult(scanData);
-  };
+  // const handleShare = async () => {
+  //   if (!scanData) return;
+  //   await SharingService.shareScanResult(scanData);
+  // };
 
   const handleShareWithOptions = async () => {
     if (!scanData) return;

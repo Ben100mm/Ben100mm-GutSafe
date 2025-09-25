@@ -1,3 +1,10 @@
+/**
+ * @fileoverview FoodDatabaseService.test.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import FoodDatabaseService from '../../services/FoodDatabaseService';
 import { FoodItem, GutCondition, SeverityLevel } from '../../types';
 

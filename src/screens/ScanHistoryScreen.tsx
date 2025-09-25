@@ -1,3 +1,10 @@
+/**
+ * @fileoverview ScanHistoryScreen.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useState, useMemo, useRef } from 'react';
 import {
   View,
@@ -231,7 +238,7 @@ export const ScanHistoryScreen: React.FC = () => {
   const isDark = colorScheme === 'dark';
   const colors = isDark ? Colors.dark : Colors.light;
 
-  const [scanHistory, setScanHistory] = useState<ScanHistory[]>(mockScanHistory);
+  const [scanHistory] = useState<ScanHistory[]>(mockScanHistory);
   const [refreshing, setRefreshing] = useState(false);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'safe' | 'caution' | 'avoid'>('all');
@@ -244,7 +251,7 @@ export const ScanHistoryScreen: React.FC = () => {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   
   const searchInputRef = useRef<TextInput>(null);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  // const fadeAnim = useRef(new Animated.Value(0)).current;
 
   // Enhanced filtering and sorting logic
   const filteredAndSortedHistory = useMemo(() => {
@@ -348,24 +355,24 @@ export const ScanHistoryScreen: React.FC = () => {
         : filteredAndSortedHistory;
 
       let exportData: string;
-      let filename: string;
+      // let filename: string;
       let mimeType: string;
 
       switch (format) {
         case 'json':
           exportData = JSON.stringify(scansToExport, null, 2);
-          filename = `scan-history-${new Date().toISOString().split('T')[0]}.json`;
+          // filename = `scan-history-${new Date().toISOString().split('T')[0]}.json`;
           mimeType = 'application/json';
           break;
         case 'csv':
           exportData = generateCSV(scansToExport);
-          filename = `scan-history-${new Date().toISOString().split('T')[0]}.csv`;
+          // filename = `scan-history-${new Date().toISOString().split('T')[0]}.csv`;
           mimeType = 'text/csv';
           break;
         case 'pdf':
           // In a real app, you would generate a PDF here
           exportData = generatePDF(scansToExport);
-          filename = `scan-history-${new Date().toISOString().split('T')[0]}.pdf`;
+          // filename = `scan-history-${new Date().toISOString().split('T')[0]}.pdf`;
           mimeType = 'application/pdf';
           break;
       }

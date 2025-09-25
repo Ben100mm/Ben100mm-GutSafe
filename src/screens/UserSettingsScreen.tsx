@@ -1,3 +1,10 @@
+/**
+ * @fileoverview UserSettingsScreen.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -15,7 +22,7 @@ import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
 import { userSettingsService, UserSettings } from '../services/UserSettingsService';
-import { GutCondition, SeverityLevel } from '../types';
+// import { GutCondition, SeverityLevel } from '../types';
 
 export const UserSettingsScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -44,7 +51,12 @@ export const UserSettingsScreen: React.FC = () => {
 
   const handleSettingChange = async (section: keyof UserSettings, key: string, value: any) => {
     try {
-      await userSettingsService.setSettingValue(section, key as any, value);
+      if (section === 'preferences' && key === 'notifications') {
+        // Handle nested notifications updates
+        await userSettingsService.updatePreferences({ notifications: value });
+      } else {
+        await userSettingsService.setSettingValue(section, key as keyof UserSettings[typeof section], value);
+      }
     } catch (error) {
       console.error('Failed to update setting:', error);
       Alert.alert('Error', 'Failed to update setting. Please try again.');
@@ -568,40 +580,52 @@ const NotificationsSection: React.FC<{
         <View style={styles.settingItem}>
           <Text style={[styles.settingLabel, { color: colors.text }]}>Meal Reminders</Text>
           <Switch
-            value={settings.notifications?.mealReminders ?? true}
-            onValueChange={(value) => onSettingChange('notifications', 'mealReminders', value)}
+            value={settings?.preferences?.notifications?.mealReminders ?? true}
+            onValueChange={(value) => onSettingChange('preferences', 'notifications', { 
+              ...settings?.preferences?.notifications, 
+              mealReminders: value 
+            })}
             trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.notifications?.mealReminders ? colors.accent : colors.textTertiary}
+            thumbColor={settings?.preferences?.notifications?.mealReminders ? colors.accent : colors.textTertiary}
           />
         </View>
         
         <View style={styles.settingItem}>
           <Text style={[styles.settingLabel, { color: colors.text }]}>New Safe Foods</Text>
           <Switch
-            value={settings.notifications?.newSafeFoods ?? true}
-            onValueChange={(value) => onSettingChange('notifications', 'newSafeFoods', value)}
+            value={settings?.preferences?.notifications?.newSafeFoods ?? true}
+            onValueChange={(value) => onSettingChange('preferences', 'notifications', { 
+              ...settings?.preferences?.notifications, 
+              newSafeFoods: value 
+            })}
             trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.notifications?.newSafeFoods ? colors.accent : colors.textTertiary}
+            thumbColor={settings?.preferences?.notifications?.newSafeFoods ? colors.accent : colors.textTertiary}
           />
         </View>
         
         <View style={styles.settingItem}>
           <Text style={[styles.settingLabel, { color: colors.text }]}>Scan Reminders</Text>
           <Switch
-            value={settings.notifications?.scanReminders ?? false}
-            onValueChange={(value) => onSettingChange('notifications', 'scanReminders', value)}
+            value={settings?.preferences?.notifications?.scanReminders ?? false}
+            onValueChange={(value) => onSettingChange('preferences', 'notifications', { 
+              ...settings?.preferences?.notifications, 
+              scanReminders: value 
+            })}
             trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.notifications?.scanReminders ? colors.accent : colors.textTertiary}
+            thumbColor={settings?.preferences?.notifications?.scanReminders ? colors.accent : colors.textTertiary}
           />
         </View>
         
         <View style={styles.settingItem}>
           <Text style={[styles.settingLabel, { color: colors.text }]}>Weekly Reports</Text>
           <Switch
-            value={settings.notifications?.weeklyReports ?? true}
-            onValueChange={(value) => onSettingChange('notifications', 'weeklyReports', value)}
+            value={settings?.preferences?.notifications?.weeklyReports ?? true}
+            onValueChange={(value) => onSettingChange('preferences', 'notifications', { 
+              ...settings?.preferences?.notifications, 
+              weeklyReports: value 
+            })}
             trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.notifications?.weeklyReports ? colors.accent : colors.textTertiary}
+            thumbColor={settings?.preferences?.notifications?.weeklyReports ? colors.accent : colors.textTertiary}
           />
         </View>
       </View>
@@ -612,29 +636,32 @@ const NotificationsSection: React.FC<{
         <View style={styles.settingItem}>
           <Text style={[styles.settingLabel, { color: colors.text }]}>Enable Quiet Hours</Text>
           <Switch
-            value={settings.notifications?.quietHours?.enabled ?? false}
-            onValueChange={(value) => onSettingChange('notifications', 'quietHours', { 
-              ...settings.notifications?.quietHours, 
-              enabled: value 
+            value={settings?.preferences?.notifications?.quietHours?.enabled ?? false}
+            onValueChange={(value) => onSettingChange('preferences', 'notifications', { 
+              ...settings?.preferences?.notifications, 
+              quietHours: {
+                ...settings?.preferences?.notifications?.quietHours,
+                enabled: value 
+              }
             })}
             trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.notifications?.quietHours?.enabled ? colors.accent : colors.textTertiary}
+            thumbColor={settings?.preferences?.notifications?.quietHours?.enabled ? colors.accent : colors.textTertiary}
           />
         </View>
         
-        {settings.notifications?.quietHours?.enabled && (
+        {settings?.preferences?.notifications?.quietHours?.enabled && (
           <>
             <View style={styles.settingItem}>
               <Text style={[styles.settingLabel, { color: colors.text }]}>Start Time</Text>
               <Text style={[styles.settingValue, { color: colors.textSecondary }]}>
-                {settings.notifications.quietHours.start || '22:00'}
+                {settings?.preferences?.notifications?.quietHours?.start || '22:00'}
               </Text>
             </View>
             
             <View style={styles.settingItem}>
               <Text style={[styles.settingLabel, { color: colors.text }]}>End Time</Text>
               <Text style={[styles.settingValue, { color: colors.textSecondary }]}>
-                {settings.notifications.quietHours.end || '08:00'}
+                {settings?.preferences?.notifications?.quietHours?.end || '08:00'}
               </Text>
             </View>
           </>

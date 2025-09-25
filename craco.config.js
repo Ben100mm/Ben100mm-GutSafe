@@ -1,6 +1,10 @@
 const path = require('path');
 
 module.exports = {
+  babel: {
+    presets: ['@babel/preset-flow'],
+    plugins: ['@babel/plugin-syntax-flow'],
+  },
   webpack: {
     alias: {
       'react-native$': 'react-native-web',

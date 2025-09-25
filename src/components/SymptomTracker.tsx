@@ -1,3 +1,10 @@
+/**
+ * @fileoverview SymptomTracker.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useState } from 'react';
 import {
   View,
@@ -9,7 +16,7 @@ import {
   useColorScheme,
   Alert,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from './LinearGradientWrapper';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';

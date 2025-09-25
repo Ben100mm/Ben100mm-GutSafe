@@ -1,3 +1,10 @@
+/**
+ * @fileoverview FoodDatabaseService.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import { FoodItem, GutCondition, ScanResult, SeverityLevel } from '../types';
 
 // API Configuration
@@ -897,6 +904,24 @@ export class FoodDatabaseService {
     return {
       size: this.cache.size,
       keys: Array.from(this.cache.keys()),
+    };
+  }
+
+  async getFoodByBarcode(barcode: string): Promise<FoodItem> {
+    // Mock or real API call
+    return { 
+      id: barcode, 
+      name: 'Mock Food', 
+      ingredients: [], 
+      allergens: [], 
+      additives: [], 
+      glutenFree: true, 
+      lactoseFree: true, 
+      histamineLevel: 'low', 
+      dataSource: 'Mock', 
+      brand: 'Mock Brand', 
+      category: 'Mock Category', 
+      barcode 
     };
   }
 }

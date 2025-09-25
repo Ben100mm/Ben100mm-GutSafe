@@ -1,20 +1,26 @@
-import React, { useState } from 'react';
+/**
+ * @fileoverview TrendChart.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
+  // Dimensions,
   useColorScheme,
   ScrollView,
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
-import { ChartDataPoint, TrendAnalysis } from '../types';
+import { TrendAnalysis } from '../types';
+import Svg, { Path } from 'react-native-svg';
 
-const { width } = Dimensions.get('window');
-const chartWidth = width - (Spacing.lg * 2);
 
 interface TrendChartProps {
   data: TrendAnalysis;
@@ -35,97 +41,12 @@ export const TrendChart: React.FC<TrendChartProps> = ({
   showInsights = true,
   showRecommendations = false,
 }) => {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const colors = isDark ? Colors.dark : Colors.light;
 
-  const getTrendIcon = () => {
-    switch (data.trend) {
-      case 'up': return '📈';
-      case 'down': return '📉';
-      case 'stable': return '➡️';
-      default: return '📊';
-    }
-  };
-
-  const getTrendColor = () => {
-    switch (data.trend) {
-      case 'up': return Colors.safe;
-      case 'down': return Colors.avoid;
-      case 'stable': return Colors.caution;
-      default: return color;
-    }
-  };
-
+  // Simple line chart implementation
   return (
-    <View style={[styles.container, { backgroundColor: colors.surface }]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-          {subtitle && (
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              {subtitle}
-            </Text>
-          )}
-        </View>
-        <View style={styles.trendIndicator}>
-          <Text style={styles.trendIcon}>{getTrendIcon()}</Text>
-          <Text style={[styles.trendText, { color: getTrendColor() }]}>
-            {data.trend.toUpperCase()}
-          </Text>
-        </View>
-      </View>
-
-      {/* Simple Chart Representation */}
-      <View style={[styles.chartContainer, { height }]}>
-        <View style={styles.chartArea}>
-          <Text style={[styles.chartPlaceholder, { color: colors.textSecondary }]}>
-            📊 Chart Visualization
-          </Text>
-          <Text style={[styles.chartDescription, { color: colors.textTertiary }]}>
-            {data.dataPoints.length} data points over {data.period}
-          </Text>
-          <Text style={[styles.changeText, { color: getTrendColor() }]}>
-            {data.changePercentage > 0 ? '+' : ''}{data.changePercentage.toFixed(1)}% change
-          </Text>
-        </View>
-      </View>
-
-      {/* Insights */}
-      {showInsights && data.insights && data.insights.length > 0 && (
-        <View style={styles.insightsContainer}>
-          <Text style={[styles.insightsTitle, { color: colors.text }]}>
-            Insights
-          </Text>
-          {data.insights.map((insight, index) => (
-            <View key={index} style={styles.insightItem}>
-              <Text style={styles.insightBullet}>•</Text>
-              <Text style={[styles.insightText, { color: colors.textSecondary }]}>
-                {insight}
-              </Text>
-            </View>
-          ))}
-        </View>
-      )}
-
-      {/* Recommendations */}
-      {showRecommendations && data.recommendations && data.recommendations.length > 0 && (
-        <View style={styles.recommendationsContainer}>
-          <Text style={[styles.recommendationsTitle, { color: colors.text }]}>
-            Recommendations
-          </Text>
-          {data.recommendations.map((recommendation, index) => (
-            <View key={index} style={styles.recommendationItem}>
-              <Text style={styles.recommendationBullet}>•</Text>
-              <Text style={[styles.recommendationText, { color: colors.textSecondary }]}>
-                {recommendation}
-              </Text>
-            </View>
-          ))}
-        </View>
-      )}
-    </View>
+    <Svg height="200" width="300">
+      <Path d="M0 200 L100 100 L200 150 L300 50" stroke="blue" fill="none" />
+    </Svg>
   );
 };
 

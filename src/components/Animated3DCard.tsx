@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Animated3DCard.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useRef, useEffect } from 'react';
 import {
   View,
@@ -6,18 +13,19 @@ import {
   ViewStyle,
   TouchableOpacity,
   Animated,
-  Dimensions,
+  // Dimensions,
+  Platform,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from './LinearGradientWrapper';
 import { BlurView } from '@react-native-community/blur';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius, Shadows } from '../constants/spacing';
-import { HapticFeedback, HapticType } from '../utils/haptics';
+import { HapticFeedback } from '../utils/haptics';
 import { AnimationPresets, TransformUtils, AnimationUtils } from '../utils/animations';
 import AccessibilityService from '../utils/accessibility';
 
-const { width: screenWidth } = Dimensions.get('window');
+// const { width: screenWidth } = Dimensions.get('window');
 
 interface Animated3DCardProps {
   children: React.ReactNode;
@@ -28,7 +36,7 @@ interface Animated3DCardProps {
   variant?: 'glass' | 'solid' | 'gradient';
   enable3D?: boolean;
   enableHover?: boolean;
-  hapticType?: HapticType;
+  hapticType?: string;
   accessibilityLabel?: string;
   accessibilityHint?: string;
   disabled?: boolean;
@@ -44,7 +52,7 @@ export const Animated3DCard: React.FC<Animated3DCardProps> = ({
   variant = 'solid',
   enable3D = true,
   enableHover = true,
-  hapticType = HapticType.LIGHT,
+  hapticType = 'light',
   accessibilityLabel,
   accessibilityHint,
   disabled = false,
@@ -61,7 +69,10 @@ export const Animated3DCard: React.FC<Animated3DCardProps> = ({
   useEffect(() => {
     // Initial entrance animation
     if (enable3D) {
-      const entranceAnimation = AnimationPresets.scale3D({ duration: 600 });
+      const entranceAnimation = AnimationPresets.scale3D({ 
+        duration: 600, 
+        useNativeDriver: Platform.OS !== 'web' 
+      });
       entranceAnimation.start();
     }
 
@@ -70,7 +81,7 @@ export const Animated3DCard: React.FC<Animated3DCardProps> = ({
       const pulseAnimation = AnimationUtils.createPulse(pulseAnim, 0.98, 1.02, 2000);
       pulseAnimation.start();
     }
-  }, [enable3D, selected]);
+  }, [enable3D, selected, pulseAnim]);
 
   const handlePressIn = () => {
     if (disabled) return;
@@ -80,12 +91,12 @@ export const Animated3DCard: React.FC<Animated3DCardProps> = ({
     const animations = [
       Animated.spring(scaleAnim, {
         toValue: 0.95,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
       Animated.timing(glowAnim, {
         toValue: 1,
         duration: 200,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
     ];
 
@@ -94,22 +105,22 @@ export const Animated3DCard: React.FC<Animated3DCardProps> = ({
         Animated.timing(translateZAnim, {
           toValue: -8,
           duration: 200,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(shadowAnim, {
           toValue: 1,
           duration: 200,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(rotateXAnim, {
           toValue: 5,
           duration: 200,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(rotateYAnim, {
           toValue: 5,
           duration: 200,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         })
       );
     }
@@ -123,12 +134,12 @@ export const Animated3DCard: React.FC<Animated3DCardProps> = ({
     const animations = [
       Animated.spring(scaleAnim, {
         toValue: selected ? 1.02 : 1,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
       Animated.timing(glowAnim, {
         toValue: 0,
         duration: 200,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
     ];
 
@@ -137,22 +148,22 @@ export const Animated3DCard: React.FC<Animated3DCardProps> = ({
         Animated.timing(translateZAnim, {
           toValue: 0,
           duration: 200,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(shadowAnim, {
           toValue: 0,
           duration: 200,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(rotateXAnim, {
           toValue: 0,
           duration: 200,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(rotateYAnim, {
           toValue: 0,
           duration: 200,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         })
       );
     }
@@ -187,24 +198,32 @@ export const Animated3DCard: React.FC<Animated3DCardProps> = ({
 
   // Shadow style for 3D effect
   const shadowStyle = enable3D ? {
-    shadowOpacity: shadowAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0.1, 0.4],
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+      },
+      default: {
+        shadowOpacity: shadowAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.1, 0.4],
+        }),
+        shadowRadius: shadowAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [8, 20],
+        }),
+        shadowOffset: {
+          width: shadowAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, 6],
+          }),
+          height: shadowAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [4, 12],
+          }),
+        },
+        shadowColor: '#000',
+      },
     }),
-    shadowRadius: shadowAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [8, 20],
-    }),
-    shadowOffset: {
-      width: shadowAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, 6],
-      }),
-      height: shadowAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [4, 12],
-      }),
-    },
   } : {};
 
   // Glow effect

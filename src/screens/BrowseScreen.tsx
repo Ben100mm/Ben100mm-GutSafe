@@ -1,9 +1,16 @@
+/**
+ * @fileoverview BrowseScreen.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useRef, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
+  // TouchableOpacity,
   ScrollView,
   StatusBar,
   useColorScheme,
@@ -14,8 +21,8 @@ import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
 import { Animated3DCard } from '../components/Animated3DCard';
-import { HapticFeedback, HapticType } from '../utils/haptics';
-import { AnimationPresets, AnimationUtils } from '../utils/animations';
+import { HapticFeedback } from '../utils/haptics';
+// import { AnimationPresets, AnimationUtils } from '../utils/animations';
 import AccessibilityService from '../utils/accessibility';
 
 export const BrowseScreen: React.FC = () => {
@@ -49,7 +56,7 @@ export const BrowseScreen: React.FC = () => {
         useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [fadeAnim, scaleAnim, slideAnim]);
 
   const browseCategories = [
     {
@@ -121,7 +128,7 @@ export const BrowseScreen: React.FC = () => {
               variant="solid"
               enable3D={true}
               enableHover={true}
-              hapticType={HapticType.LIGHT}
+              hapticType="light"
               accessibilityLabel={category.title}
               accessibilityHint={category.description}
               onPress={() => {

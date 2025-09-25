@@ -1,4 +1,11 @@
-import { GutCondition, SeverityLevel, GutProfile } from '../types';
+/**
+ * @fileoverview UserSettingsService.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
+import { GutCondition, GutProfile } from '../types';
 
 // User Settings Types
 export interface UserSettings {
@@ -22,6 +29,11 @@ export interface UserSettings {
       newSafeFoods: boolean;
       weeklyReports: boolean;
       scanReminders: boolean;
+      quietHours?: {
+        enabled: boolean;
+        start: string;
+        end: string;
+      };
     };
     haptics: {
       enabled: boolean;
@@ -99,6 +111,11 @@ const DEFAULT_SETTINGS: UserSettings = {
       newSafeFoods: true,
       weeklyReports: true,
       scanReminders: false,
+      quietHours: {
+        enabled: false,
+        start: '22:00',
+        end: '08:00',
+      },
     },
     haptics: {
       enabled: true,
@@ -393,6 +410,11 @@ export class UserSettingsService {
       newSafeFoods: typeof notifications.newSafeFoods === 'boolean' ? notifications.newSafeFoods : true,
       weeklyReports: typeof notifications.weeklyReports === 'boolean' ? notifications.weeklyReports : true,
       scanReminders: typeof notifications.scanReminders === 'boolean' ? notifications.scanReminders : false,
+      quietHours: notifications.quietHours && typeof notifications.quietHours === 'object' ? {
+        enabled: typeof notifications.quietHours.enabled === 'boolean' ? notifications.quietHours.enabled : false,
+        start: typeof notifications.quietHours.start === 'string' ? notifications.quietHours.start : '22:00',
+        end: typeof notifications.quietHours.end === 'string' ? notifications.quietHours.end : '08:00',
+      } : DEFAULT_SETTINGS.preferences.notifications.quietHours,
     };
   }
 
@@ -468,7 +490,7 @@ export class UserSettingsService {
     section: K,
     key: keyof UserSettings[K]
   ): any {
-    return this.settings[section][key];
+    return (this.settings[section] as any)[key];
   }
 
   // Set specific setting value
@@ -522,8 +544,12 @@ export class UserSettingsService {
 
   // Check if specific notification is enabled
   isNotificationEnabled(type: keyof UserSettings['preferences']['notifications']): boolean {
+    if (type === 'quietHours') {
+      return this.settings.preferences.notifications.enabled && 
+             this.settings.preferences.notifications.quietHours?.enabled === true;
+    }
     return this.settings.preferences.notifications.enabled && 
-           this.settings.preferences.notifications[type];
+           Boolean(this.settings.preferences.notifications[type]);
   }
 
   // Get theme preference
@@ -591,7 +617,7 @@ export class UserSettingsService {
       version: '1.0.0',
     };
     
-    await this.updateSection('profile', {
+    await this.updateSettings({
       lastBackup: new Date(),
     });
     

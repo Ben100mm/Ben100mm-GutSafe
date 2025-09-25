@@ -1,3 +1,10 @@
+/**
+ * @fileoverview AppFlow.e2e.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import { device, element, by, waitFor } from 'detox';
 
 describe('GutSafe App E2E Tests', () => {

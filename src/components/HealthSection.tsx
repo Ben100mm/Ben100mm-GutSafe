@@ -1,3 +1,10 @@
+/**
+ * @fileoverview HealthSection.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React from 'react';
 import {
   View,

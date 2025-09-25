@@ -1,3 +1,10 @@
+/**
+ * @fileoverview AccessibleView.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useEffect, useRef } from 'react';
 import {
   View,
@@ -15,7 +22,7 @@ import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
 import { HapticFeedback } from '../utils/haptics';
-import { AnimationPresets } from '../utils/animations';
+// import { AnimationPresets } from '../utils/animations';
 import AccessibilityService from '../utils/accessibility';
 
 interface AccessibleViewProps {
@@ -439,8 +446,10 @@ const styles = StyleSheet.create({
   },
 });
 
-export default {
+const AccessibleComponents = {
   AccessibleView,
   AccessibleText,
   AccessibleButton,
 };
+
+export default AccessibleComponents;

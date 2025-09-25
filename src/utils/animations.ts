@@ -1,5 +1,12 @@
-import { Animated, Easing, Dimensions } from 'react-native';
-import { HapticFeedback, HapticType } from './haptics';
+/**
+ * @fileoverview animations.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
+import { Animated, Easing, Dimensions, Platform } from 'react-native';
+import { HapticFeedback } from './haptics';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -190,13 +197,13 @@ export class AnimationUtils {
         Animated.timing(animatedValue, {
           toValue: maxValue,
           duration: duration / 2,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
           easing: Easing.inOut(Easing.sin),
         }),
         Animated.timing(animatedValue, {
           toValue: minValue,
           duration: duration / 2,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
           easing: Easing.inOut(Easing.sin),
         }),
       ])
@@ -224,19 +231,19 @@ export class AnimationUtils {
       Animated.timing(animatedValue, {
         toValue: 1 + intensity,
         duration: 150,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
         easing: Easing.out(Easing.quad),
       }),
       Animated.timing(animatedValue, {
         toValue: 1 - intensity * 0.5,
         duration: 100,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
         easing: Easing.in(Easing.quad),
       }),
       Animated.timing(animatedValue, {
         toValue: 1,
         duration: 100,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
         easing: Easing.out(Easing.quad),
       }),
     ]);
@@ -349,7 +356,7 @@ export class HapticAnimations {
    */
   static animateWithHaptic(
     animation: Animated.CompositeAnimation,
-    hapticType: HapticType,
+    hapticType: string,
     delay: number = 0
   ): Animated.CompositeAnimation {
     return Animated.sequence([
@@ -368,7 +375,7 @@ export class HapticAnimations {
    */
   static buttonPress(
     scaleValue: Animated.Value,
-    hapticType: HapticType = HapticType.LIGHT
+    hapticType: string = 'light'
   ): Animated.CompositeAnimation {
     HapticFeedback.trigger(hapticType);
     
@@ -376,13 +383,13 @@ export class HapticAnimations {
       Animated.timing(scaleValue, {
         toValue: 0.95,
         duration: 100,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
         easing: Easing.out(Easing.quad),
       }),
       Animated.timing(scaleValue, {
         toValue: 1,
         duration: 100,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
         easing: Easing.out(Easing.back(1.2)),
       }),
     ]);
@@ -393,7 +400,7 @@ export class HapticAnimations {
    */
   static success(
     scaleValue: Animated.Value,
-    hapticType: HapticType = HapticType.SUCCESS
+    hapticType: string = 'success'
   ): Animated.CompositeAnimation {
     HapticFeedback.trigger(hapticType);
     
@@ -405,7 +412,7 @@ export class HapticAnimations {
    */
   static error(
     shakeValue: Animated.Value,
-    hapticType: HapticType = HapticType.ERROR
+    hapticType: string = 'error'
   ): Animated.CompositeAnimation {
     HapticFeedback.trigger(hapticType);
     
@@ -413,9 +420,11 @@ export class HapticAnimations {
   }
 }
 
-export default {
+const AnimationExports = {
   AnimationPresets,
   AnimationUtils,
   TransformUtils,
   HapticAnimations,
 };
+
+export default AnimationExports;

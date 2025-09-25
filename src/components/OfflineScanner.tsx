@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+/**
+ * @fileoverview OfflineScanner.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -32,7 +39,7 @@ export const OfflineScanner: React.FC<OfflineScannerProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<FoodItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null);
+  // const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [networkStatus, setNetworkStatus] = useState({
     isOnline: true,
@@ -65,7 +72,20 @@ export const OfflineScanner: React.FC<OfflineScannerProps> = ({
       networkService.off('online', handleNetworkChange);
       networkService.off('offline', handleNetworkChange);
     };
-  }, []);
+  }, [networkService]);
+
+  const performSearch = useCallback(async (query: string) => {
+    setIsSearching(true);
+    try {
+      const results = await offlineService.searchCachedFoods(query);
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Search failed:', error);
+      Alert.alert('Search Error', 'Failed to search cached foods. Please try again.');
+    } finally {
+      setIsSearching(false);
+    }
+  }, [offlineService]);
 
   useEffect(() => {
     if (searchQuery.trim().length >= 2) {
@@ -87,20 +107,7 @@ export const OfflineScanner: React.FC<OfflineScannerProps> = ({
         clearTimeout(searchTimeoutRef.current);
       }
     };
-  }, [searchQuery]);
-
-  const performSearch = async (query: string) => {
-    setIsSearching(true);
-    try {
-      const results = await offlineService.searchCachedFoods(query);
-      setSearchResults(results);
-    } catch (error) {
-      console.error('Search failed:', error);
-      Alert.alert('Search Error', 'Failed to search cached foods. Please try again.');
-    } finally {
-      setIsSearching(false);
-    }
-  };
+  }, [searchQuery, performSearch]);
 
   const analyzeFood = async (foodItem: FoodItem): Promise<ScanHistory> => {
     // Simulate offline analysis based on cached data
@@ -181,7 +188,7 @@ export const OfflineScanner: React.FC<OfflineScannerProps> = ({
   };
 
   const handleFoodSelect = async (foodItem: FoodItem) => {
-    setSelectedFood(foodItem);
+    // setSelectedFood(foodItem);
     setIsAnalyzing(true);
 
     try {
@@ -226,7 +233,7 @@ export const OfflineScanner: React.FC<OfflineScannerProps> = ({
                 additives: [],
                 glutenFree: false,
                 lactoseFree: false,
-                histamineLevel: 'unknown',
+                histamineLevel: 'moderate',
                 dataSource: 'Manual Entry',
               };
 

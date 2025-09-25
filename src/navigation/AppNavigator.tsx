@@ -1,8 +1,15 @@
+/**
+ * @fileoverview AppNavigator.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useColorScheme, Animated, Platform } from 'react-native';
+import { useColorScheme, Platform } from 'react-native';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
@@ -71,22 +78,28 @@ const MainTabs = () => {
           paddingBottom: Spacing.sm,
           paddingTop: Spacing.sm,
           height: 88,
-          ...(isDark ? {
-            ...(Platform.OS === 'web' ? {
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          ...Platform.select({
+            web: {
               boxShadow: '0 -2px 8px rgba(0, 0, 0, 0.1)',
-            } : {
+            },
+            default: {
               shadowColor: '#000',
               shadowOffset: { width: 0, height: -2 },
               shadowOpacity: 0.1,
               shadowRadius: 8,
               elevation: 8,
-            }),
-          } : {}),
+            },
+          }),
         },
         tabBarLabelStyle: {
-          fontFamily: Typography.fontFamily.medium,
-          fontSize: Typography.fontSize.caption,
+          fontFamily: Typography.fontFamily.semiBold,
+          fontSize: Typography.fontSize.bodySmall,
           marginTop: Spacing.xs,
+          fontWeight: Typography.fontWeight.semiBold,
         },
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textTertiary,
@@ -151,11 +164,11 @@ export const AppNavigator = () => {
   return (
     <NavigationContainer
       theme={{
-        dark: isDark,
+        dark: false, // Force light mode for testing
         colors: {
           primary: colors.accent,
-          background: colors.background,
-          card: colors.surface,
+          background: '#FFFFFF', // Force white background
+          card: '#FFFFFF',
           text: colors.text,
           border: colors.border,
           notification: colors.accent,

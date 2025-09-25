@@ -1,3 +1,10 @@
+/**
+ * @fileoverview RecipeImporterService.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import { FoodItem, GutCondition, ScanResult, SeverityLevel } from '../types';
 import { foodDatabaseService } from './FoodDatabaseService';
 
@@ -110,7 +117,7 @@ export class RecipeImporterService {
       return analysis;
     } catch (error) {
       console.error('Recipe import error:', error);
-      throw new Error(`Failed to import recipe: ${error.message}`);
+      throw new Error(`Failed to import recipe: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

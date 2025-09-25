@@ -1,3 +1,10 @@
+/**
+ * @fileoverview GlassmorphicCard.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React from 'react';
 import {
   View,
@@ -6,7 +13,7 @@ import {
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { Colors } from '../constants/colors';
-import { Spacing, BorderRadius, Shadows } from '../constants/spacing';
+import { BorderRadius, Shadows } from '../constants/spacing';
 
 interface GlassmorphicCardProps {
   children: React.ReactNode;

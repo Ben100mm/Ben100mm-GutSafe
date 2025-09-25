@@ -1,3 +1,12 @@
+/**
+ * @fileoverview spacing.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
+import { Platform } from 'react-native';
+
 // GutSafe Design System - Spacing (8-point system)
 export const Spacing = {
   xs: 4,   // 0.5 * 8
@@ -16,8 +25,6 @@ export const BorderRadius = {
   xl: 20,
   full: 9999,
 } as const;
-
-import { Platform } from 'react-native';
 
 export const Shadows = {
   sm: Platform.OS === 'web' ? {

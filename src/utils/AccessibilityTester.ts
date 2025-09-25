@@ -1,3 +1,10 @@
+/**
+ * @fileoverview AccessibilityTester.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import { AccessibilityInfo, Platform } from 'react-native';
 import AccessibilityService from './accessibility';
 
@@ -511,7 +518,7 @@ class AccessibilityTester {
       if (result.issues && result.issues.length > 0) {
         report.push('');
         report.push('**Issues**:');
-        result.issues.forEach(issue => {
+        result.issues.forEach((issue: any) => {
           report.push(`- ${issue}`);
         });
       }

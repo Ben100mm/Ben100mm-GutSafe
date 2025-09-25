@@ -1,3 +1,10 @@
+/**
+ * @fileoverview AnimatedButton.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useRef, useEffect } from 'react';
 import {
   TouchableOpacity,
@@ -8,13 +15,14 @@ import {
   Animated,
   ActivityIndicator,
   View,
+  Platform,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from './LinearGradientWrapper';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
-import { HapticFeedback, HapticType } from '../utils/haptics';
-import { AnimationPresets, TransformUtils, HapticAnimations } from '../utils/animations';
+import { HapticFeedback } from '../utils/haptics';
+import { AnimationPresets, TransformUtils } from '../utils/animations';
 import AccessibilityService from '../utils/accessibility';
 
 interface AnimatedButtonProps {
@@ -27,7 +35,7 @@ interface AnimatedButtonProps {
   style?: ViewStyle;
   textStyle?: TextStyle;
   icon?: React.ReactNode;
-  hapticType?: HapticType;
+  hapticType?: string;
   enable3D?: boolean;
   accessibilityLabel?: string;
   accessibilityHint?: string;
@@ -43,7 +51,7 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   style,
   textStyle,
   icon,
-  hapticType = HapticType.LIGHT,
+  hapticType = 'light',
   enable3D = false,
   accessibilityLabel,
   accessibilityHint,
@@ -57,7 +65,10 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   useEffect(() => {
     // Initialize 3D animations if enabled
     if (enable3D) {
-      const initialAnimation = AnimationPresets.scale3D({ duration: 300 });
+      const initialAnimation = AnimationPresets.scale3D({ 
+        duration: 300, 
+        useNativeDriver: Platform.OS !== 'web' 
+      });
       initialAnimation.start();
     }
   }, [enable3D]);
@@ -68,12 +79,12 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
     const animations = [
       Animated.spring(scaleAnim, {
         toValue: 0.95,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
       Animated.timing(glowAnim, {
         toValue: 1,
         duration: 200,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
     ];
 
@@ -82,12 +93,12 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
         Animated.timing(translateZAnim, {
           toValue: -5,
           duration: 200,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(shadowAnim, {
           toValue: 1,
           duration: 200,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         })
       );
     }
@@ -99,12 +110,12 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
     const animations = [
       Animated.spring(scaleAnim, {
         toValue: 1,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
       Animated.timing(glowAnim, {
         toValue: 0,
         duration: 200,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
     ];
 
@@ -113,12 +124,12 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
         Animated.timing(translateZAnim, {
           toValue: 0,
           duration: 200,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(shadowAnim, {
           toValue: 0,
           duration: 200,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         })
       );
     }

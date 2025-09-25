@@ -1,4 +1,11 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+/**
+ * @fileoverview OfflineService.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
+import AsyncStorage from '../utils/AsyncStorage';
 import { ScanHistory, FoodItem, GutProfile, SafeFood } from '../types';
 
 /**
@@ -156,7 +163,7 @@ class OfflineService {
       const cacheData = await this.getCacheMetadata();
       const results: FoodItem[] = [];
       
-      for (const [key, metadata] of Object.entries(cacheData.foodItems)) {
+      for (const [key] of Object.entries(cacheData.foodItems)) {
         if (key.startsWith('food_')) {
           const foodData = await AsyncStorage.getItem(key);
           if (foodData) {
@@ -253,11 +260,7 @@ class OfflineService {
   async storeOfflineScan(scan: ScanHistory): Promise<void> {
     try {
       const offlineScans = await this.getOfflineScans();
-      offlineScans.push({
-        ...scan,
-        isOffline: true,
-        synced: false,
-      });
+      offlineScans.push(scan);
       
       await AsyncStorage.setItem(this.KEYS.OFFLINE_SCANS, JSON.stringify(offlineScans));
       console.log('Offline scan stored for later sync');
@@ -436,7 +439,7 @@ class OfflineService {
   async clearAllCache(): Promise<void> {
     try {
       const keys = await AsyncStorage.getAllKeys();
-      const gutSafeKeys = keys.filter(key => key.startsWith('gut_safe_'));
+      const gutSafeKeys = keys.filter((key: string) => key.startsWith('gut_safe_'));
       
       await AsyncStorage.multiRemove(gutSafeKeys);
       console.log('All cache cleared successfully');
@@ -465,7 +468,7 @@ class OfflineService {
       }
 
       const offlineScans = await this.getOfflineScans();
-      const unsyncedScans = offlineScans.filter(scan => !scan.synced);
+      const unsyncedScans = offlineScans; // All offline scans need to be synced
 
       for (const scan of unsyncedScans) {
         try {

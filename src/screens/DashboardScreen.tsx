@@ -1,645 +1,255 @@
-import React, { useState, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-  useColorScheme,
-  Modal,
-  Alert,
-  Animated,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { HealthCard } from '../components/HealthCard';
-import { HealthSection } from '../components/HealthSection';
-import { MultipleProgressRings } from '../components/ProgressRing';
-import { TrendChart } from '../components/TrendChart';
-import { Animated3DCard } from '../components/Animated3DCard';
-import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
-import { Spacing } from '../constants/spacing';
-import { HapticFeedback, HapticType } from '../utils/haptics';
-import { AnimationPresets, TransformUtils, AnimationUtils } from '../utils/animations';
-import AccessibilityService from '../utils/accessibility';
-import { ProgressRing as ProgressRingType, TrendAnalysis, ChartDataPoint, SafeFood, ShareableContent } from '../types';
-import { SharingService } from '../utils/sharing';
-import DataService from '../services/DataService';
+/**
+ * @fileoverview DashboardScreen.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
+import React from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
 const DashboardScreen: React.FC = () => {
-  const navigation = useNavigation();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const colors = isDark ? Colors.dark : Colors.light;
-
-  const [showSafeFoods, setShowSafeFoods] = useState(false);
-  const dataService = DataService.getInstance();
+  console.log('🚀 DashboardScreen is rendering! - ENHANCED VERSION 6.1');
+  // const colorScheme = useColorScheme();
+  // const isDark = colorScheme === 'dark';
   
-  // Animation values
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
-  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  // Force light mode styles for visibility
+  const backgroundColor = '#FFFFFF';
+  const textColor = '#000000';
+  const cardColor = '#F8F9FA';
+  const subtitleColor = '#666666';
+  const sectionTitleColor = '#000000';
 
-  useEffect(() => {
-    // Initialize accessibility service
-    AccessibilityService.initialize();
-    
-    // Initialize data service
-    dataService.initialize();
-    
-    // Entrance animations
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
-  const [safeFoods] = useState<SafeFood[]>(dataService.getSafeFoods());
-
-  const handleEditPress = () => {
-    HapticFeedback.buttonPress();
-    (navigation as any).navigate('GutProfile');
-  };
-
-  const handleCardPress = (cardType: string) => {
-    HapticFeedback.buttonPress();
-    if (cardType === 'Safe Foods') {
-      setShowSafeFoods(true);
-    } else {
-      console.log(`${cardType} card pressed`);
-    }
-  };
-
-  const handleShareGutHealth = async () => {
-    const shareContent: ShareableContent = {
-      type: 'gut_report',
-      title: 'My Gut Health Report',
-      description: 'Check out my gut health insights from GutSafe!',
-      data: { score: 85, improvement: '+12%' },
-      shareUrl: 'gutsafe://report',
-    };
-    await SharingService.shareWithOptions(shareContent);
-  };
-
-  const handleShareSafeFood = async (safeFood: SafeFood) => {
-    await SharingService.shareSafeFood(safeFood);
-  };
-
-  // Mock data for progress rings
-  const progressRings: ProgressRingType[] = [
-    {
-      id: 'gut-health',
-      label: 'Gut Health',
-      value: 85,
-      goal: 90,
-      color: Colors.primary,
-      unit: 'score',
-    },
-    {
-      id: 'safe-foods',
-      label: 'Safe Foods',
-      value: 75,
-      goal: 100,
-      color: Colors.safe,
-      unit: 'foods',
-    },
-    {
-      id: 'energy',
-      label: 'Energy',
-      value: 80,
-      goal: 100,
-      color: Colors.primaryLight,
-      unit: 'level',
-    },
-  ];
-
-  // Mock trend data
-  const gutHealthTrend: TrendAnalysis = {
-    period: 'week',
-    trend: 'up',
-    changePercentage: 12.5,
-    dataPoints: [
-      { x: 1, y: 75 },
-      { x: 2, y: 78 },
-      { x: 3, y: 82 },
-      { x: 4, y: 80 },
-      { x: 5, y: 85 },
-      { x: 6, y: 88 },
-      { x: 7, y: 85 },
-    ],
-    insights: [
-      'Your gut health has improved by 12.5% this week',
-      'Consistent improvement in daily scores',
-    ],
-    recommendations: [
-      'Continue tracking your food intake',
-      'Consider adding more probiotic foods',
-    ],
-  };
+  const HealthCard = ({ title, value, subtitle, icon, onPress }: any) => (
+    <TouchableOpacity 
+      style={[styles.healthCard, { backgroundColor: cardColor }]}
+      onPress={onPress}
+    >
+      <Text style={[styles.cardIcon, { color: '#4CAF50' }]}>{icon}</Text>
+      <Text style={[styles.cardTitle, { color: textColor }]}>{title}</Text>
+      <Text style={[styles.cardValue, { color: '#4CAF50' }]}>{value}</Text>
+      <Text style={[styles.cardSubtitle, { color: subtitleColor }]}>{subtitle}</Text>
+    </TouchableOpacity>
+  );
 
   return (
-    <Animated.View style={[
-      styles.container, 
-      { 
-        backgroundColor: colors.background,
-        opacity: fadeAnim,
-        transform: [
-          { translateY: slideAnim },
-          { scale: scaleAnim }
-        ]
-      }
-    ]}>
+    <ScrollView style={[styles.container, { backgroundColor }]}>
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.surface }]}>
-        <Text 
-          style={[styles.title, { color: colors.text }]}
-          {...AccessibilityService.createHeaderConfig('Summary', 1)}
-        >
-          Summary
+      <View style={[styles.header, { backgroundColor: cardColor }]}>
+        <Text style={[styles.title, { color: textColor }]}>
+          🎉 GutSafe Dashboard
         </Text>
-        <TouchableOpacity 
-          style={styles.profileButton} 
-          onPress={handleEditPress}
-          {...AccessibilityService.createButtonConfig(
-            'Profile Settings',
-            'Open gut profile settings',
-            false,
-            false
-          )}
-        >
-          <Text style={styles.profileButtonText}>B</Text>
-        </TouchableOpacity>
+        <Text style={[styles.subtitle, { color: subtitleColor }]}>
+          Your gut health companion
+        </Text>
       </View>
 
-      <ScrollView 
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Progress Rings Section */}
-        <HealthSection
-          title="Today's Progress"
-          rightButton="View All"
-          onRightPress={() => handleCardPress('View All Progress')}
-        >
-          <Animated3DCard
-            variant="glass"
-            enable3D={true}
-            enableHover={true}
-            hapticType={HapticType.LIGHT}
-            accessibilityLabel="Today's Progress Rings"
-            accessibilityHint="View your daily progress metrics"
-          >
-            <MultipleProgressRings
-              rings={progressRings}
-              size={100}
-              strokeWidth={8}
-              layout="horizontal"
-            />
-          </Animated3DCard>
-        </HealthSection>
+      {/* Health Cards Grid */}
+      <View style={styles.cardsGrid}>
+        <HealthCard
+          title="Today's Scans"
+          value="3"
+          subtitle="Foods analyzed"
+          icon="📱"
+          onPress={() => console.log('Navigate to scan history')}
+        />
+        <HealthCard
+          title="Safe Foods"
+          value="12"
+          subtitle="In your list"
+          icon="✅"
+          onPress={() => console.log('Navigate to safe foods')}
+        />
+        <HealthCard
+          title="Gut Score"
+          value="85%"
+          subtitle="Excellent"
+          icon="💚"
+          onPress={() => console.log('Navigate to gut profile')}
+        />
+        <HealthCard
+          title="Streak"
+          value="7 days"
+          subtitle="Tracking daily"
+          icon="🔥"
+          onPress={() => console.log('Navigate to analytics')}
+        />
+      </View>
 
-        {/* Pinned Section */}
-        <HealthSection
-          title="Pinned"
-          rightButton="Edit"
-          onRightPress={handleEditPress}
-        >
-          <Animated3DCard
-            variant="solid"
-            enable3D={true}
-            enableHover={true}
-            hapticType={HapticType.LIGHT}
-            accessibilityLabel="Recent Scans Card"
-            accessibilityHint="View your recent food scans"
-            onPress={() => handleCardPress('Recent Scans')}
-          >
-            <HealthCard
-              title="Recent Scans"
-              value="12"
-              unit="today"
-              icon="scan"
-              color={Colors.primary}
-              onPress={() => handleCardPress('Recent Scans')}
-            />
-          </Animated3DCard>
-          <Animated3DCard
-            variant="solid"
-            enable3D={true}
-            enableHover={true}
-            hapticType={HapticType.LIGHT}
-            accessibilityLabel="Safe Foods Card"
-            accessibilityHint="View your safe foods list"
-            onPress={() => handleCardPress('Safe Foods')}
-          >
-            <HealthCard
-              title="Safe Foods"
-              value="8"
-              unit="favorites"
-              icon="heart"
-              color={Colors.safe}
-              onPress={() => handleCardPress('Safe Foods')}
-            />
-          </Animated3DCard>
-        </HealthSection>
+      {/* Debug: Force visible test content */}
+      <View style={{ padding: 20, backgroundColor: '#EEE', margin: 10, borderRadius: 8 }}>
+        <Text style={{ color: textColor, fontSize: 16, textAlign: 'center' }}>
+          🔍 DEBUG: Content should be visible here!
+        </Text>
+        <Text style={{ color: subtitleColor, fontSize: 14, textAlign: 'center', marginTop: 8 }}>
+          If you can see this, the dashboard is working!
+        </Text>
+      </View>
 
-        {/* Gut Health Trend Chart */}
-        <Animated3DCard
-          variant="gradient"
-          enable3D={true}
-          enableHover={true}
-          hapticType={HapticType.LIGHT}
-          accessibilityLabel="Gut Health Trend Chart"
-          accessibilityHint="View your weekly gut health progress"
-        >
-          <TrendChart
-            data={gutHealthTrend}
-            title="Gut Health Trend"
-            subtitle="Your weekly progress"
-            color={Colors.primary}
-            height={180}
-          />
-        </Animated3DCard>
-
-        {/* Gut Profile Card */}
-        <Animated3DCard
-          variant="solid"
-          enable3D={true}
-          enableHover={true}
-          hapticType={HapticType.MEDIUM}
-          accessibilityLabel="Gut Profile Settings"
-          accessibilityHint="Manage your gut health conditions, symptoms and medications"
-          onPress={handleEditPress}
-          style={styles.showAllCard}
-        >
-          <View style={styles.showAllContent}>
-            <View style={styles.showAllIcon}>
-              <Text style={styles.showAllIconText}>⚙️</Text>
-            </View>
-            <View style={styles.showAllTextContainer}>
-              <Text style={[styles.showAllText, { color: colors.text }]}>
-                Gut Profile Settings
-              </Text>
-              <Text style={[styles.showAllSubtext, { color: colors.textSecondary }]}>
-                Manage conditions, track symptoms & medications
-              </Text>
-            </View>
-            <Text style={[styles.chevron, { color: colors.textSecondary }]}>›</Text>
-          </View>
-        </Animated3DCard>
-
-        {/* Trends Section */}
-        <HealthSection title="Trends">
-          <HealthCard
-            title="Weekly Progress"
-            value="+12%"
-            unit="improvement"
-            icon="trend"
-            color={Colors.safe}
-            description="Your gut health trends are looking positive this week"
-            onPress={() => handleCardPress('Weekly Progress')}
-          />
-          <HealthCard
-            title="Food Sensitivity"
-            value="3"
-            unit="new triggers found"
-            icon="check"
-            color={Colors.caution}
-            description="Track your food reactions to identify patterns"
-            onPress={() => handleCardPress('Food Sensitivity')}
-          />
-        </HealthSection>
-
-        {/* Highlights Section */}
-        <HealthSection title="Highlights">
-          <HealthCard
-            title="Weekly Insights"
-            value="3"
-            unit="new safe foods discovered"
-            icon="fire"
-            color={Colors.safe}
-            description="You've found 3 new foods that work well with your gut"
-            onPress={() => handleCardPress('Weekly Insights')}
-          />
-          <HealthCard
-            title="Streak"
-            value="7"
-            unit="days in a row"
-            icon="heart"
-            color={Colors.primary}
-            description="Keep up the great work with your gut health routine"
-            onPress={() => handleCardPress('Streak')}
-          />
-        </HealthSection>
-
-        {/* Get More from GutSafe Section */}
-        <HealthSection title="Get More from GutSafe">
-          <HealthCard
-            title="Premium Features"
-            value="Unlock"
-            unit="advanced analytics"
-            icon="trend"
-            color={Colors.primary}
-            description="Get personalized meal plans and detailed insights"
-            onPress={() => handleCardPress('Premium Features')}
-          />
-          <HealthCard
-            title="Expert Consultation"
-            value="Book"
-            unit="with nutritionist"
-            icon="heart"
-            color={Colors.primary}
-            description="Get personalized advice from certified gut health experts"
-            onPress={() => handleCardPress('Expert Consultation')}
-          />
-        </HealthSection>
-
-        {/* Articles Section */}
-        <HealthSection title="Articles">
-          <HealthCard
-            title="Gut Health Tips"
-            value="5"
-            unit="new articles this week"
-            icon="check"
-            color={Colors.primary}
-            description="Latest research and tips for better gut health"
-            onPress={() => handleCardPress('Gut Health Tips')}
-          />
-          <HealthCard
-            title="Recipe Collection"
-            value="12"
-            unit="gut-friendly recipes"
-            icon="heart"
-            color={Colors.safe}
-            description="Delicious meals designed for optimal gut health"
-            onPress={() => handleCardPress('Recipe Collection')}
-          />
-        </HealthSection>
-
-        {/* Bottom spacing for navigation */}
-        <View style={styles.bottomSpacing} />
-      </ScrollView>
-
-      {/* Safe Foods Modal */}
-      <Modal
-        visible={showSafeFoods}
-        animationType="slide"
-        presentationStyle="pageSheet"
-      >
-        <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
-          <View style={[styles.modalHeader, { backgroundColor: colors.surface }]}>
-            <TouchableOpacity onPress={() => setShowSafeFoods(false)}>
-              <Text style={[styles.modalCloseButton, { color: colors.accent }]}>Done</Text>
-            </TouchableOpacity>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>Safe Foods</Text>
-            <TouchableOpacity onPress={handleShareGutHealth}>
-              <Text style={[styles.modalShareButton, { color: colors.accent }]}>Share</Text>
-            </TouchableOpacity>
-          </View>
-          
-          <ScrollView style={styles.modalContent}>
-            {safeFoods.map((safeFood) => (
-              <View key={safeFood.id} style={[styles.safeFoodCard, { backgroundColor: colors.surface }]}>
-                <View style={styles.safeFoodHeader}>
-                  <Text style={[styles.safeFoodName, { color: colors.text }]}>
-                    {safeFood.foodItem.name}
-                  </Text>
-                  <TouchableOpacity onPress={() => handleShareSafeFood(safeFood)}>
-                    <Text style={styles.shareIcon}>📤</Text>
-                  </TouchableOpacity>
-                </View>
-                {safeFood.foodItem.brand && (
-                  <Text style={[styles.safeFoodBrand, { color: colors.textSecondary }]}>
-                    {safeFood.foodItem.brand}
-                  </Text>
-                )}
-                <Text style={[styles.dataSource, { color: colors.textTertiary }]}>
-                  Source: {safeFood.foodItem.dataSource}
-                </Text>
-                <View style={styles.safeFoodStats}>
-                  <Text style={[styles.statText, { color: colors.textSecondary }]}>
-                    Used {safeFood.usageCount} times
-                  </Text>
-                  <Text style={[styles.statText, { color: colors.textSecondary }]}>
-                    FODMAP: {safeFood.foodItem.fodmapLevel}
-                  </Text>
-                </View>
-                {safeFood.notes && (
-                  <Text style={[styles.safeFoodNotes, { color: colors.textSecondary }]}>
-                    💭 {safeFood.notes}
-                  </Text>
-                )}
-              </View>
-            ))}
-          </ScrollView>
+      {/* Quick Actions */}
+      <View style={styles.quickActions}>
+        <Text style={[styles.sectionTitle, { color: sectionTitleColor }]}>
+          Quick Actions
+        </Text>
+        <View style={styles.actionButtons}>
+          <TouchableOpacity style={[styles.actionButton, { backgroundColor: cardColor }]}>
+            <Text style={styles.actionIcon}>📷</Text>
+            <Text style={[styles.actionText, { color: textColor }]}>Scan Food</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.actionButton, { backgroundColor: cardColor }]}>
+            <Text style={styles.actionIcon}>📊</Text>
+            <Text style={[styles.actionText, { color: textColor }]}>Analytics</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.actionButton, { backgroundColor: cardColor }]}>
+            <Text style={styles.actionIcon}>🍎</Text>
+            <Text style={[styles.actionText, { color: textColor }]}>Safe Foods</Text>
+          </TouchableOpacity>
         </View>
-      </Modal>
-    </Animated.View>
+      </View>
+
+      {/* Recent Activity */}
+      <View style={styles.recentActivity}>
+        <Text style={[styles.sectionTitle, { color: sectionTitleColor }]}>
+          Recent Activity
+        </Text>
+        <View style={[styles.activityItem, { backgroundColor: cardColor }]}>
+          <Text style={styles.activityIcon}>🍎</Text>
+          <View style={styles.activityContent}>
+            <Text style={[styles.activityTitle, { color: textColor }]}>
+              Apple scanned
+            </Text>
+            <Text style={[styles.activityTime, { color: subtitleColor }]}>
+              2 hours ago • Safe to eat
+            </Text>
+          </View>
+        </View>
+        <View style={[styles.activityItem, { backgroundColor: cardColor }]}>
+          <Text style={styles.activityIcon}>🥛</Text>
+          <View style={styles.activityContent}>
+            <Text style={[styles.activityTitle, { color: textColor }]}>
+              Milk scanned
+            </Text>
+            <Text style={[styles.activityTime, { color: subtitleColor }]}>
+              5 hours ago • Caution advised
+            </Text>
+          </View>
+        </View>
+      </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    padding: 20,
+    paddingTop: 60,
     alignItems: 'center',
-    paddingTop: 44,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+    backgroundColor: '#F8F9FA',
   },
   title: {
-    fontSize: 34,
-    fontWeight: '800',
-    letterSpacing: -0.5,
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 8,
   },
-  profileButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...(Platform.OS === 'web' ? {
-      boxShadow: `0 4px 12px ${Colors.primary}4D`,
-    } : {
-      shadowColor: Colors.primary,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 12,
-      elevation: 5,
-    }),
-  },
-  profileButtonText: {
-    color: Colors.white,
-    fontWeight: '700',
-    fontSize: 18,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: Spacing.xxxl,
-  },
-  showAllCard: {
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.xl,
-    borderRadius: 16,
-    padding: Spacing.lg,
-    ...(Platform.OS === 'web' ? {
-      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-    } : {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.08,
-      shadowRadius: 20,
-      elevation: 3,
-    }),
-  },
-  showAllContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  showAllIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: Spacing.md,
-    ...(Platform.OS === 'web' ? {
-      boxShadow: `0 4px 12px ${Colors.primary}4D`,
-    } : {
-      shadowColor: Colors.primary,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 12,
-      elevation: 4,
-    }),
-  },
-  showAllIconText: {
-    color: Colors.white,
+  subtitle: {
     fontSize: 16,
-    fontWeight: '800',
-  },
-  showAllTextContainer: {
-    flex: 1,
-  },
-  showAllText: {
-    fontSize: 17,
-    fontWeight: '700',
-    letterSpacing: -0.2,
-    marginBottom: 2,
-  },
-  showAllSubtext: {
-    fontSize: 14,
-    fontWeight: '400',
+    textAlign: 'center',
     opacity: 0.8,
   },
-  chevron: {
-    fontSize: 18,
-    fontWeight: '300',
-  },
-  bottomSpacing: {
-    height: 100, // Space for bottom navigation
-  },
-  modalContainer: {
-    flex: 1,
-  },
-  modalHeader: {
+  cardsGrid: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 44,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+    flexWrap: 'wrap',
+    padding: 16,
+    gap: 12,
   },
-  modalCloseButton: {
-    fontSize: 17,
-    fontWeight: '600',
-  },
-  modalTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-  },
-  modalShareButton: {
-    fontSize: 17,
-    fontWeight: '600',
-  },
-  modalContent: {
-    flex: 1,
-    padding: Spacing.lg,
-  },
-  safeFoodCard: {
+  healthCard: {
+    width: '47%',
+    padding: 16,
     borderRadius: 12,
-    padding: Spacing.md,
-    marginBottom: Spacing.md,
-    ...(Platform.OS === 'web' ? {
-      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-    } : {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 2,
-    }),
-  },
-  safeFoodHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.xs,
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
   },
-  safeFoodName: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.semiBold,
+  cardIcon: {
+    fontSize: 24,
+    marginBottom: 8,
+  },
+  cardTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  cardValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  cardSubtitle: {
+    fontSize: 12,
+    textAlign: 'center',
+    opacity: 0.7,
+  },
+  quickActions: {
+    padding: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionButton: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+  },
+  actionIcon: {
+    fontSize: 24,
+    marginBottom: 8,
+  },
+  actionText: {
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  recentActivity: {
+    padding: 16,
+    paddingBottom: 100, // Space for bottom navigation
+  },
+  activityItem: {
+    flexDirection: 'row',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+    alignItems: 'center',
+    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+  },
+  activityIcon: {
+    fontSize: 20,
+    marginRight: 12,
+  },
+  activityContent: {
     flex: 1,
   },
-  shareIcon: {
+  activityTitle: {
     fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 4,
   },
-  safeFoodBrand: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
-    marginBottom: 2,
-  },
-  dataSource: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
-    marginBottom: Spacing.sm,
-  },
-  safeFoodStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.xs,
-  },
-  statText: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
-  },
-  safeFoodNotes: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
-    fontStyle: 'italic',
-    marginTop: Spacing.xs,
+  activityTime: {
+    fontSize: 14,
+    opacity: 0.7,
   },
 });
 

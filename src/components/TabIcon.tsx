@@ -1,8 +1,15 @@
+/**
+ * @fileoverview TabIcon.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useRef, useEffect } from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
-import { Colors } from '../constants/colors';
-import { HapticFeedback } from '../utils/haptics';
-import { AnimationPresets, TransformUtils } from '../utils/animations';
+import { View, StyleSheet, Animated, Platform } from 'react-native';
+// import { Colors } from '../constants/colors';
+// import { HapticFeedback } from '../utils/haptics';
+// import { AnimationPresets, TransformUtils } from '../utils/animations';
 import AccessibilityService from '../utils/accessibility';
 
 interface TabIconProps {
@@ -30,12 +37,12 @@ export const TabIcon: React.FC<TabIconProps> = ({
       Animated.parallel([
         Animated.spring(scaleAnim, {
           toValue: 1.1,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(rotateAnim, {
           toValue: 1,
           duration: 300,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
       ]).start();
 
@@ -45,12 +52,12 @@ export const TabIcon: React.FC<TabIconProps> = ({
           Animated.timing(pulseAnim, {
             toValue: 1.05,
             duration: 1000,
-            useNativeDriver: true,
+            useNativeDriver: Platform.OS !== 'web',
           }),
           Animated.timing(pulseAnim, {
             toValue: 1,
             duration: 1000,
-            useNativeDriver: true,
+            useNativeDriver: Platform.OS !== 'web',
           }),
         ])
       );
@@ -62,16 +69,16 @@ export const TabIcon: React.FC<TabIconProps> = ({
       Animated.parallel([
         Animated.spring(scaleAnim, {
           toValue: 1,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(rotateAnim, {
           toValue: 0,
           duration: 300,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
       ]).start();
     }
-  }, [focused]);
+  }, [focused, pulseAnim, rotateAnim, scaleAnim]);
 
   // 3D transform styles
   const transform3DStyle = enable3D ? {
@@ -82,7 +89,6 @@ export const TabIcon: React.FC<TabIconProps> = ({
         outputRange: ['0deg', '360deg'],
       })},
     ],
-    ...TransformUtils.createPerspective(1000),
   } : {
     transform: [{ scale: Animated.multiply(scaleAnim, pulseAnim) }],
   };

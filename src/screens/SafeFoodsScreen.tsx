@@ -1,3 +1,10 @@
+/**
+ * @fileoverview SafeFoodsScreen.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useState, useMemo } from 'react';
 import {
   View,
@@ -16,7 +23,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
-import { SafeFood, FoodItem, ScanResult } from '../types';
+import { SafeFood } from '../types';
 
 // Mock safe foods data
 const mockSafeFoods: SafeFood[] = [

@@ -1,3 +1,10 @@
+/**
+ * @fileoverview SafeAlternativesService.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import { GutCondition, SeverityLevel, ScanResult } from '../types';
 
 // Safe Alternatives Types

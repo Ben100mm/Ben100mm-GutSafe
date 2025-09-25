@@ -1,3 +1,10 @@
+/**
+ * @fileoverview AnalyticsScreen.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   View,
@@ -12,17 +19,16 @@ import {
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
-import { ProgressRing, MultipleProgressRings } from '../components/ProgressRing';
+import { MultipleProgressRings } from '../components/ProgressRing';
 import { TrendChart, MultiTrendChart, PeriodSelector } from '../components/TrendChart';
 import { FoodTrendAnalysis } from '../components/FoodTrendAnalysis';
-import { Animated3DCard } from '../components/Animated3DCard';
-import { HapticFeedback, HapticType } from '../utils/haptics';
-import { AnimationPresets, AnimationUtils } from '../utils/animations';
+// import { Animated3DCard } from '../components/Animated3DCard';
+import { HapticFeedback } from '../utils/haptics';
+// import { AnimationPresets, AnimationUtils } from '../utils/animations';
 import AccessibilityService from '../utils/accessibility';
 import { 
   GutHealthMetrics, 
   FoodTrendData, 
-  WeeklyProgress, 
   ProgressRing as ProgressRingType,
   TrendAnalysis,
   ChartDataPoint,
@@ -129,7 +135,7 @@ const AnalyticsScreen: React.FC = () => {
         useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [fadeAnim, scaleAnim, slideAnim]);
 
   const onRefresh = () => {
     HapticFeedback.buttonPress();

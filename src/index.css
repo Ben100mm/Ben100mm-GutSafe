@@ -6,8 +6,8 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'Roboto', sans-serif;
-  background: linear-gradient(180deg, #F2F2F7 0%, #FFFFFF 100%);
-  color: #1D1D1F;
+  background: #FFFFFF !important;
+  color: #000000 !important;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -21,10 +21,10 @@ body {
   position: relative;
 }
 
-/* Dark mode support */
+/* Remove dark mode for testing */
 @media (prefers-color-scheme: dark) {
   body {
-    background: linear-gradient(180deg, #000000 0%, #1C1C1E 100%);
-    color: #FFFFFF;
+    background: #FFFFFF !important;
+    color: #000000 !important;
   }
 }

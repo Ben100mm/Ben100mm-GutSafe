@@ -1,4 +1,11 @@
-import { GutSymptom, GutCondition, SeverityLevel } from '../types';
+/**
+ * @fileoverview SymptomLoggingService.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
+import { GutSymptom } from '../types';
 
 // Symptom Logging Types
 export interface SymptomLog {
@@ -295,7 +302,12 @@ export class SymptomLoggingService {
         frequency,
         averageSeverity,
         commonTriggers: Array.from(data.triggers).slice(0, 5),
-        timeOfDay: data.timeOfDay,
+        timeOfDay: {
+          morning: data.timeOfDay.morning || 0,
+          afternoon: data.timeOfDay.afternoon || 0,
+          evening: data.timeOfDay.evening || 0,
+          night: data.timeOfDay.night || 0,
+        },
         dayOfWeek: data.dayOfWeek,
         correlation: {
           food: data.correlations.food / data.occurrences,

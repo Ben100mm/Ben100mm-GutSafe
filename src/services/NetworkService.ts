@@ -1,4 +1,12 @@
+/**
+ * @fileoverview NetworkService.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import { EventEmitter } from 'events';
+import { Platform } from 'react-native';
 
 /**
  * NetworkService - Handles network connectivity monitoring and status
@@ -7,6 +15,7 @@ import { EventEmitter } from 'events';
 class NetworkService extends EventEmitter {
   private static instance: NetworkService;
   private isConnected: boolean = true;
+  private isOnlineStatus: boolean = true;
   private connectionType: string = 'unknown';
   private lastOnlineTime: number = Date.now();
   private lastOfflineTime: number = 0;
@@ -24,6 +33,36 @@ class NetworkService extends EventEmitter {
       NetworkService.instance = new NetworkService();
     }
     return NetworkService.instance;
+  }
+
+  public initialize(): void {
+    this.setupListeners();
+    this.checkInitialStatus();
+    setInterval(() => this.getNetworkStatus(), 30000); // Check every 30 seconds
+    console.log('NetworkService: Initialized.');
+  }
+
+  private setupListeners(): void {
+    if (Platform.OS === 'web') {
+      window.addEventListener('online', this.handleOnline.bind(this));
+      window.addEventListener('offline', this.handleOffline.bind(this));
+    }
+    // For native, a more robust solution like @react-native-community/netinfo would be used
+  }
+
+  private checkInitialStatus(): void {
+    if (Platform.OS === 'web') {
+      this.isOnlineStatus = navigator.onLine;
+      this.isConnected = navigator.onLine; // Set isConnected for web
+      if (navigator.onLine) {
+        this.handleOnline();
+      } else {
+        this.handleOffline();
+      }
+    } else {
+      // For native, perform an initial check
+      this.getNetworkStatus();
+    }
   }
 
   /**
@@ -141,10 +180,15 @@ class NetworkService extends EventEmitter {
     try {
       // In a real app, you would ping your API endpoint
       // For now, we'll simulate a network test
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
       const response = await fetch('https://httpbin.org/get', {
         method: 'GET',
-        timeout: 5000,
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
       
       const latency = Date.now() - startTime;
       const isConnected = response.ok;
@@ -219,7 +263,8 @@ class NetworkService extends EventEmitter {
         }
         
         // Wait before retrying
-        await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+        const delay = 1000 * attempts;
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
     

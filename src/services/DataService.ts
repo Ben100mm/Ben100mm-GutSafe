@@ -1,3 +1,10 @@
+/**
+ * @fileoverview DataService.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 // Data Service for GutSafe App
 import { 
   ScanHistory, 
@@ -9,7 +16,7 @@ import {
   GutSymptom,
   MedicationSupplement,
   SafeFood,
-  ShareableContent
+  // ShareableContent
 } from '../types';
 
 class DataService {
@@ -27,9 +34,8 @@ class DataService {
     return DataService.instance;
   }
 
-  // Initialize with mock data
-  initialize(): void {
-    this.loadMockData();
+  initialize() {
+    // Initialization logic
   }
 
   private loadMockData(): void {

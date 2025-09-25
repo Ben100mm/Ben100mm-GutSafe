@@ -1,3 +1,10 @@
+/**
+ * @fileoverview EnhancedWelcomeScreen.tsx
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import React, { useEffect, useRef } from 'react';
 import {
   View,
@@ -7,15 +14,15 @@ import {
   Animated,
   ScrollView,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from '@react-native-community/blur';
+import LinearGradient from '../components/LinearGradientWrapper';
+// import { BlurView } from '@react-native-community/blur';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
 import { AnimatedButton } from '../components/AnimatedButton';
 import { GlassmorphicCard } from '../components/GlassmorphicCard';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 interface EnhancedWelcomeScreenProps {
   onStartScanning: () => void;
@@ -68,7 +75,7 @@ export const EnhancedWelcomeScreen: React.FC<EnhancedWelcomeScreenProps> = ({
       ])
     );
     pulse.start();
-  }, []);
+  }, [fadeAnim, slideAnim, scaleAnim, pulseAnim]);
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>

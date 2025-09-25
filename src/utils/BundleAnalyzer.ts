@@ -1,4 +1,11 @@
 /**
+ * @fileoverview BundleAnalyzer.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
+/**
  * BundleAnalyzer - Analyze and optimize bundle size
  * Provides insights into bundle composition and optimization recommendations
  */

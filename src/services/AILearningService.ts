@@ -1,3 +1,10 @@
+/**
+ * @fileoverview AILearningService.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
 import { GutCondition, SeverityLevel, ScanResult, GutProfile, GutSymptom } from '../types';
 import { symptomLoggingService } from './SymptomLoggingService';
 import { userSettingsService } from './UserSettingsService';
@@ -69,7 +76,7 @@ export interface LearningMetrics {
   lastEvaluation: Date;
 }
 
-export class AILearningService {
+export default class AILearningService {
   private static instance: AILearningService;
   private learningData: LearningData | null = null;
   private insights: LearningInsights | null = null;
@@ -890,5 +897,4 @@ export class AILearningService {
   }
 }
 
-// Export singleton instance
-export const aiLearningService = AILearningService.getInstance();
+// Remove named export if present
