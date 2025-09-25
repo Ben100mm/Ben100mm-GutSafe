@@ -53,8 +53,9 @@ module.exports = {
       });
       
       // Add environment variable to completely disable React Refresh
+      const webpack = require('webpack');
       webpackConfig.plugins.push(
-        new webpackConfig.constructor.DefinePlugin({
+        new webpack.DefinePlugin({
           'process.env.FAST_REFRESH': JSON.stringify('false'),
           'process.env.REACT_REFRESH': JSON.stringify('false')
         })
