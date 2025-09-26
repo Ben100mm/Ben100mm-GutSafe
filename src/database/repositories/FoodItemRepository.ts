@@ -164,12 +164,12 @@ export class FoodItemRepository extends BaseRepository<FoodItem> {
     
     if (limit) {
       query += ' LIMIT ?';
-      parameters.push(limit);
+      parameters.push(limit.toString());
     }
     
     if (offset) {
       query += ' OFFSET ?';
-      parameters.push(offset);
+      parameters.push(offset.toString());
     }
     
     const results = await this.executeQuery<FoodItem>(query, parameters);

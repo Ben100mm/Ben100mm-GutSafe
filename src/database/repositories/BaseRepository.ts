@@ -108,7 +108,7 @@ export abstract class BaseRepository<T> {
 
   async delete(id: string): Promise<boolean> {
     const query = `DELETE FROM ${this.tableName} WHERE id = ?`;
-    const result = await this.executeQuery(query, [id]);
+    await this.executeQuery(query, [id]);
     return true; // SQLite doesn't return affected rows count
   }
 
@@ -140,7 +140,7 @@ export abstract class BaseRepository<T> {
   async createMany(data: Omit<T, 'id' | 'createdAt' | 'updatedAt'>[]): Promise<T[]> {
     if (data.length === 0) return [];
 
-    const id = this.generateId();
+    // Generate unique ID for each item
     const now = new Date().toISOString();
     
     return this.executeTransaction(async (connection) => {
@@ -211,12 +211,12 @@ export abstract class BaseRepository<T> {
     
     if (limit) {
       query += ' LIMIT ?';
-      parameters.push(limit);
+      parameters.push(limit.toString());
     }
     
     if (offset) {
       query += ' OFFSET ?';
-      parameters.push(offset);
+      parameters.push(offset.toString());
     }
     
     const results = await this.executeQuery<T>(query, parameters);

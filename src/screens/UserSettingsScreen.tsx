@@ -21,7 +21,8 @@ import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
-import { userSettingsService, UserSettings } from '../services/UserSettingsService';
+import UserSettingsService from '../services/UserSettingsService';
+import { UserSettings } from '../types/comprehensive';
 // import { GutCondition, SeverityLevel } from '../types';
 
 export const UserSettingsScreen: React.FC = () => {
@@ -32,6 +33,7 @@ export const UserSettingsScreen: React.FC = () => {
 
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [activeSection, setActiveSection] = useState<'profile' | 'preferences' | 'scanning' | 'notifications' | 'privacy' | 'advanced'>('profile');
+  const userSettingsService = UserSettingsService.getInstance();
 
   useEffect(() => {
     // Load settings
@@ -506,30 +508,30 @@ const ScanningSection: React.FC<{
         <View style={styles.settingItem}>
           <Text style={[styles.settingLabel, { color: colors.text }]}>Auto-Analyze</Text>
           <Switch
-            value={settings.scanning.autoAnalyze}
-            onValueChange={(value) => onSettingChange('scanning', 'autoAnalyze', value)}
+            value={settings.scanning?.autoScan || false}
+            onValueChange={(value) => onSettingChange('scanning', 'autoScan', value)}
             trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.scanning.autoAnalyze ? colors.accent : colors.textTertiary}
+            thumbColor={settings.scanning?.autoScan ? colors.accent : colors.textTertiary}
           />
         </View>
         
         <View style={styles.settingItem}>
           <Text style={[styles.settingLabel, { color: colors.text }]}>Show Detailed Analysis</Text>
           <Switch
-            value={settings.scanning.showDetailedAnalysis}
+            value={settings.scanning?.showDetailedAnalysis || false}
             onValueChange={(value) => onSettingChange('scanning', 'showDetailedAnalysis', value)}
             trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.scanning.showDetailedAnalysis ? colors.accent : colors.textTertiary}
+            thumbColor={settings.scanning?.showDetailedAnalysis ? colors.accent : colors.textTertiary}
           />
         </View>
         
         <View style={styles.settingItem}>
           <Text style={[styles.settingLabel, { color: colors.text }]}>Include Alternatives</Text>
           <Switch
-            value={settings.scanning.includeAlternatives}
+            value={settings.scanning?.includeAlternatives || false}
             onValueChange={(value) => onSettingChange('scanning', 'includeAlternatives', value)}
             trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.scanning.includeAlternatives ? colors.accent : colors.textTertiary}
+            thumbColor={settings.scanning?.includeAlternatives ? colors.accent : colors.textTertiary}
           />
         </View>
       </View>
@@ -540,20 +542,20 @@ const ScanningSection: React.FC<{
         <View style={styles.settingItem}>
           <Text style={[styles.settingLabel, { color: colors.text }]}>Cache Results</Text>
           <Switch
-            value={settings.scanning.cacheResults}
+            value={settings.scanning?.cacheResults || false}
             onValueChange={(value) => onSettingChange('scanning', 'cacheResults', value)}
             trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.scanning.cacheResults ? colors.accent : colors.textTertiary}
+            thumbColor={settings.scanning?.cacheResults ? colors.accent : colors.textTertiary}
           />
         </View>
         
         <View style={styles.settingItem}>
           <Text style={[styles.settingLabel, { color: colors.text }]}>Offline Mode</Text>
           <Switch
-            value={settings.scanning.offlineMode}
+            value={settings.scanning?.offlineMode || false}
             onValueChange={(value) => onSettingChange('scanning', 'offlineMode', value)}
             trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.scanning.offlineMode ? colors.accent : colors.textTertiary}
+            thumbColor={settings.scanning?.offlineMode ? colors.accent : colors.textTertiary}
           />
         </View>
       </View>
@@ -762,10 +764,10 @@ const AdvancedSection: React.FC<{
         <View style={styles.settingItem}>
           <Text style={[styles.settingLabel, { color: colors.text }]}>Debug Mode</Text>
           <Switch
-            value={settings.advanced.debugMode}
+            value={settings.advanced?.debugMode || false}
             onValueChange={(value) => onSettingChange('advanced', 'debugMode', value)}
             trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.advanced.debugMode ? colors.accent : colors.textTertiary}
+            thumbColor={settings.advanced?.debugMode ? colors.accent : colors.textTertiary}
           />
         </View>
         
@@ -778,7 +780,7 @@ const AdvancedSection: React.FC<{
                 style={[
                   styles.logLevelButton,
                   {
-                    backgroundColor: settings.advanced.logLevel === level ? colors.accent : 'transparent',
+                    backgroundColor: settings.advanced?.logLevel === level ? colors.accent : 'transparent',
                     borderColor: colors.border,
                   },
                 ]}
@@ -788,7 +790,7 @@ const AdvancedSection: React.FC<{
                   style={[
                     styles.logLevelButtonText,
                     {
-                      color: settings.advanced.logLevel === level ? Colors.white : colors.text,
+                      color: settings.advanced?.logLevel === level ? Colors.white : colors.text,
                       textTransform: 'uppercase',
                     },
                   ]}

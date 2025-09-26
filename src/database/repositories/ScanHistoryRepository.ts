@@ -7,7 +7,6 @@
 
 import { BaseRepository } from './BaseRepository';
 import { ScanHistory, ScanHistorySchema } from '../schema';
-import { z } from 'zod';
 
 export class ScanHistoryRepository extends BaseRepository<ScanHistory> {
   constructor() {

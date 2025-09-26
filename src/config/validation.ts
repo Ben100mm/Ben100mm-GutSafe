@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import { secretManager, validateEnvironmentSecrets } from './secrets';
+import { secretManager } from './secrets';
 import { getBuildConfig, detectBuildEnvironment } from './build';
 
 // Validation result types
@@ -103,23 +103,23 @@ const LegalSchema = z.object({
   REACT_APP_SUPPORT_EMAIL: z.string().email().optional(),
 });
 
-// Complete environment schema
-const EnvironmentSchema = BaseEnvironmentSchema
-  .merge(ApiSchema)
-  .merge(DatabaseSchema)
-  .merge(SecuritySchema)
-  .merge(FeatureFlagsSchema)
-  .merge(LoggingSchema)
-  .merge(SecuritySettingsSchema)
-  .merge(PrivacySchema)
-  .merge(ComplianceSchema)
-  .merge(LegalSchema);
+// Complete environment schema (commented out as it's not used)
+// const EnvironmentSchema = BaseEnvironmentSchema
+//   .merge(ApiSchema)
+//   .merge(DatabaseSchema)
+//   .merge(SecuritySchema)
+//   .merge(FeatureFlagsSchema)
+//   .merge(LoggingSchema)
+//   .merge(SecuritySettingsSchema)
+//   .merge(PrivacySchema)
+//   .merge(ComplianceSchema)
+//   .merge(LegalSchema);
 
 // Validation functions
 export const validateEnvironment = (): ValidationResult => {
   const errors: ValidationError[] = [];
   const warnings: ValidationWarning[] = [];
-  const environment = process.env.NODE_ENV || 'development';
+  const environment = process.env['NODE_ENV'] || 'development';
   
   try {
     // Validate base environment
@@ -163,7 +163,7 @@ export const validateEnvironment = (): ValidationResult => {
     // Validate security configuration
     const securityResult = SecuritySchema.safeParse(process.env);
     if (!securityResult.success) {
-      securityResult.error.errors.forEach(error => {
+      securityResult.error.issues.forEach(error => {
         errors.push({
           field: error.path.join('.'),
           message: error.message,
@@ -176,7 +176,7 @@ export const validateEnvironment = (): ValidationResult => {
     // Validate feature flags
     const featuresResult = FeatureFlagsSchema.safeParse(process.env);
     if (!featuresResult.success) {
-      featuresResult.error.errors.forEach(error => {
+      featuresResult.error.issues.forEach(error => {
         warnings.push({
           field: error.path.join('.'),
           message: error.message,
@@ -188,7 +188,7 @@ export const validateEnvironment = (): ValidationResult => {
     // Validate logging configuration
     const loggingResult = LoggingSchema.safeParse(process.env);
     if (!loggingResult.success) {
-      loggingResult.error.errors.forEach(error => {
+      loggingResult.error.issues.forEach(error => {
         warnings.push({
           field: error.path.join('.'),
           message: error.message,
@@ -200,7 +200,7 @@ export const validateEnvironment = (): ValidationResult => {
     // Validate security settings
     const securitySettingsResult = SecuritySettingsSchema.safeParse(process.env);
     if (!securitySettingsResult.success) {
-      securitySettingsResult.error.errors.forEach(error => {
+      securitySettingsResult.error.issues.forEach(error => {
         warnings.push({
           field: error.path.join('.'),
           message: error.message,
@@ -212,7 +212,7 @@ export const validateEnvironment = (): ValidationResult => {
     // Validate privacy settings
     const privacyResult = PrivacySchema.safeParse(process.env);
     if (!privacyResult.success) {
-      privacyResult.error.errors.forEach(error => {
+      privacyResult.error.issues.forEach(error => {
         warnings.push({
           field: error.path.join('.'),
           message: error.message,
@@ -224,7 +224,7 @@ export const validateEnvironment = (): ValidationResult => {
     // Validate compliance settings
     const complianceResult = ComplianceSchema.safeParse(process.env);
     if (!complianceResult.success) {
-      complianceResult.error.errors.forEach(error => {
+      complianceResult.error.issues.forEach(error => {
         warnings.push({
           field: error.path.join('.'),
           message: error.message,
@@ -236,7 +236,7 @@ export const validateEnvironment = (): ValidationResult => {
     // Validate legal settings
     const legalResult = LegalSchema.safeParse(process.env);
     if (!legalResult.success) {
-      legalResult.error.errors.forEach(error => {
+      legalResult.error.issues.forEach(error => {
         warnings.push({
           field: error.path.join('.'),
           message: error.message,
@@ -246,7 +246,7 @@ export const validateEnvironment = (): ValidationResult => {
     }
     
     // Additional validations
-    validateSecrets(errors, warnings);
+    validateSecrets(errors);
     validateBuildConfiguration(errors, warnings);
     validateEnvironmentSpecific(errors, warnings, environment);
     
@@ -268,7 +268,7 @@ export const validateEnvironment = (): ValidationResult => {
 };
 
 // Secret validation
-const validateSecrets = (errors: ValidationError[], warnings: ValidationWarning[]) => {
+const validateSecrets = (errors: ValidationError[]) => {
   const requiredSecrets = [
     'REACT_APP_API_KEY',
     'REACT_APP_API_SECRET',
@@ -342,7 +342,7 @@ const validateEnvironmentSpecific = (errors: ValidationError[], warnings: Valida
   switch (environment) {
     case 'development':
       // Development-specific validations
-      if (process.env.REACT_APP_DEBUG_MODE !== 'true') {
+      if (process.env['REACT_APP_DEBUG_MODE'] !== 'true') {
         warnings.push({
           field: 'REACT_APP_DEBUG_MODE',
           message: 'Debug mode should be enabled in development',
@@ -353,7 +353,7 @@ const validateEnvironmentSpecific = (errors: ValidationError[], warnings: Valida
       
     case 'production':
       // Production-specific validations
-      if (process.env.REACT_APP_DEBUG_MODE === 'true') {
+      if (process.env['REACT_APP_DEBUG_MODE'] === 'true') {
         errors.push({
           field: 'REACT_APP_DEBUG_MODE',
           message: 'Debug mode should not be enabled in production',
@@ -362,7 +362,7 @@ const validateEnvironmentSpecific = (errors: ValidationError[], warnings: Valida
         });
       }
       
-      if (process.env.REACT_APP_ENABLE_ANALYTICS !== 'true') {
+      if (process.env['REACT_APP_ENABLE_ANALYTICS'] !== 'true') {
         warnings.push({
           field: 'REACT_APP_ENABLE_ANALYTICS',
           message: 'Analytics should be enabled in production',
@@ -373,7 +373,7 @@ const validateEnvironmentSpecific = (errors: ValidationError[], warnings: Valida
       
     case 'test':
       // Test-specific validations
-      if (process.env.REACT_APP_ENABLE_ANALYTICS === 'true') {
+      if (process.env['REACT_APP_ENABLE_ANALYTICS'] === 'true') {
         warnings.push({
           field: 'REACT_APP_ENABLE_ANALYTICS',
           message: 'Analytics should be disabled in test environment',

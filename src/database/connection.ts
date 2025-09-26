@@ -6,7 +6,6 @@
  */
 
 import { config } from '../config/environment';
-import { DatabaseIndexes, DatabaseConstraints } from './schema';
 
 // Database configuration interface
 export interface DatabaseConfig {
@@ -93,18 +92,18 @@ class SQLiteConnection implements DatabaseConnection {
         return;
       }
 
-      this.db.transaction(tx => {
+      this.db.transaction((tx: any) => {
         tx.executeSql(
           query,
           parameters,
-          (_, result) => {
+          (_: any, result: any) => {
             const rows = [];
             for (let i = 0; i < result.rows.length; i++) {
               rows.push(result.rows.item(i));
             }
             resolve(rows);
           },
-          (_, error) => {
+          (_: any, error: any) => {
             console.error('SQLite query error:', error);
             reject(error);
           }
@@ -120,7 +119,7 @@ class SQLiteConnection implements DatabaseConnection {
         return;
       }
 
-      this.db.transaction(async tx => {
+      this.db.transaction(async (tx: any) => {
         try {
           const result = await callback(tx);
           resolve(result);
@@ -146,7 +145,7 @@ class SQLiteConnection implements DatabaseConnection {
     await this.executeQuery(query);
   }
 
-  async createConstraint(constraintName: string, tableName: string, constraint: any): Promise<void> {
+  async createConstraint(constraintName: string, tableName: string, _constraint: any): Promise<void> {
     // SQLite doesn't support named constraints in the same way as PostgreSQL
     // This would be handled in the table creation
     console.log(`Constraint ${constraintName} would be created for table ${tableName}`);
@@ -417,5 +416,4 @@ class DatabaseManager {
 // Export singleton instance
 export const databaseManager = DatabaseManager.getInstance();
 
-// Export types
-export type { DatabaseConfig, DatabaseConnection };
+// Types are already exported as interfaces above

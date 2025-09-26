@@ -46,7 +46,7 @@ export class MigrationRunner {
         const content = fs.readFileSync(filePath, 'utf8');
         
         // Extract version from filename (e.g., 001_initial_schema.sql -> 001)
-        const version = file.split('_')[0];
+        const version = file.split('_')[0] || '000';
         const name = file.replace('.sql', '').replace(`${version}_`, '');
         
         this.migrations.push({
@@ -212,7 +212,7 @@ export class MigrationRunner {
         version: migration.version,
         name: migration.name,
         executed: executedMigrations.includes(migration.version),
-        executedAt: migration.executedAt,
+        ...(migration.executedAt && { executedAt: migration.executedAt }),
       }));
 
       return {
@@ -243,8 +243,8 @@ export class MigrationRunner {
   private async getExecutedMigrations(connection: any): Promise<string[]> {
     try {
       const query = 'SELECT version FROM migrations ORDER BY version';
-      const results = await connection.executeQuery<{ version: string }>(query);
-      return results.map(row => row.version);
+      const results = await connection.executeQuery(query);
+      return results.map((row: any) => row.version);
     } catch (error) {
       // If table doesn't exist or query fails, return empty array
       return [];
@@ -285,7 +285,7 @@ export class MigrationRunner {
       return null;
     }
     
-    return this.migrations[this.migrations.length - 1].version;
+    return this.migrations[this.migrations.length - 1]?.version || '000';
   }
 
   // Get migration by version

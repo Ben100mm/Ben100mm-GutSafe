@@ -121,8 +121,7 @@ export const NotificationSettingsScreen: React.FC = () => {
     try {
       await notificationService.showImmediateNotification(
         'Test Notification',
-        'This is a test notification from GutSafe!',
-        { type: 'test' }
+        'This is a test notification from GutSafe!'
       );
     } catch (error) {
       console.error('Failed to show test notification:', error);

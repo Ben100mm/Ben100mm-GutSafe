@@ -127,7 +127,6 @@ export const BrowseScreen: React.FC = () => {
               key={index}
               variant="solid"
               enable3D={true}
-              enableHover={true}
               hapticType="light"
               accessibilityLabel={category.title}
               accessibilityHint={category.description}

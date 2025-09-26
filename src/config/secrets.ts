@@ -37,12 +37,10 @@ const SECRET_VALIDATION_RULES = {
 // Secret manager implementation
 class SecretManagerImpl implements SecretManager {
   private readonly defaultKey: string;
-  private readonly algorithm: string;
   private readonly iterations: number;
 
   constructor() {
     this.defaultKey = config.security.sessionKey;
-    this.algorithm = config.security.encryptionAlgorithm;
     this.iterations = config.security.keyDerivationIterations;
   }
 
@@ -205,7 +203,7 @@ export const validateSessionKey = (sessionKey: string): boolean => {
 };
 
 // Secret rotation utilities
-export const rotateSecret = (oldSecret: string, newSecret: string): boolean => {
+export const rotateSecret = (_oldSecret: string, newSecret: string): boolean => {
   if (!secretManager.validateSecret(newSecret)) {
     return false;
   }
@@ -254,7 +252,7 @@ export const getSecretStrengthLevel = (strength: number): string => {
 };
 
 // Environment-specific secret validation
-export const validateEnvironmentSecrets = (environment: string): boolean => {
+export const validateEnvironmentSecrets = (_environment: string): boolean => {
   const requiredSecrets = [
     'REACT_APP_API_KEY',
     'REACT_APP_API_SECRET',

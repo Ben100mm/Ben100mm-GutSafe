@@ -711,7 +711,7 @@ Explanation: ${scan.analysis.explanation}
             )}
           </View>
         )}
-        getItemLayout={(data, index) => ({
+        getItemLayout={(_data, index) => ({
           length: 200, // Approximate height of each item
           offset: 200 * index,
           index,

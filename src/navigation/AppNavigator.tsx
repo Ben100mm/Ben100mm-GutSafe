@@ -108,7 +108,7 @@ const MainTabs = () => {
     AccessibilityService.initialize();
   }, []);
 
-  const handleTabPress = (routeName: string) => {
+  const handleTabPress = (_routeName: string) => {
     HapticFeedback.navigation();
   };
 

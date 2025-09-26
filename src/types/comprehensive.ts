@@ -63,6 +63,24 @@ export interface UserSettings {
   preferences: UserPreferences;
   privacy: PrivacySettings;
   sync: SyncSettings;
+  scanning?: {
+    autoScan: boolean;
+    hapticFeedback: boolean;
+    soundEffects: boolean;
+    flashOnScan: boolean;
+    showDetailedAnalysis: boolean;
+    includeAlternatives: boolean;
+    cacheResults: boolean;
+    offlineMode: boolean;
+  };
+  advanced?: {
+    debugMode: boolean;
+    experimentalFeatures: boolean;
+    analyticsEnabled: boolean;
+    crashReporting: boolean;
+    performanceMonitoring: boolean;
+    logLevel: 'error' | 'warn' | 'info' | 'debug';
+  };
 }
 
 export interface UserProfile {

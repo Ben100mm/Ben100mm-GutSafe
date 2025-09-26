@@ -16,7 +16,6 @@ import {
 } from '../types/comprehensive';
 import { logger } from '../utils/logger';
 import { errorHandler } from '../utils/errorHandler';
-import { retryUtils } from '../utils/retryUtils';
 import { apiKeyManager } from '../utils/apiKeyManager';
 import OpenFoodFactsService, { OpenFoodFactsProduct } from './OpenFoodFactsService';
 
@@ -156,11 +155,7 @@ class FoodService {
       }
 
       // Try USDA if OpenFoodFacts fails with retry
-      const usdaResult = await retryUtils.retryApiCall(
-        () => this.searchUSDA(barcode),
-        { maxAttempts: 2 },
-        'FoodService.searchByBarcode'
-      );
+      const usdaResult = await this.searchUSDA(barcode);
       
       if (usdaResult.success && usdaResult.data) {
         const foodItem = this.convertToFoodItem(usdaResult.data, 'usda');
@@ -176,7 +171,7 @@ class FoodService {
     }, 'FoodService');
 
     if (result.success) {
-      return { success: true, data: result.data };
+      return { success: true, data: result.data as FoodItem | null };
     } else {
       return { 
         success: false, 
@@ -210,16 +205,8 @@ class FoodService {
           page_size: 10,
           sort_by: 'popularity'
         }),
-        retryUtils.retryApiCall(
-          () => this.searchUSDAByName(query),
-          { maxAttempts: 2 },
-          'FoodService.searchByName.usda'
-        ),
-        retryUtils.retryApiCall(
-          () => this.searchSpoonacularByName(query),
-          { maxAttempts: 2 },
-          'FoodService.searchByName.spoonacular'
-        ),
+        this.searchUSDAByName(query),
+        this.searchSpoonacularByName(query),
       ]);
 
       // Process results
@@ -230,15 +217,11 @@ class FoodService {
         results.push(...foodItems);
       }
       if (usdaResults.status === 'fulfilled' && usdaResults.value.success) {
-        const foodItems = usdaResults.value.data.map((product: USDAProduct) => 
-          this.convertToFoodItem(product, 'usda')
-        );
+        const foodItems = usdaResults.value.data;
         results.push(...foodItems);
       }
       if (spoonacularResults.status === 'fulfilled' && spoonacularResults.value.success) {
-        const foodItems = spoonacularResults.value.data.map((product: SpoonacularProduct) => 
-          this.convertToFoodItem(product, 'spoonacular')
-        );
+        const foodItems = spoonacularResults.value.data;
         results.push(...foodItems);
       }
 
@@ -252,13 +235,27 @@ class FoodService {
       service: 'FoodService',
       additionalData: { query }
     }, 'FoodService');
+
+    if (result.success) {
+      return { success: true, data: result.data as FoodItem[] };
+    } else {
+      return { 
+        success: false, 
+        error: {
+          ...result.error,
+          code: 'SERVICE_ERROR' as const,
+          service: 'FoodService',
+          operation: 'searchByName'
+        }
+      };
+    }
   }
 
   /**
    * Analyze food for gut health
    */
   async analyzeFood(foodItem: FoodItem, gutProfile: GutCondition[]): Promise<Result<ScanAnalysis, ServiceError>> {
-    return errorHandler.withErrorHandling(async () => {
+    const result = await errorHandler.withErrorHandling(async () => {
       const analysis: ScanAnalysis = {
         overallSafety: 'safe' as ScanResult,
         flaggedIngredients: [],
@@ -271,7 +268,7 @@ class FoodService {
 
       // Analyze ingredients
       if (foodItem.ingredients) {
-        const ingredientAnalysis = await this.analyzeIngredients(foodItem.ingredients, gutProfile);
+        const ingredientAnalysis = await this.analyzeIngredients(foodItem.ingredients.join(', '), gutProfile);
         analysis.flaggedIngredients = ingredientAnalysis.flagged.map(ing => ({
           ingredient: ing.ingredient,
           reason: 'Potential trigger',
@@ -296,12 +293,26 @@ class FoodService {
       service: 'FoodService',
       additionalData: { foodId: foodItem.id, gutProfileCount: gutProfile.length }
     }, 'FoodService');
+
+    if (result.success) {
+      return { success: true, data: result.data as ScanAnalysis };
+    } else {
+      return { 
+        success: false, 
+        error: {
+          ...result.error,
+          code: 'SERVICE_ERROR' as const,
+          service: 'FoodService',
+          operation: 'analyzeFood'
+        }
+      };
+    }
   }
 
   /**
    * Get food recommendations based on gut profile
    */
-  async getRecommendations(gutProfile: GutCondition[]): Promise<FoodRecommendation[]> {
+  async getRecommendations(_gutProfile: GutCondition[]): Promise<FoodRecommendation[]> {
     try {
       // This would use AI/ML in a real implementation
       const recommendations: FoodRecommendation[] = [
@@ -430,7 +441,7 @@ class FoodService {
       const apiKey = await apiKeyManager.getApiKey('USDA_API_KEY');
       if (!apiKey) {
         logger.warn('USDA API key not configured', 'FoodService');
-        return [];
+        return { success: true, data: [] };
       }
 
       const response = await fetch(`${API_CONFIG.USDA.baseUrl}/foods/search?query=${encodeURIComponent(query)}&api_key=${apiKey}`, {
@@ -477,7 +488,7 @@ class FoodService {
       const apiKey = await apiKeyManager.getApiKey('SPOONACULAR_API_KEY');
       if (!apiKey) {
         logger.warn('Spoonacular API key not configured', 'FoodService');
-        return [];
+        return { success: true, data: [] };
       }
 
       const response = await fetch(`${API_CONFIG.SPOONACULAR.baseUrl}/food/products/search?query=${encodeURIComponent(query)}&apiKey=${apiKey}`, {
@@ -529,7 +540,7 @@ class FoodService {
     const barcode = 'code' in product ? product.code : '';
     const imageUrl = 'image_url' in product ? product.image_url : 'image' in product ? product.image : '';
     const allergens = 'allergens_tags' in product ? product.allergens_tags || [] : [];
-    const additives = 'additives_tags' in product ? product.additives_tags || [] : [];
+    const additives = 'additives_tags' in product ? (Array.isArray(product.additives_tags) ? product.additives_tags : []) : [];
     const labels = 'labels_tags' in product ? product.labels_tags || [] : [];
     const categories = 'categories_tags' in product ? product.categories_tags || [] : [];
     const countries = 'countries_tags' in product ? product.countries_tags || [] : [];

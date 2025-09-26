@@ -6,7 +6,7 @@
  */
 
 import { GutProfile } from '../types';
-import { UserSettings, AppError, ServiceError, Result, AsyncResult } from '../types/comprehensive';
+import { UserSettings, AppError, ServiceError, Result } from '../types/comprehensive';
 import { logger } from '../utils/logger';
 import { validators } from '../utils/validation';
 
@@ -92,7 +92,7 @@ class AuthService {
   /**
    * Sign in user
    */
-  async signIn(email: string, password: string): Promise<Result<void, ServiceError>> {
+  async signIn(email: string, _password: string): Promise<Result<void, ServiceError>> {
     try {
       this.authState.isLoading = true;
       this.authState.error = null;
@@ -105,7 +105,7 @@ class AuthService {
       this.authState.user = {
         id: '1',
         email,
-        name: email.split('@')[0],
+        name: email.split('@')[0] || 'User',
       };
       this.authState.isLoading = false;
       this.notifyListeners();
@@ -169,7 +169,7 @@ class AuthService {
         ...updates,
       });
       
-      this.authState.settings = validatedSettings;
+      this.authState.settings = validatedSettings as UserSettings;
       await this.saveUserSettings();
       this.notifyListeners();
       
@@ -216,6 +216,8 @@ class AuthService {
   private getDefaultSettings(): UserSettings {
     return {
       profile: {
+        name: 'User',
+        email: '',
         gutProfile: {
           id: 'default',
           conditions: {

@@ -80,7 +80,6 @@ export const ScanScreen: React.FC = () => {
           subtitle="Instantly analyze any food for gut health compatibility with AI-powered insights"
           ctaText="Scan Barcode"
           onCTAPress={handleBarcodeScan}
-          enable3D={performanceDetector.shouldEnable3D()}
           enableParticles={performanceDetector.shouldEnableParticles()}
           backgroundType="gradient"
           performanceMode={performanceMode}

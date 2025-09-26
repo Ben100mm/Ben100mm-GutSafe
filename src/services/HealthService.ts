@@ -5,7 +5,7 @@
  * @private
  */
 
-import { GutSymptom, MedicationSupplement, GutProfile, GutCondition } from '../types';
+import { GutSymptom, MedicationSupplement, GutProfile } from '../types';
 import { logger } from '../utils/logger';
 
 // Health Service Types
@@ -183,6 +183,9 @@ class HealthService {
         ...this.symptomLogs[index],
         ...updates,
         id: logId, // Ensure ID doesn't change
+        symptoms: updates.symptoms || this.symptomLogs[index].symptoms,
+        foodItems: updates.foodItems || this.symptomLogs[index].foodItems,
+        timestamp: updates.timestamp || this.symptomLogs[index].timestamp,
       };
 
       await this.saveHealthData();
@@ -429,9 +432,9 @@ class HealthService {
   /**
    * Calculate average severity for specific symptom
    */
-  private calculateAverageSeverityForSymptom(symptomType: string): number {
+  private calculateAverageSeverityForSymptom(_symptomType: string): number {
     const relevantLogs = this.symptomLogs.filter(log => 
-      log.symptoms.some(symptom => symptom.type === symptomType)
+      log.symptoms.some(symptom => symptom.type === _symptomType)
     );
 
     if (relevantLogs.length === 0) return 0;
@@ -489,7 +492,7 @@ class HealthService {
   /**
    * Find common triggers for symptom
    */
-  private findCommonTriggers(symptomType: string): string[] {
+  private findCommonTriggers(_symptomType: string): string[] {
     // This would analyze food correlations in a real implementation
     return ['Dairy', 'Spicy foods'];
   }
@@ -497,7 +500,7 @@ class HealthService {
   /**
    * Calculate time of day pattern
    */
-  private calculateTimeOfDayPattern(symptomType: string): SymptomPattern['timeOfDay'] {
+  private calculateTimeOfDayPattern(_symptomType: string): SymptomPattern['timeOfDay'] {
     // This would analyze time patterns in a real implementation
     return {
       morning: 0.2,
@@ -510,7 +513,7 @@ class HealthService {
   /**
    * Calculate day of week pattern
    */
-  private calculateDayOfWeekPattern(symptomType: string): SymptomPattern['dayOfWeek'] {
+  private calculateDayOfWeekPattern(_symptomType: string): SymptomPattern['dayOfWeek'] {
     // This would analyze day patterns in a real implementation
     return {
       monday: 0.15,
@@ -526,7 +529,7 @@ class HealthService {
   /**
    * Calculate correlations for symptom
    */
-  private calculateCorrelationsForSymptom(symptomType: string): SymptomPattern['correlation'] {
+  private calculateCorrelationsForSymptom(_symptomType: string): SymptomPattern['correlation'] {
     // This would calculate actual correlations in a real implementation
     return {
       food: 0.6,
