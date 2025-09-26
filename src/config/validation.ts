@@ -125,7 +125,7 @@ export const validateEnvironment = (): ValidationResult => {
     // Validate base environment
     const baseResult = BaseEnvironmentSchema.safeParse(process.env);
     if (!baseResult.success) {
-      baseResult.error.errors.forEach(error => {
+      baseResult.error.issues.forEach(error => {
         errors.push({
           field: error.path.join('.'),
           message: error.message,
@@ -137,7 +137,7 @@ export const validateEnvironment = (): ValidationResult => {
     // Validate API configuration
     const apiResult = ApiSchema.safeParse(process.env);
     if (!apiResult.success) {
-      apiResult.error.errors.forEach(error => {
+      apiResult.error.issues.forEach(error => {
         errors.push({
           field: error.path.join('.'),
           message: error.message,
@@ -150,7 +150,7 @@ export const validateEnvironment = (): ValidationResult => {
     // Validate database configuration
     const dbResult = DatabaseSchema.safeParse(process.env);
     if (!dbResult.success) {
-      dbResult.error.errors.forEach(error => {
+      dbResult.error.issues.forEach(error => {
         errors.push({
           field: error.path.join('.'),
           message: error.message,
