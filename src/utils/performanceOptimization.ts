@@ -5,7 +5,9 @@
  * @private
  */
 
-import React, { useCallback, useMemo, useRef, useEffect, useState } from 'react';
+import type React from 'react';
+import { useCallback, useMemo, useRef, useEffect, useState } from 'react';
+
 import { logger } from './logger';
 
 // Debounce hook for performance optimization
@@ -81,15 +83,16 @@ export const usePerformanceMonitor = (componentName: string) => {
   useEffect(() => {
     renderCount.current += 1;
     const renderTime = Date.now() - startTime.current;
-    
-    if (renderTime > 16) { // More than one frame (16ms)
+
+    if (renderTime > 16) {
+      // More than one frame (16ms)
       logger.warn('Slow render detected', 'PerformanceMonitor', {
         component: componentName,
         renderTime,
         renderCount: renderCount.current,
       });
     }
-    
+
     startTime.current = Date.now();
   });
 
@@ -108,7 +111,10 @@ export const useVirtualScrolling = <T>(
   const [scrollTop, setScrollTop] = useState(0);
 
   const visibleRange = useMemo(() => {
-    const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
+    const startIndex = Math.max(
+      0,
+      Math.floor(scrollTop / itemHeight) - overscan
+    );
     const endIndex = Math.min(
       items.length - 1,
       Math.ceil((scrollTop + containerHeight) / itemHeight) + overscan
@@ -133,17 +139,22 @@ export const useVirtualScrolling = <T>(
 };
 
 // Image optimization hook
-export const useImageOptimization = (uri: string, options?: {
-  width?: number;
-  height?: number;
-  quality?: number;
-}) => {
+export const useImageOptimization = (
+  uri: string,
+  options?: {
+    width?: number;
+    height?: number;
+    quality?: number;
+  }
+) => {
   const [optimizedUri, setOptimizedUri] = useState(uri);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!uri) return;
+    if (!uri) {
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -182,7 +193,9 @@ export const useDataProcessing = <T, R>(
   const [progress, setProgress] = useState(0);
 
   const processData = useCallback(async () => {
-    if (!data.length) return;
+    if (!data.length) {
+      return;
+    }
 
     setIsProcessing(true);
     setProgress(0);
@@ -197,9 +210,9 @@ export const useDataProcessing = <T, R>(
       results.push(...batchResults);
 
       setProgress((i + batchSize) / data.length);
-      
+
       if (delay > 0) {
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
 
@@ -223,7 +236,7 @@ export const useMemoryOptimization = () => {
   }, []);
 
   const cleanup = useCallback(() => {
-    cleanupFunctions.current.forEach(fn => {
+    cleanupFunctions.current.forEach((fn) => {
       try {
         fn();
       } catch (error) {
@@ -241,15 +254,20 @@ export const useMemoryOptimization = () => {
 };
 
 // Helper functions
-const areEqual = (a: React.DependencyList, b: React.DependencyList): boolean => {
-  if (a.length !== b.length) return false;
+const areEqual = (
+  a: React.DependencyList,
+  b: React.DependencyList
+): boolean => {
+  if (a.length !== b.length) {
+    return false;
+  }
   return a.every((val, index) => val === b[index]);
 };
 
 // Performance metrics collection
 export class PerformanceMetrics {
   private static instance: PerformanceMetrics;
-  private metrics: Map<string, number[]> = new Map();
+  private readonly metrics: Map<string, number[]> = new Map();
 
   static getInstance(): PerformanceMetrics {
     if (!PerformanceMetrics.instance) {
@@ -267,19 +285,25 @@ export class PerformanceMetrics {
 
   getAverageMetric(name: string): number {
     const values = this.metrics.get(name);
-    if (!values || values.length === 0) return 0;
+    if (!values || values.length === 0) {
+      return 0;
+    }
     return values.reduce((sum, val) => sum + val, 0) / values.length;
   }
 
   getMaxMetric(name: string): number {
     const values = this.metrics.get(name);
-    if (!values || values.length === 0) return 0;
+    if (!values || values.length === 0) {
+      return 0;
+    }
     return Math.max(...values);
   }
 
   getMinMetric(name: string): number {
     const values = this.metrics.get(name);
-    if (!values || values.length === 0) return 0;
+    if (!values || values.length === 0) {
+      return 0;
+    }
     return Math.min(...values);
   }
 
@@ -287,9 +311,15 @@ export class PerformanceMetrics {
     this.metrics.clear();
   }
 
-  getAllMetrics(): Record<string, { average: number; max: number; min: number; count: number }> {
-    const result: Record<string, { average: number; max: number; min: number; count: number }> = {};
-    
+  getAllMetrics(): Record<
+    string,
+    { average: number; max: number; min: number; count: number }
+  > {
+    const result: Record<
+      string,
+      { average: number; max: number; min: number; count: number }
+    > = {};
+
     this.metrics.forEach((values, name) => {
       result[name] = {
         average: this.getAverageMetric(name),

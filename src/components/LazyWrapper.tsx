@@ -5,11 +5,13 @@
  * @private
  */
 
-import React, { Suspense, ComponentType, ReactNode } from 'react';
+import type { ComponentType, ReactNode } from 'react';
+import React, { Suspense } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
+import { Typography } from '../constants/typography';
 
 interface LazyWrapperProps {
   children: ReactNode;
@@ -18,20 +20,16 @@ interface LazyWrapperProps {
 
 const LoadingFallback: React.FC = () => (
   <View style={styles.loadingContainer}>
-    <ActivityIndicator size="large" color={Colors.primary} />
+    <ActivityIndicator color={Colors.primary} size="large" />
     <Text style={styles.loadingText}>Loading...</Text>
   </View>
 );
 
-export const LazyWrapper: React.FC<LazyWrapperProps> = ({ 
-  children, 
-  fallback = <LoadingFallback /> 
+export const LazyWrapper: React.FC<LazyWrapperProps> = ({
+  children,
+  fallback = <LoadingFallback />,
 }) => {
-  return (
-    <Suspense fallback={fallback}>
-      {children}
-    </Suspense>
-  );
+  return <Suspense fallback={fallback}>{children}</Suspense>;
 };
 
 // Higher-order component for lazy loading
@@ -52,16 +50,16 @@ export function withLazyLoading<P extends object>(
 
 const styles = StyleSheet.create({
   loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Colors.light.background,
+    flex: 1,
+    justifyContent: 'center',
     padding: Spacing.lg,
   },
   loadingText: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.regular,
     color: Colors.light.textSecondary,
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
     marginTop: Spacing.md,
   },
 });

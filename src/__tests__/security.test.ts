@@ -27,11 +27,11 @@ describe('Security Utils', () => {
       'test.example.com',
     ];
 
-    validEmails.forEach(email => {
+    validEmails.forEach((email) => {
       expect(securityUtils.validateInput(email, 'email').isValid).toBe(true);
     });
 
-    invalidEmails.forEach(email => {
+    invalidEmails.forEach((email) => {
       expect(securityUtils.validateInput(email, 'email').isValid).toBe(false);
     });
   });
@@ -40,7 +40,10 @@ describe('Security Utils', () => {
     const strongPassword = 'StrongP@ssw0rd123';
     const weakPassword = 'weak';
 
-    const strongResult = securityUtils.validateInput(strongPassword, 'password');
+    const strongResult = securityUtils.validateInput(
+      strongPassword,
+      'password'
+    );
     const weakResult = securityUtils.validateInput(weakPassword, 'password');
 
     expect(strongResult.isValid).toBe(true);
@@ -50,7 +53,7 @@ describe('Security Utils', () => {
   test('should sanitize input correctly', () => {
     const maliciousInput = '<script>alert("xss")</script>';
     const sanitized = securityUtils.sanitizeInput(maliciousInput);
-    
+
     expect(sanitized).not.toContain('<script>');
     expect(sanitized).not.toContain('alert');
   });
@@ -59,7 +62,8 @@ describe('Security Utils', () => {
     const suspiciousInput = '<script>alert("xss")</script>';
     const normalInput = 'This is normal text';
 
-    const suspiciousResult = securityUtils.detectSuspiciousActivity(suspiciousInput);
+    const suspiciousResult =
+      securityUtils.detectSuspiciousActivity(suspiciousInput);
     const normalResult = securityUtils.detectSuspiciousActivity(normalInput);
 
     expect(suspiciousResult.isSuspicious).toBe(true);
@@ -68,7 +72,7 @@ describe('Security Utils', () => {
 
   test('should perform security audit', () => {
     const audit = securityUtils.performSecurityAudit();
-    
+
     expect(audit).toHaveProperty('score');
     expect(audit).toHaveProperty('issues');
     expect(audit).toHaveProperty('recommendations');
@@ -81,7 +85,7 @@ describe('Security Utils', () => {
 describe('API Key Manager', () => {
   test('should validate API keys', () => {
     const validation = apiKeyManager.validateApiKey('USDA_API_KEY');
-    
+
     expect(validation).toHaveProperty('isValid');
     expect(validation).toHaveProperty('key');
     expect(validation).toHaveProperty('environment');
@@ -90,7 +94,7 @@ describe('API Key Manager', () => {
 
   test('should check required keys', () => {
     const requiredCheck = apiKeyManager.checkRequiredKeys();
-    
+
     expect(requiredCheck).toHaveProperty('allPresent');
     expect(requiredCheck).toHaveProperty('missing');
     expect(typeof requiredCheck.allPresent).toBe('boolean');
@@ -99,9 +103,9 @@ describe('API Key Manager', () => {
 
   test('should list API keys', () => {
     const keys = apiKeyManager.listApiKeys();
-    
+
     expect(Array.isArray(keys)).toBe(true);
-    keys.forEach(key => {
+    keys.forEach((key) => {
       expect(key).toHaveProperty('name');
       expect(key).toHaveProperty('required');
       expect(key).toHaveProperty('encrypted');
@@ -111,7 +115,7 @@ describe('API Key Manager', () => {
 
   test('should perform security audit', () => {
     const audit = apiKeyManager.performSecurityAudit();
-    
+
     expect(audit).toHaveProperty('score');
     expect(audit).toHaveProperty('issues');
     expect(audit).toHaveProperty('recommendations');
@@ -124,8 +128,11 @@ describe('Rate Limiter', () => {
   });
 
   test('should allow requests within limit', () => {
-    const result = rateLimiter.checkLimit('test-user', { maxRequests: 5, windowMs: 60000 });
-    
+    const result = rateLimiter.checkLimit('test-user', {
+      maxRequests: 5,
+      windowMs: 60000,
+    });
+
     expect(result.allowed).toBe(true);
     expect(result.remaining).toBe(4);
   });
@@ -133,14 +140,14 @@ describe('Rate Limiter', () => {
   test('should block requests exceeding limit', () => {
     const identifier = 'test-user';
     const config = { maxRequests: 2, windowMs: 60000 };
-    
+
     // Make requests within limit
     rateLimiter.checkLimit(identifier, config);
     rateLimiter.checkLimit(identifier, config);
-    
+
     // This should be blocked
     const result = rateLimiter.checkLimit(identifier, config);
-    
+
     expect(result.allowed).toBe(false);
     expect(result.remaining).toBe(0);
   });
@@ -148,10 +155,10 @@ describe('Rate Limiter', () => {
   test('should reset limits after window expires', () => {
     const identifier = 'test-user';
     const config = { maxRequests: 1, windowMs: 100 }; // Very short window
-    
+
     // Make request
     rateLimiter.checkLimit(identifier, config);
-    
+
     // Wait for window to expire
     setTimeout(() => {
       const result = rateLimiter.checkLimit(identifier, config);
@@ -162,9 +169,9 @@ describe('Rate Limiter', () => {
   test('should get statistics', () => {
     rateLimiter.checkLimit('user1', { maxRequests: 10, windowMs: 60000 });
     rateLimiter.checkLimit('user2', { maxRequests: 10, windowMs: 60000 });
-    
+
     const stats = rateLimiter.getStats();
-    
+
     expect(stats).toHaveProperty('totalEntries');
     expect(stats).toHaveProperty('activeEntries');
     expect(stats).toHaveProperty('totalRequests');
@@ -197,7 +204,9 @@ describe('Session Manager', () => {
 
   test('should validate session correctly', () => {
     const userId = 'test-user';
-    const sessionId = sessionManager.createSession(userId, { email: 'test@example.com' });
+    const sessionId = sessionManager.createSession(userId, {
+      email: 'test@example.com',
+    });
 
     const validation = sessionManager.validateSession(sessionId);
     expect(validation.isValid).toBe(true);
@@ -206,7 +215,9 @@ describe('Session Manager', () => {
 
   test('should destroy session', () => {
     const userId = 'test-user';
-    const sessionId = sessionManager.createSession(userId, { email: 'test@example.com' });
+    const sessionId = sessionManager.createSession(userId, {
+      email: 'test@example.com',
+    });
 
     const destroyed = sessionManager.destroySession(sessionId);
     expect(destroyed).toBe(true);
@@ -307,7 +318,7 @@ describe('Input Validator', () => {
 describe('Encryption Utils', () => {
   test('should encrypt and decrypt data', async () => {
     const testData = 'This is test data';
-    
+
     const encrypted = await encryptionUtils.encrypt(testData);
     expect(encrypted).toHaveProperty('encrypted');
     expect(encrypted).toHaveProperty('iv');
@@ -321,7 +332,7 @@ describe('Encryption Utils', () => {
 
   test('should encrypt and decrypt sensitive data', async () => {
     const testData = 'This is sensitive data';
-    
+
     const encrypted = await encryptionUtils.encryptSensitive(testData);
     expect(encrypted).toHaveProperty('encrypted');
     expect(encrypted).toHaveProperty('iv');
@@ -335,7 +346,7 @@ describe('Encryption Utils', () => {
   test('should hash data', async () => {
     const testData = 'This is test data';
     const hash = await encryptionUtils.hash(testData);
-    
+
     expect(hash).toBeDefined();
     expect(typeof hash).toBe('string');
     expect(hash.length).toBeGreaterThan(0);
@@ -344,7 +355,7 @@ describe('Encryption Utils', () => {
   test('should verify data integrity', async () => {
     const testData = 'This is test data';
     const hash = await encryptionUtils.hash(testData);
-    
+
     const isValid = await encryptionUtils.verifyIntegrity(testData, hash);
     expect(isValid).toBe(true);
 
@@ -356,7 +367,7 @@ describe('Encryption Utils', () => {
   test('should generate secure strings', () => {
     const secureString = encryptionUtils.generateSecureString(32);
     const secureToken = encryptionUtils.generateSecureToken(32);
-    
+
     expect(secureString).toBeDefined();
     expect(secureToken).toBeDefined();
     expect(secureString.length).toBeGreaterThan(0);
@@ -370,7 +381,7 @@ describe('Encryption Utils', () => {
 
   test('should get statistics', () => {
     const stats = encryptionUtils.getStats();
-    
+
     expect(stats).toHaveProperty('algorithm');
     expect(stats).toHaveProperty('keyLength');
     expect(stats).toHaveProperty('iterations');
@@ -382,19 +393,24 @@ describe('Security Integration', () => {
   test('should perform comprehensive security audit', () => {
     const securityAudit = securityUtils.performSecurityAudit();
     const apiKeyAudit = apiKeyManager.performSecurityAudit();
-    
+
     expect(securityAudit.score).toBeGreaterThan(0);
     expect(apiKeyAudit.score).toBeGreaterThan(0);
   });
 
   test('should handle rate limiting with session management', () => {
     const userId = 'test-user';
-    const sessionId = sessionManager.createSession(userId, { email: 'test@example.com' });
-    
+    const sessionId = sessionManager.createSession(userId, {
+      email: 'test@example.com',
+    });
+
     // Check rate limit
-    const rateLimitResult = rateLimiter.checkLimit(`user:${userId}`, { maxRequests: 5, windowMs: 60000 });
+    const rateLimitResult = rateLimiter.checkLimit(`user:${userId}`, {
+      maxRequests: 5,
+      windowMs: 60000,
+    });
     expect(rateLimitResult.allowed).toBe(true);
-    
+
     // Validate session
     const sessionValidation = sessionManager.validateSession(sessionId);
     expect(sessionValidation.isValid).toBe(true);
@@ -402,15 +418,15 @@ describe('Security Integration', () => {
 
   test('should validate input with encryption', async () => {
     const testData = 'Test input data';
-    
+
     // Validate input
     const validation = inputValidator.validateInput(testData, 'string');
     expect(validation.isValid).toBe(true);
-    
+
     // Encrypt validated data
     const encrypted = await encryptionUtils.encrypt(validation.sanitized!);
     expect(encrypted).toHaveProperty('encrypted');
-    
+
     // Decrypt and verify
     const decrypted = await encryptionUtils.decrypt(encrypted);
     expect(decrypted.success).toBe(true);

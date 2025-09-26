@@ -5,6 +5,7 @@
  * @private
  */
 
+import { useNavigation } from '@react-navigation/native';
 import React, { useState, useMemo, useRef } from 'react';
 import {
   View,
@@ -23,12 +24,17 @@ import {
   Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
-import { Spacing, BorderRadius } from '../constants/spacing';
+
 import { ScanDetailCard } from '../components/ScanDetailCard';
-import { ScanHistory, ScanResult, GutCondition, SeverityLevel } from '../types';
+import { Colors } from '../constants/colors';
+import { Spacing, BorderRadius } from '../constants/spacing';
+import { Typography } from '../constants/typography';
+import type {
+  ScanHistory,
+  ScanResult,
+  GutCondition,
+  SeverityLevel,
+} from '../types';
 import { logger } from '../utils/logger';
 
 // Mock scan history data
@@ -41,7 +47,10 @@ const mockScanHistory: ScanHistory[] = [
       brand: 'Chobani',
       category: 'Dairy',
       barcode: '1234567890123',
-      ingredients: ['Cultured pasteurized grade A milk', 'Live active cultures'],
+      ingredients: [
+        'Cultured pasteurized grade A milk',
+        'Live active cultures',
+      ],
       allergens: ['Milk'],
       additives: [],
       glutenFree: true,
@@ -54,7 +63,8 @@ const mockScanHistory: ScanHistory[] = [
       flaggedIngredients: [],
       conditionWarnings: [],
       safeAlternatives: ['Coconut yogurt', 'Almond yogurt'],
-      explanation: 'This Greek yogurt is low in histamine and contains probiotics that may benefit gut health. No problematic ingredients detected.',
+      explanation:
+        'This Greek yogurt is low in histamine and contains probiotics that may benefit gut health. No problematic ingredients detected.',
       dataSource: 'USDA Food Database',
       lastUpdated: new Date(Date.now() - 2 * 60 * 60 * 1000),
     },
@@ -101,7 +111,8 @@ const mockScanHistory: ScanHistory[] = [
         },
       ],
       safeAlternatives: ['Sourdough bread', 'Gluten-free bread', 'Rice cakes'],
-      explanation: 'This wheat bread contains gluten and fructans that may trigger digestive symptoms in sensitive individuals.',
+      explanation:
+        'This wheat bread contains gluten and fructans that may trigger digestive symptoms in sensitive individuals.',
       dataSource: 'Monash FODMAP Database',
       lastUpdated: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
     },
@@ -146,8 +157,13 @@ const mockScanHistory: ScanHistory[] = [
           condition: 'histamine' as GutCondition,
         },
       ],
-      safeAlternatives: ['Fresh mozzarella', 'Cottage cheese', 'Ricotta cheese'],
-      explanation: 'This aged cheddar cheese contains very high levels of histamine and tyramine, which can trigger severe reactions in sensitive individuals.',
+      safeAlternatives: [
+        'Fresh mozzarella',
+        'Cottage cheese',
+        'Ricotta cheese',
+      ],
+      explanation:
+        'This aged cheddar cheese contains very high levels of histamine and tyramine, which can trigger severe reactions in sensitive individuals.',
       dataSource: 'Histamine Intolerance Database',
       lastUpdated: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
     },
@@ -174,7 +190,8 @@ const mockScanHistory: ScanHistory[] = [
       flaggedIngredients: [],
       conditionWarnings: [],
       safeAlternatives: ['Green banana', 'Plantain'],
-      explanation: 'Bananas are generally well-tolerated and contain prebiotic fiber that supports gut health. Choose slightly green bananas for lower sugar content.',
+      explanation:
+        'Bananas are generally well-tolerated and contain prebiotic fiber that supports gut health. Choose slightly green bananas for lower sugar content.',
       dataSource: 'FODMAP Database',
       lastUpdated: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
     },
@@ -188,7 +205,15 @@ const mockScanHistory: ScanHistory[] = [
       brand: 'Red Bull',
       category: 'Beverages',
       barcode: '1234567890126',
-      ingredients: ['Carbonated water', 'Sucrose', 'Glucose', 'Citric acid', 'Taurine', 'Sodium citrate', 'Caffeine'],
+      ingredients: [
+        'Carbonated water',
+        'Sucrose',
+        'Glucose',
+        'Citric acid',
+        'Taurine',
+        'Sodium citrate',
+        'Caffeine',
+      ],
       allergens: [],
       additives: ['Artificial flavors', 'Colors'],
       glutenFree: true,
@@ -226,7 +251,8 @@ const mockScanHistory: ScanHistory[] = [
         },
       ],
       safeAlternatives: ['Green tea', 'Herbal tea', 'Coconut water'],
-      explanation: 'This energy drink contains high levels of caffeine and artificial ingredients that may irritate the digestive system.',
+      explanation:
+        'This energy drink contains high levels of caffeine and artificial ingredients that may irritate the digestive system.',
       dataSource: 'Caffeine Database',
       lastUpdated: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
     },
@@ -243,15 +269,19 @@ export const ScanHistoryScreen: React.FC = () => {
   const [scanHistory] = useState<ScanHistory[]>(mockScanHistory);
   const [refreshing, setRefreshing] = useState(false);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'safe' | 'caution' | 'avoid'>('all');
+  const [filter, setFilter] = useState<'all' | 'safe' | 'caution' | 'avoid'>(
+    'all'
+  );
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'date' | 'name' | 'safety' | 'category'>('date');
+  const [sortBy, setSortBy] = useState<'date' | 'name' | 'safety' | 'category'>(
+    'date'
+  );
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showFilters, setShowFilters] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [selectedScans, setSelectedScans] = useState<Set<string>>(new Set());
   const [isSelectionMode, setIsSelectionMode] = useState(false);
-  
+
   const searchInputRef = useRef<TextInput>(null);
   // const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -261,29 +291,32 @@ export const ScanHistoryScreen: React.FC = () => {
 
     // Apply safety filter
     if (filter !== 'all') {
-      filtered = filtered.filter(scan => scan.analysis.overallSafety === filter);
+      filtered = filtered.filter(
+        (scan) => scan.analysis.overallSafety === filter
+      );
     }
 
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(scan => 
-        scan.foodItem.name.toLowerCase().includes(query) ||
-        scan.foodItem.brand?.toLowerCase().includes(query) ||
-        scan.foodItem.category?.toLowerCase().includes(query) ||
-        scan.foodItem.ingredients.some(ingredient => 
-          ingredient.toLowerCase().includes(query)
-        ) ||
-        scan.analysis.flaggedIngredients.some(flagged => 
-          flagged.ingredient.toLowerCase().includes(query)
-        )
+      filtered = filtered.filter(
+        (scan) =>
+          scan.foodItem.name.toLowerCase().includes(query) ||
+          scan.foodItem.brand?.toLowerCase().includes(query) ||
+          scan.foodItem.category?.toLowerCase().includes(query) ||
+          scan.foodItem.ingredients.some((ingredient) =>
+            ingredient.toLowerCase().includes(query)
+          ) ||
+          scan.analysis.flaggedIngredients.some((flagged) =>
+            flagged.ingredient.toLowerCase().includes(query)
+          )
       );
     }
 
     // Apply sorting
     filtered.sort((a, b) => {
       let comparison = 0;
-      
+
       switch (sortBy) {
         case 'date':
           comparison = a.timestamp.getTime() - b.timestamp.getTime();
@@ -293,13 +326,17 @@ export const ScanHistoryScreen: React.FC = () => {
           break;
         case 'safety':
           const safetyOrder = { safe: 0, caution: 1, avoid: 2 };
-          comparison = safetyOrder[a.analysis.overallSafety] - safetyOrder[b.analysis.overallSafety];
+          comparison =
+            safetyOrder[a.analysis.overallSafety] -
+            safetyOrder[b.analysis.overallSafety];
           break;
         case 'category':
-          comparison = (a.foodItem.category || '').localeCompare(b.foodItem.category || '');
+          comparison = (a.foodItem.category || '').localeCompare(
+            b.foodItem.category || ''
+          );
           break;
       }
-      
+
       return sortOrder === 'asc' ? comparison : -comparison;
     });
 
@@ -343,7 +380,7 @@ export const ScanHistoryScreen: React.FC = () => {
   };
 
   const selectAllScans = () => {
-    setSelectedScans(new Set(filteredAndSortedHistory.map(scan => scan.id)));
+    setSelectedScans(new Set(filteredAndSortedHistory.map((scan) => scan.id)));
   };
 
   const clearSelection = () => {
@@ -352,9 +389,12 @@ export const ScanHistoryScreen: React.FC = () => {
 
   const handleExport = async (format: 'json' | 'csv' | 'pdf') => {
     try {
-      const scansToExport = selectedScans.size > 0 
-        ? filteredAndSortedHistory.filter(scan => selectedScans.has(scan.id))
-        : filteredAndSortedHistory;
+      const scansToExport =
+        selectedScans.size > 0
+          ? filteredAndSortedHistory.filter((scan) =>
+              selectedScans.has(scan.id)
+            )
+          : filteredAndSortedHistory;
 
       let exportData: string;
       // let filename: string;
@@ -403,24 +443,28 @@ export const ScanHistoryScreen: React.FC = () => {
       'Ingredients',
       'Flagged Ingredients',
       'Safe Alternatives',
-      'Explanation'
+      'Explanation',
     ];
 
-    const rows = scans.map(scan => [
+    const rows = scans.map((scan) => [
       scan.timestamp.toISOString(),
       scan.foodItem.name,
       scan.foodItem.brand || '',
       scan.foodItem.category || '',
       scan.analysis.overallSafety,
       scan.foodItem.ingredients.join('; '),
-      scan.analysis.flaggedIngredients.map(f => f.ingredient).join('; '),
+      scan.analysis.flaggedIngredients.map((f) => f.ingredient).join('; '),
       scan.analysis.safeAlternatives.join('; '),
-      scan.analysis.explanation
+      scan.analysis.explanation,
     ]);
 
-    return [headers, ...rows].map(row => 
-      row.map(field => `"${field.toString().replace(/"/g, '""')}"`).join(',')
-    ).join('\n');
+    return [headers, ...rows]
+      .map((row) =>
+        row
+          .map((field) => `"${field.toString().replace(/"/g, '""')}"`)
+          .join(',')
+      )
+      .join('\n');
   };
 
   const generatePDF = (scans: ScanHistory[]): string => {
@@ -429,14 +473,18 @@ export const ScanHistoryScreen: React.FC = () => {
 Generated: ${new Date().toLocaleDateString()}
 Total Scans: ${scans.length}
 
-${scans.map(scan => `
+${scans
+  .map(
+    (scan) => `
 Food: ${scan.foodItem.name}
 Brand: ${scan.foodItem.brand || 'N/A'}
 Safety: ${scan.analysis.overallSafety}
 Date: ${scan.timestamp.toLocaleDateString()}
 Ingredients: ${scan.foodItem.ingredients.join(', ')}
 Explanation: ${scan.analysis.explanation}
----`).join('\n')}`;
+---`
+  )
+  .join('\n')}`;
   };
 
   const clearSearch = () => {
@@ -449,7 +497,8 @@ Explanation: ${scan.analysis.explanation}
   };
 
   const getFilterCount = (result: ScanResult) => {
-    return scanHistory.filter(scan => scan.analysis.overallSafety === result).length;
+    return scanHistory.filter((scan) => scan.analysis.overallSafety === result)
+      .length;
   };
 
   const getStatsSummary = () => {
@@ -457,23 +506,27 @@ Explanation: ${scan.analysis.explanation}
     const safe = getFilterCount('safe');
     const caution = getFilterCount('caution');
     const avoid = getFilterCount('avoid');
-    
+
     return { total, safe, caution, avoid };
   };
 
   const stats = getStatsSummary();
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={[styles.backButtonText, { color: colors.accent }]}>‹ Back</Text>
+          <Text style={[styles.backButtonText, { color: colors.accent }]}>
+            ‹ Back
+          </Text>
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>Scan History</Text>
         <View style={styles.headerActions}>
@@ -489,43 +542,67 @@ Explanation: ${scan.analysis.explanation}
             style={styles.headerButton}
             onPress={() => setShowExportModal(true)}
           >
-            <Text style={[styles.headerButtonText, { color: colors.accent }]}>Export</Text>
+            <Text style={[styles.headerButtonText, { color: colors.accent }]}>
+              Export
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Search Bar */}
-      <View style={[styles.searchContainer, { backgroundColor: colors.surface }]}>
-        <View style={[styles.searchInputContainer, { borderColor: colors.border }]}>
+      <View
+        style={[styles.searchContainer, { backgroundColor: colors.surface }]}
+      >
+        <View
+          style={[styles.searchInputContainer, { borderColor: colors.border }]}
+        >
           <Text style={styles.searchIcon}>🔍</Text>
           <TextInput
             ref={searchInputRef}
-            style={[styles.searchInput, { color: colors.text }]}
             placeholder="Search foods, ingredients, brands..."
             placeholderTextColor={colors.textSecondary}
+            returnKeyType="search"
+            style={[styles.searchInput, { color: colors.text }]}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            returnKeyType="search"
           />
           {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={clearSearch} style={styles.clearButton}>
-              <Text style={[styles.clearButtonText, { color: colors.textSecondary }]}>✕</Text>
+            <TouchableOpacity style={styles.clearButton} onPress={clearSearch}>
+              <Text
+                style={[
+                  styles.clearButtonText,
+                  { color: colors.textSecondary },
+                ]}
+              >
+                ✕
+              </Text>
             </TouchableOpacity>
           )}
         </View>
         <TouchableOpacity
-          style={[styles.searchFilterButton, { backgroundColor: colors.accent }]}
+          style={[
+            styles.searchFilterButton,
+            { backgroundColor: colors.accent },
+          ]}
           onPress={() => setShowFilters(!showFilters)}
         >
-          <Text style={[styles.searchFilterButtonText, { color: Colors.white }]}>Filter</Text>
+          <Text
+            style={[styles.searchFilterButtonText, { color: Colors.white }]}
+          >
+            Filter
+          </Text>
         </TouchableOpacity>
       </View>
 
       {/* Advanced Filters */}
       {showFilters && (
-        <Animated.View style={[styles.filtersContainer, { backgroundColor: colors.surface }]}>
+        <Animated.View
+          style={[styles.filtersContainer, { backgroundColor: colors.surface }]}
+        >
           <View style={styles.filterRow}>
-            <Text style={[styles.filterLabel, { color: colors.text }]}>Sort by:</Text>
+            <Text style={[styles.filterLabel, { color: colors.text }]}>
+              Sort by:
+            </Text>
             <View style={styles.sortButtons}>
               {[
                 { key: 'date', label: 'Date' },
@@ -538,7 +615,8 @@ Explanation: ${scan.analysis.explanation}
                   style={[
                     styles.sortButton,
                     {
-                      backgroundColor: sortBy === option.key ? colors.accent : 'transparent',
+                      backgroundColor:
+                        sortBy === option.key ? colors.accent : 'transparent',
                       borderColor: colors.border,
                     },
                   ]}
@@ -548,7 +626,8 @@ Explanation: ${scan.analysis.explanation}
                     style={[
                       styles.sortButtonText,
                       {
-                        color: sortBy === option.key ? Colors.white : colors.text,
+                        color:
+                          sortBy === option.key ? Colors.white : colors.text,
                       },
                     ]}
                   >
@@ -573,18 +652,24 @@ Explanation: ${scan.analysis.explanation}
 
       {/* Selection Mode Actions */}
       {isSelectionMode && (
-        <View style={[styles.selectionActions, { backgroundColor: colors.accent }]}>
+        <View
+          style={[styles.selectionActions, { backgroundColor: colors.accent }]}
+        >
           <TouchableOpacity
             style={styles.selectionButton}
             onPress={selectAllScans}
           >
-            <Text style={[styles.selectionButtonText, { color: Colors.white }]}>Select All</Text>
+            <Text style={[styles.selectionButtonText, { color: Colors.white }]}>
+              Select All
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.selectionButton}
             onPress={clearSelection}
           >
-            <Text style={[styles.selectionButtonText, { color: Colors.white }]}>Clear</Text>
+            <Text style={[styles.selectionButtonText, { color: Colors.white }]}>
+              Clear
+            </Text>
           </TouchableOpacity>
           <Text style={[styles.selectionCount, { color: Colors.white }]}>
             {selectedScans.size} selected
@@ -593,23 +678,41 @@ Explanation: ${scan.analysis.explanation}
       )}
 
       {/* Stats Summary */}
-      <View style={[styles.statsContainer, { backgroundColor: colors.surface }]}>
+      <View
+        style={[styles.statsContainer, { backgroundColor: colors.surface }]}
+      >
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: colors.text }]}>{stats.total}</Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>
+              {stats.total}
+            </Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+              Total
+            </Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: Colors.safe }]}>{stats.safe}</Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Safe</Text>
+            <Text style={[styles.statValue, { color: Colors.safe }]}>
+              {stats.safe}
+            </Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+              Safe
+            </Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: Colors.caution }]}>{stats.caution}</Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Caution</Text>
+            <Text style={[styles.statValue, { color: Colors.caution }]}>
+              {stats.caution}
+            </Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+              Caution
+            </Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: Colors.avoid }]}>{stats.avoid}</Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Avoid</Text>
+            <Text style={[styles.statValue, { color: Colors.avoid }]}>
+              {stats.avoid}
+            </Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+              Avoid
+            </Text>
           </View>
         </View>
       </View>
@@ -628,7 +731,10 @@ Explanation: ${scan.analysis.explanation}
               style={[
                 styles.filterButton,
                 {
-                  backgroundColor: filter === filterOption.key ? colors.accent : colors.surface,
+                  backgroundColor:
+                    filter === filterOption.key
+                      ? colors.accent
+                      : colors.surface,
                 },
               ]}
               onPress={() => setFilter(filterOption.key as any)}
@@ -637,7 +743,8 @@ Explanation: ${scan.analysis.explanation}
                 style={[
                   styles.filterButtonText,
                   {
-                    color: filter === filterOption.key ? Colors.white : colors.text,
+                    color:
+                      filter === filterOption.key ? Colors.white : colors.text,
                   },
                 ]}
               >
@@ -650,11 +757,52 @@ Explanation: ${scan.analysis.explanation}
 
       {/* Scan History List */}
       <FlatList
-        data={filteredAndSortedHistory}
-        keyExtractor={(item) => item.id}
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
+        removeClippedSubviews
+        ListEmptyComponent={() => (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyIcon}>📱</Text>
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>
+              {searchQuery ? 'No matching scans found' : 'No scans found'}
+            </Text>
+            <Text
+              style={[styles.emptySubtitle, { color: colors.textSecondary }]}
+            >
+              {searchQuery
+                ? 'Try adjusting your search terms or filters'
+                : filter === 'all'
+                  ? 'Start scanning foods to see your history here'
+                  : `No ${filter} scans found`}
+            </Text>
+            {searchQuery && (
+              <TouchableOpacity
+                style={[
+                  styles.clearSearchButton,
+                  { backgroundColor: colors.accent },
+                ]}
+                onPress={clearSearch}
+              >
+                <Text
+                  style={[
+                    styles.clearSearchButtonText,
+                    { color: Colors.white },
+                  ]}
+                >
+                  Clear Search
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
         contentContainerStyle={styles.scrollContent}
+        data={filteredAndSortedHistory}
+        getItemLayout={(_data, index) => ({
+          length: 200, // Approximate height of each item
+          offset: 200 * index,
+          index,
+        })}
+        initialNumToRender={10}
+        keyExtractor={(item) => item.id}
+        maxToRenderPerBatch={5}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -665,120 +813,122 @@ Explanation: ${scan.analysis.explanation}
                 style={[
                   styles.selectionCheckbox,
                   {
-                    backgroundColor: selectedScans.has(scan.id) ? colors.accent : 'transparent',
+                    backgroundColor: selectedScans.has(scan.id)
+                      ? colors.accent
+                      : 'transparent',
                     borderColor: colors.border,
                   },
                 ]}
                 onPress={() => toggleScanSelection(scan.id)}
               >
                 {selectedScans.has(scan.id) && (
-                  <Text style={[styles.checkmark, { color: Colors.white }]}>✓</Text>
+                  <Text style={[styles.checkmark, { color: Colors.white }]}>
+                    ✓
+                  </Text>
                 )}
               </TouchableOpacity>
             )}
             <View style={isSelectionMode ? styles.selectedCard : undefined}>
               <ScanDetailCard
-                scanHistory={scan}
-                onPress={() => handleCardPress(scan.id)}
-                onExpand={() => handleCardExpand(scan.id)}
                 expanded={expandedCard === scan.id}
+                scanHistory={scan}
+                onExpand={() => handleCardExpand(scan.id)}
+                onPress={() => handleCardPress(scan.id)}
               />
             </View>
           </View>
         )}
-        ListEmptyComponent={() => (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>📱</Text>
-            <Text style={[styles.emptyTitle, { color: colors.text }]}>
-              {searchQuery ? 'No matching scans found' : 'No scans found'}
-            </Text>
-            <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-              {searchQuery 
-                ? 'Try adjusting your search terms or filters'
-                : filter === 'all'
-                  ? 'Start scanning foods to see your history here'
-                  : `No ${filter} scans found`}
-            </Text>
-            {searchQuery && (
-              <TouchableOpacity
-                style={[styles.clearSearchButton, { backgroundColor: colors.accent }]}
-                onPress={clearSearch}
-              >
-                <Text style={[styles.clearSearchButtonText, { color: Colors.white }]}>
-                  Clear Search
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-        getItemLayout={(_data, index) => ({
-          length: 200, // Approximate height of each item
-          offset: 200 * index,
-          index,
-        })}
-        initialNumToRender={10}
-        maxToRenderPerBatch={5}
+        showsVerticalScrollIndicator={false}
+        style={styles.scrollView}
         windowSize={10}
-        removeClippedSubviews={true}
       />
 
       {/* Export Modal */}
       <Modal
-        visible={showExportModal}
         transparent
         animationType="fade"
+        visible={showExportModal}
         onRequestClose={() => setShowExportModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>Export Scan History</Text>
-            <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
-              {selectedScans.size > 0 
+          <View
+            style={[styles.modalContent, { backgroundColor: colors.surface }]}
+          >
+            <Text style={[styles.modalTitle, { color: colors.text }]}>
+              Export Scan History
+            </Text>
+            <Text
+              style={[styles.modalSubtitle, { color: colors.textSecondary }]}
+            >
+              {selectedScans.size > 0
                 ? `Export ${selectedScans.size} selected scans`
                 : `Export all ${filteredAndSortedHistory.length} scans`}
             </Text>
-            
+
             <View style={styles.exportOptions}>
               <TouchableOpacity
                 style={[styles.exportOption, { borderColor: colors.border }]}
                 onPress={() => handleExport('json')}
               >
                 <Text style={styles.exportIcon}>📄</Text>
-                <Text style={[styles.exportLabel, { color: colors.text }]}>JSON</Text>
-                <Text style={[styles.exportDescription, { color: colors.textSecondary }]}>
+                <Text style={[styles.exportLabel, { color: colors.text }]}>
+                  JSON
+                </Text>
+                <Text
+                  style={[
+                    styles.exportDescription,
+                    { color: colors.textSecondary },
+                  ]}
+                >
                   Complete data with all details
                 </Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[styles.exportOption, { borderColor: colors.border }]}
                 onPress={() => handleExport('csv')}
               >
                 <Text style={styles.exportIcon}>📊</Text>
-                <Text style={[styles.exportLabel, { color: colors.text }]}>CSV</Text>
-                <Text style={[styles.exportDescription, { color: colors.textSecondary }]}>
+                <Text style={[styles.exportLabel, { color: colors.text }]}>
+                  CSV
+                </Text>
+                <Text
+                  style={[
+                    styles.exportDescription,
+                    { color: colors.textSecondary },
+                  ]}
+                >
                   Spreadsheet format for analysis
                 </Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[styles.exportOption, { borderColor: colors.border }]}
                 onPress={() => handleExport('pdf')}
               >
                 <Text style={styles.exportIcon}>📋</Text>
-                <Text style={[styles.exportLabel, { color: colors.text }]}>PDF</Text>
-                <Text style={[styles.exportDescription, { color: colors.textSecondary }]}>
+                <Text style={[styles.exportLabel, { color: colors.text }]}>
+                  PDF
+                </Text>
+                <Text
+                  style={[
+                    styles.exportDescription,
+                    { color: colors.textSecondary },
+                  ]}
+                >
                   Printable report format
                 </Text>
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={[styles.modalButton, { backgroundColor: colors.border }]}
                 onPress={() => setShowExportModal(false)}
               >
-                <Text style={[styles.modalButtonText, { color: colors.text }]}>Cancel</Text>
+                <Text style={[styles.modalButtonText, { color: colors.text }]}>
+                  Cancel
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -789,28 +939,120 @@ Explanation: ${scan.analysis.explanation}
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
   backButton: {
     padding: Spacing.xs,
   },
   backButtonText: {
-    fontSize: Typography.fontSize.body,
     fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
   },
-  title: {
-    fontSize: Typography.fontSize.h2,
+  checkmark: {
     fontFamily: Typography.fontFamily.bold,
+    fontSize: 16,
+  },
+  clearButton: {
+    padding: Spacing.xs,
+  },
+  clearButtonText: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: 16,
+  },
+  clearSearchButton: {
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+  },
+  clearSearchButtonText: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+  },
+  container: {
     flex: 1,
+  },
+  emptyIcon: {
+    fontSize: 48,
+    marginBottom: Spacing.md,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.xxl,
+  },
+  emptySubtitle: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
+    lineHeight: Typography.lineHeight.body,
     textAlign: 'center',
+  },
+  emptyTitle: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h3,
+    marginBottom: Spacing.sm,
+    textAlign: 'center',
+  },
+  exportDescription: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.bodySmall,
+    textAlign: 'right',
+  },
+  exportIcon: {
+    fontSize: 24,
+    marginRight: Spacing.md,
+  },
+  exportLabel: {
+    flex: 1,
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h4,
+  },
+  exportOption: {
+    alignItems: 'center',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    flexDirection: 'row',
+    padding: Spacing.md,
+  },
+  exportOptions: {
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  filterButton: {
+    borderRadius: 20,
+    marginRight: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  filterButtonText: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.bodySmall,
+  },
+  filterContainer: {
+    marginBottom: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+  },
+  filterLabel: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.body,
+    marginRight: Spacing.md,
+  },
+  filterRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginBottom: Spacing.sm,
+  },
+  filtersContainer: {
+    borderBottomColor: 'rgba(15, 82, 87, 0.1)',
+    borderBottomWidth: 1,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
   },
   headerActions: {
     flexDirection: 'row',
@@ -820,24 +1062,83 @@ const styles = StyleSheet.create({
     padding: Spacing.xs,
   },
   headerButtonText: {
-    fontSize: Typography.fontSize.body,
     fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  modalButton: {
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+  },
+  modalButtonText: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+  },
+  modalContent: {
+    borderRadius: BorderRadius.lg,
+    maxWidth: 400,
+    padding: Spacing.lg,
+    width: '100%',
+  },
+  modalOverlay: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.lg,
+  },
+  modalSubtitle: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
+    marginBottom: Spacing.lg,
+    textAlign: 'center',
+  },
+  modalTitle: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h3,
+    marginBottom: Spacing.sm,
+    textAlign: 'center',
+  },
+  orderButton: {
+    borderRadius: BorderRadius.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  orderButtonText: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.bodySmall,
+  },
+  scanItemContainer: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    marginBottom: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+  },
+  scrollContent: {
+    paddingBottom: Spacing.xxl,
+  },
+  scrollView: {
+    flex: 1,
   },
   searchContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.sm,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    gap: Spacing.sm,
   },
-  searchInputContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
+  searchFilterButton: {
     borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
+  },
+  searchFilterButtonText: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.bodySmall,
   },
   searchIcon: {
     fontSize: 16,
@@ -845,242 +1146,91 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontSize: Typography.fontSize.body,
     fontFamily: Typography.fontFamily.regular,
-  },
-  clearButton: {
-    padding: Spacing.xs,
-  },
-  clearButtonText: {
-    fontSize: 16,
-    fontFamily: Typography.fontFamily.bold,
-  },
-  searchFilterButton: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-  },
-  searchFilterButtonText: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.semiBold,
-  },
-  filtersContainer: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(15, 82, 87, 0.1)',
-  },
-  filterRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  filterLabel: {
     fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.medium,
-    marginRight: Spacing.md,
   },
-  sortButtons: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  sortButton: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.sm,
+  searchInputContainer: {
+    alignItems: 'center',
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
-  },
-  sortButtonText: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.medium,
-  },
-  orderButton: {
+    flex: 1,
+    flexDirection: 'row',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.sm,
   },
-  orderButtonText: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.semiBold,
+  selectedCard: {
+    opacity: 0.8,
   },
   selectionActions: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.md,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
-    gap: Spacing.md,
   },
   selectionButton: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
   },
   selectionButtonText: {
-    fontSize: Typography.fontSize.bodySmall,
     fontFamily: Typography.fontFamily.semiBold,
-  },
-  selectionCount: {
     fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.medium,
-    marginLeft: 'auto',
-  },
-  scanItemContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.sm,
   },
   selectionCheckbox: {
-    width: 24,
-    height: 24,
+    alignItems: 'center',
     borderRadius: 12,
     borderWidth: 2,
-    alignItems: 'center',
+    height: 24,
     justifyContent: 'center',
     marginRight: Spacing.sm,
     marginTop: Spacing.sm,
+    width: 24,
   },
-  checkmark: {
-    fontSize: 16,
+  selectionCount: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.bodySmall,
+    marginLeft: 'auto',
+  },
+  sortButton: {
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  sortButtonText: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.bodySmall,
+  },
+  sortButtons: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statLabel: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.caption,
+  },
+  statValue: {
     fontFamily: Typography.fontFamily.bold,
-  },
-  selectedCard: {
-    opacity: 0.8,
+    fontSize: Typography.fontSize.h2,
+    marginBottom: Spacing.xs,
   },
   statsContainer: {
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
     borderRadius: 12,
+    marginBottom: Spacing.md,
+    marginHorizontal: Spacing.lg,
     padding: Spacing.md,
   },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
   },
-  statItem: {
-    alignItems: 'center',
-  },
-  statValue: {
+  title: {
+    flex: 1,
+    fontFamily: Typography.fontFamily.bold,
     fontSize: Typography.fontSize.h2,
-    fontFamily: Typography.fontFamily.bold,
-    marginBottom: Spacing.xs,
-  },
-  statLabel: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
-  },
-  filterContainer: {
-    paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
-  },
-  filterButton: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: 20,
-    marginRight: Spacing.sm,
-  },
-  filterButtonText: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.semiBold,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: Spacing.xxl,
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.xxl,
-    paddingHorizontal: Spacing.xl,
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: Spacing.md,
-  },
-  emptyTitle: {
-    fontSize: Typography.fontSize.h3,
-    fontFamily: Typography.fontFamily.bold,
-    marginBottom: Spacing.sm,
     textAlign: 'center',
-  },
-  emptySubtitle: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.regular,
-    textAlign: 'center',
-    lineHeight: Typography.lineHeight.body,
-  },
-  clearSearchButton: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    marginTop: Spacing.md,
-  },
-  clearSearchButtonText: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.semiBold,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-  },
-  modalContent: {
-    width: '100%',
-    maxWidth: 400,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-  },
-  modalTitle: {
-    fontSize: Typography.fontSize.h3,
-    fontFamily: Typography.fontFamily.bold,
-    textAlign: 'center',
-    marginBottom: Spacing.sm,
-  },
-  modalSubtitle: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.regular,
-    textAlign: 'center',
-    marginBottom: Spacing.lg,
-  },
-  exportOptions: {
-    gap: Spacing.md,
-    marginBottom: Spacing.lg,
-  },
-  exportOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-  },
-  exportIcon: {
-    fontSize: 24,
-    marginRight: Spacing.md,
-  },
-  exportLabel: {
-    fontSize: Typography.fontSize.h4,
-    fontFamily: Typography.fontFamily.bold,
-    flex: 1,
-  },
-  exportDescription: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.regular,
-    textAlign: 'right',
-  },
-  modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  modalButton: {
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-  },
-  modalButtonText: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.semiBold,
   },
 });

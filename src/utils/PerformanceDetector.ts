@@ -19,7 +19,7 @@ interface PerformanceMetrics {
 class PerformanceDetector {
   private static instance: PerformanceDetector;
   private performanceMode: 'high' | 'medium' | 'low' = 'medium';
-  private metrics: PerformanceMetrics = {};
+  private readonly metrics: PerformanceMetrics = {};
 
   static getInstance(): PerformanceDetector {
     if (!PerformanceDetector.instance) {
@@ -40,7 +40,7 @@ class PerformanceDetector {
   private async detectPerformanceMode(): Promise<void> {
     const { width, height } = Dimensions.get('window');
     const screenSize = width * height;
-    
+
     // Basic device detection
     const isLowEndDevice = this.isLowEndDevice(screenSize);
     const isSlowConnection = await this.isSlowConnection();
@@ -67,8 +67,11 @@ class PerformanceDetector {
     if (Platform.OS === 'web') {
       try {
         // @ts-ignore - navigator.connection is not in TypeScript definitions
-        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-        
+        const connection =
+          navigator.connection ||
+          navigator.mozConnection ||
+          navigator.webkitConnection;
+
         if (connection) {
           this.metrics.connectionType = connection.type;
           this.metrics.effectiveType = connection.effectiveType;
@@ -76,15 +79,17 @@ class PerformanceDetector {
           this.metrics.rtt = connection.rtt;
 
           // Consider slow if effectiveType is 2g or 3g, or downlink is very low
-          return connection.effectiveType === '2g' || 
-                 connection.effectiveType === '3g' ||
-                 (connection.downlink && connection.downlink < 1);
+          return (
+            connection.effectiveType === '2g' ||
+            connection.effectiveType === '3g' ||
+            (connection.downlink && connection.downlink < 1)
+          );
         }
       } catch (error) {
         console.warn('Connection detection failed:', error);
       }
     }
-    
+
     return false;
   }
 
@@ -92,13 +97,14 @@ class PerformanceDetector {
     if (Platform.OS === 'web') {
       try {
         const canvas = document.createElement('canvas');
-        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        const gl =
+          canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
         return !!gl;
       } catch (error) {
         return false;
       }
     }
-    
+
     // Assume WebGL is supported on native platforms
     return true;
   }

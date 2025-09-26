@@ -6,9 +6,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { 
-  dataProtectionIntegrationService
-} from '../services/DataProtectionIntegrationService';
+
+import { dataProtectionIntegrationService } from '../services/DataProtectionIntegrationService';
 import { DataClassification } from '../utils/DataProtectionService';
 import { gdprComplianceService } from '../utils/GDPRComplianceService';
 
@@ -27,18 +26,18 @@ const DataProtectionExample: React.FC = () => {
   const initializeDataProtection = async () => {
     try {
       setIsLoading(true);
-      
+
       // Initialize data protection services
       await dataProtectionIntegrationService.initialize();
-      
+
       // Generate initial audit report
-      const report = await dataProtectionIntegrationService.generateAuditReport();
+      const report =
+        await dataProtectionIntegrationService.generateAuditReport();
       setAuditReport(report);
-      
+
       // Check consent status (example user ID)
       const consent = gdprComplianceService.getConsent('example-user-123');
       setConsentStatus(consent);
-      
     } catch (error) {
       console.error('Failed to initialize data protection:', error);
     } finally {
@@ -48,19 +47,22 @@ const DataProtectionExample: React.FC = () => {
 
   const handleConsentUpdate = async () => {
     try {
-      const consent = await dataProtectionIntegrationService.handleUserConsent('example-user-123', {
-        dataProcessing: true,
-        analytics: true,
-        marketing: false,
-        dataSharing: false,
-        dataRetention: true,
-        profiling: false,
-        automatedDecisionMaking: false,
-        thirdPartySharing: false,
-        dataPortability: true,
-        rightToErasure: true
-      });
-      
+      const consent = await dataProtectionIntegrationService.handleUserConsent(
+        'example-user-123',
+        {
+          dataProcessing: true,
+          analytics: true,
+          marketing: false,
+          dataSharing: false,
+          dataRetention: true,
+          profiling: false,
+          automatedDecisionMaking: false,
+          thirdPartySharing: false,
+          dataPortability: true,
+          rightToErasure: true,
+        }
+      );
+
       setConsentStatus(consent);
       alert('Consent updated successfully!');
     } catch (error) {
@@ -71,11 +73,12 @@ const DataProtectionExample: React.FC = () => {
 
   const handleDataAccessRequest = async () => {
     try {
-      const accessData = await dataProtectionIntegrationService.handleDataSubjectRightsRequest(
-        'example-user-123',
-        'access'
-      );
-      
+      const accessData =
+        await dataProtectionIntegrationService.handleDataSubjectRightsRequest(
+          'example-user-123',
+          'access'
+        );
+
       console.log('Data access response:', accessData);
       alert('Data access request processed. Check console for details.');
     } catch (error) {
@@ -86,11 +89,12 @@ const DataProtectionExample: React.FC = () => {
 
   const handleDataPortabilityRequest = async () => {
     try {
-      const portableData = await dataProtectionIntegrationService.handleDataSubjectRightsRequest(
-        'example-user-123',
-        'portability'
-      );
-      
+      const portableData =
+        await dataProtectionIntegrationService.handleDataSubjectRightsRequest(
+          'example-user-123',
+          'portability'
+        );
+
       console.log('Portable data:', portableData);
       alert('Data portability request processed. Check console for details.');
     } catch (error) {
@@ -102,9 +106,11 @@ const DataProtectionExample: React.FC = () => {
   const handleDataCleanup = async () => {
     try {
       const result = await dataProtectionIntegrationService.runDataCleanup();
-      
+
       console.log('Data cleanup result:', result);
-      alert(`Data cleanup completed: ${result.deletedRecords} deleted, ${result.anonymizedRecords} anonymized`);
+      alert(
+        `Data cleanup completed: ${result.deletedRecords} deleted, ${result.anonymizedRecords} anonymized`
+      );
     } catch (error) {
       console.error('Failed to run data cleanup:', error);
       alert('Failed to run data cleanup');
@@ -116,7 +122,7 @@ const DataProtectionExample: React.FC = () => {
       const testData = {
         userId: 'example-user-123',
         symptoms: ['bloating', 'cramping'],
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
       const response = await dataProtectionIntegrationService.makeSecureRequest(
@@ -128,7 +134,7 @@ const DataProtectionExample: React.FC = () => {
           dataType: 'health_data',
           purpose: 'symptom_tracking',
           encryptPayload: true,
-          anonymizeResponse: false
+          anonymizeResponse: false,
         }
       );
 
@@ -147,7 +153,7 @@ const DataProtectionExample: React.FC = () => {
         email: 'john@example.com',
         symptoms: ['bloating', 'cramping'],
         medications: ['probiotics'],
-        location: { latitude: 40.7128, longitude: -74.0060 }
+        location: { latitude: 40.7128, longitude: -74.006 },
       };
 
       const processedData = await dataProtectionIntegrationService.processData(
@@ -158,7 +164,7 @@ const DataProtectionExample: React.FC = () => {
           purpose: 'symptom_tracking',
           classification: DataClassification.RESTRICTED,
           encrypt: true,
-          anonymize: false
+          anonymize: false,
         }
       );
 
@@ -183,24 +189,45 @@ const DataProtectionExample: React.FC = () => {
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
       <h1>Data Protection Example</h1>
-      
+
       <div style={{ marginBottom: '30px' }}>
         <h2>Audit Report</h2>
         {auditReport ? (
-          <div style={{ backgroundColor: '#f5f5f5', padding: '15px', borderRadius: '5px' }}>
-            <p><strong>Overall Score:</strong> {auditReport.overallScore}/100</p>
-            <p><strong>Encryption Score:</strong> {auditReport.encryption.score}/100</p>
-            <p><strong>GDPR Score:</strong> {auditReport.gdpr.score}/100</p>
-            <p><strong>Retention Score:</strong> {auditReport.retention.score}/100</p>
-            <p><strong>Transmission Score:</strong> {auditReport.transmission.score}/100</p>
-            
+          <div
+            style={{
+              backgroundColor: '#f5f5f5',
+              padding: '15px',
+              borderRadius: '5px',
+            }}
+          >
+            <p>
+              <strong>Overall Score:</strong> {auditReport.overallScore}/100
+            </p>
+            <p>
+              <strong>Encryption Score:</strong> {auditReport.encryption.score}
+              /100
+            </p>
+            <p>
+              <strong>GDPR Score:</strong> {auditReport.gdpr.score}/100
+            </p>
+            <p>
+              <strong>Retention Score:</strong> {auditReport.retention.score}
+              /100
+            </p>
+            <p>
+              <strong>Transmission Score:</strong>{' '}
+              {auditReport.transmission.score}/100
+            </p>
+
             {auditReport.recommendations.length > 0 && (
               <div>
                 <strong>Recommendations:</strong>
                 <ul>
-                  {auditReport.recommendations.map((rec: string, index: number) => (
-                    <li key={index}>{rec}</li>
-                  ))}
+                  {auditReport.recommendations.map(
+                    (rec: string, index: number) => (
+                      <li key={index}>{rec}</li>
+                    )
+                  )}
                 </ul>
               </div>
             )}
@@ -213,18 +240,42 @@ const DataProtectionExample: React.FC = () => {
       <div style={{ marginBottom: '30px' }}>
         <h2>Consent Management</h2>
         {consentStatus ? (
-          <div style={{ backgroundColor: '#e8f5e8', padding: '15px', borderRadius: '5px' }}>
-            <p><strong>Data Processing:</strong> {consentStatus.dataProcessing ? '✅' : '❌'}</p>
-            <p><strong>Analytics:</strong> {consentStatus.analytics ? '✅' : '❌'}</p>
-            <p><strong>Marketing:</strong> {consentStatus.marketing ? '✅' : '❌'}</p>
-            <p><strong>Data Sharing:</strong> {consentStatus.dataSharing ? '✅' : '❌'}</p>
-            <p><strong>Data Retention:</strong> {consentStatus.dataRetention ? '✅' : '❌'}</p>
-            <p><strong>Last Updated:</strong> {new Date(consentStatus.lastUpdated).toLocaleString()}</p>
+          <div
+            style={{
+              backgroundColor: '#e8f5e8',
+              padding: '15px',
+              borderRadius: '5px',
+            }}
+          >
+            <p>
+              <strong>Data Processing:</strong>{' '}
+              {consentStatus.dataProcessing ? '✅' : '❌'}
+            </p>
+            <p>
+              <strong>Analytics:</strong>{' '}
+              {consentStatus.analytics ? '✅' : '❌'}
+            </p>
+            <p>
+              <strong>Marketing:</strong>{' '}
+              {consentStatus.marketing ? '✅' : '❌'}
+            </p>
+            <p>
+              <strong>Data Sharing:</strong>{' '}
+              {consentStatus.dataSharing ? '✅' : '❌'}
+            </p>
+            <p>
+              <strong>Data Retention:</strong>{' '}
+              {consentStatus.dataRetention ? '✅' : '❌'}
+            </p>
+            <p>
+              <strong>Last Updated:</strong>{' '}
+              {new Date(consentStatus.lastUpdated).toLocaleString()}
+            </p>
           </div>
         ) : (
           <p>No consent data available</p>
         )}
-        <button onClick={handleConsentUpdate} style={{ marginTop: '10px' }}>
+        <button style={{ marginTop: '10px' }} onClick={handleConsentUpdate}>
           Update Consent
         </button>
       </div>
@@ -232,9 +283,7 @@ const DataProtectionExample: React.FC = () => {
       <div style={{ marginBottom: '30px' }}>
         <h2>Data Subject Rights</h2>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <button onClick={handleDataAccessRequest}>
-            Request Data Access
-          </button>
+          <button onClick={handleDataAccessRequest}>Request Data Access</button>
           <button onClick={handleDataPortabilityRequest}>
             Request Data Portability
           </button>
@@ -244,23 +293,24 @@ const DataProtectionExample: React.FC = () => {
       <div style={{ marginBottom: '30px' }}>
         <h2>Data Processing</h2>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <button onClick={handleDataProcessing}>
-            Process Sample Data
-          </button>
-          <button onClick={handleSecureRequest}>
-            Make Secure Request
-          </button>
+          <button onClick={handleDataProcessing}>Process Sample Data</button>
+          <button onClick={handleSecureRequest}>Make Secure Request</button>
         </div>
       </div>
 
       <div style={{ marginBottom: '30px' }}>
         <h2>Data Management</h2>
-        <button onClick={handleDataCleanup}>
-          Run Data Cleanup
-        </button>
+        <button onClick={handleDataCleanup}>Run Data Cleanup</button>
       </div>
 
-      <div style={{ marginTop: '40px', padding: '20px', backgroundColor: '#f0f8ff', borderRadius: '5px' }}>
+      <div
+        style={{
+          marginTop: '40px',
+          padding: '20px',
+          backgroundColor: '#f0f8ff',
+          borderRadius: '5px',
+        }}
+      >
         <h3>Instructions</h3>
         <ol>
           <li>Click "Update Consent" to set your privacy preferences</li>

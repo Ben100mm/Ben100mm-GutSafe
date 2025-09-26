@@ -7,7 +7,7 @@
 
 declare module 'react-native-web-linear-gradient' {
   import { Component } from 'react';
-  
+
   interface LinearGradientProps {
     colors: string[];
     start?: { x: number; y: number };
@@ -16,6 +16,6 @@ declare module 'react-native-web-linear-gradient' {
     style?: any;
     children?: React.ReactNode;
   }
-  
+
   export default class LinearGradient extends Component<LinearGradientProps> {}
 }

@@ -1,7 +1,7 @@
 /**
  * Database Connection Management
  * Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
- * 
+ *
  * Handles database connections and configuration for different environments.
  */
 
@@ -44,8 +44,16 @@ export interface DatabaseConnection {
   executeTransaction<T>(callback: (connection: any) => Promise<T>): Promise<T>;
   createTable(tableName: string, schema: any): Promise<void>;
   dropTable(tableName: string): Promise<void>;
-  createIndex(indexName: string, tableName: string, columns: string[]): Promise<void>;
-  createConstraint(constraintName: string, tableName: string, constraint: any): Promise<void>;
+  createIndex(
+    indexName: string,
+    tableName: string,
+    columns: string[]
+  ): Promise<void>;
+  createConstraint(
+    constraintName: string,
+    tableName: string,
+    constraint: any
+  ): Promise<void>;
 }
 
 // SQLite implementation
@@ -53,7 +61,7 @@ class SQLiteConnection implements DatabaseConnection {
   private db: any = null;
   private isConnectedFlag = false;
 
-  constructor(private config: DatabaseConfig) {}
+  constructor(private readonly config: DatabaseConfig) {}
 
   async connect(): Promise<void> {
     try {
@@ -112,7 +120,9 @@ class SQLiteConnection implements DatabaseConnection {
     });
   }
 
-  async executeTransaction<T>(callback: (connection: any) => Promise<T>): Promise<T> {
+  async executeTransaction<T>(
+    callback: (connection: any) => Promise<T>
+  ): Promise<T> {
     return new Promise((resolve, reject) => {
       if (!this.db) {
         reject(new Error('Database not connected'));
@@ -140,37 +150,57 @@ class SQLiteConnection implements DatabaseConnection {
     await this.executeQuery(query);
   }
 
-  async createIndex(indexName: string, tableName: string, columns: string[]): Promise<void> {
+  async createIndex(
+    indexName: string,
+    tableName: string,
+    columns: string[]
+  ): Promise<void> {
     const query = `CREATE INDEX IF NOT EXISTS ${indexName} ON ${tableName} (${columns.join(', ')})`;
     await this.executeQuery(query);
   }
 
-  async createConstraint(constraintName: string, tableName: string, _constraint: any): Promise<void> {
+  async createConstraint(
+    constraintName: string,
+    tableName: string,
+    _constraint: any
+  ): Promise<void> {
     // SQLite doesn't support named constraints in the same way as PostgreSQL
     // This would be handled in the table creation
-    console.log(`Constraint ${constraintName} would be created for table ${tableName}`);
+    console.log(
+      `Constraint ${constraintName} would be created for table ${tableName}`
+    );
   }
 
   private generateCreateTableQuery(tableName: string, schema: any): string {
     // This is a simplified version - in production, you'd want a more robust schema generator
-    const columns = Object.entries(schema).map(([key, value]) => {
-      let columnDef = `${key} `;
-      
-      if (typeof value === 'string') {
-        if (value.includes('uuid')) columnDef += 'TEXT PRIMARY KEY';
-        else if (value.includes('varchar')) columnDef += 'TEXT';
-        else if (value.includes('int')) columnDef += 'INTEGER';
-        else if (value.includes('bool')) columnDef += 'BOOLEAN';
-        else if (value.includes('date')) columnDef += 'DATETIME';
-        else if (value.includes('json')) columnDef += 'TEXT';
-        else columnDef += 'TEXT';
-      } else {
-        columnDef += 'TEXT';
-      }
-      
-      return columnDef;
-    }).join(', ');
-    
+    const columns = Object.entries(schema)
+      .map(([key, value]) => {
+        let columnDef = `${key} `;
+
+        if (typeof value === 'string') {
+          if (value.includes('uuid')) {
+            columnDef += 'TEXT PRIMARY KEY';
+          } else if (value.includes('varchar')) {
+            columnDef += 'TEXT';
+          } else if (value.includes('int')) {
+            columnDef += 'INTEGER';
+          } else if (value.includes('bool')) {
+            columnDef += 'BOOLEAN';
+          } else if (value.includes('date')) {
+            columnDef += 'DATETIME';
+          } else if (value.includes('json')) {
+            columnDef += 'TEXT';
+          } else {
+            columnDef += 'TEXT';
+          }
+        } else {
+          columnDef += 'TEXT';
+        }
+
+        return columnDef;
+      })
+      .join(', ');
+
     return `CREATE TABLE IF NOT EXISTS ${tableName} (${columns})`;
   }
 }
@@ -180,7 +210,7 @@ class PostgreSQLConnection implements DatabaseConnection {
   private client: any = null;
   private isConnectedFlag = false;
 
-  constructor(private config: DatabaseConfig) {}
+  constructor(private readonly config: DatabaseConfig) {}
 
   async connect(): Promise<void> {
     try {
@@ -193,7 +223,7 @@ class PostgreSQLConnection implements DatabaseConnection {
         password: this.config.password,
         ssl: this.config.ssl ? { rejectUnauthorized: false } : false,
       });
-      
+
       await this.client.connect();
       this.isConnectedFlag = true;
       console.log('PostgreSQL database connected successfully');
@@ -229,7 +259,9 @@ class PostgreSQLConnection implements DatabaseConnection {
     return result.rows;
   }
 
-  async executeTransaction<T>(callback: (connection: any) => Promise<T>): Promise<T> {
+  async executeTransaction<T>(
+    callback: (connection: any) => Promise<T>
+  ): Promise<T> {
     if (!this.client) {
       throw new Error('Database not connected');
     }
@@ -255,36 +287,54 @@ class PostgreSQLConnection implements DatabaseConnection {
     await this.executeQuery(query);
   }
 
-  async createIndex(indexName: string, tableName: string, columns: string[]): Promise<void> {
+  async createIndex(
+    indexName: string,
+    tableName: string,
+    columns: string[]
+  ): Promise<void> {
     const query = `CREATE INDEX IF NOT EXISTS ${indexName} ON ${tableName} (${columns.join(', ')})`;
     await this.executeQuery(query);
   }
 
-  async createConstraint(constraintName: string, tableName: string, constraint: any): Promise<void> {
+  async createConstraint(
+    constraintName: string,
+    tableName: string,
+    constraint: any
+  ): Promise<void> {
     const query = `ALTER TABLE ${tableName} ADD CONSTRAINT ${constraintName} ${constraint}`;
     await this.executeQuery(query);
   }
 
   private generateCreateTableQuery(tableName: string, schema: any): string {
     // This is a simplified version - in production, you'd want a more robust schema generator
-    const columns = Object.entries(schema).map(([key, value]) => {
-      let columnDef = `${key} `;
-      
-      if (typeof value === 'string') {
-        if (value.includes('uuid')) columnDef += 'UUID PRIMARY KEY';
-        else if (value.includes('varchar')) columnDef += 'VARCHAR(255)';
-        else if (value.includes('int')) columnDef += 'INTEGER';
-        else if (value.includes('bool')) columnDef += 'BOOLEAN';
-        else if (value.includes('date')) columnDef += 'TIMESTAMP';
-        else if (value.includes('json')) columnDef += 'JSONB';
-        else columnDef += 'TEXT';
-      } else {
-        columnDef += 'TEXT';
-      }
-      
-      return columnDef;
-    }).join(', ');
-    
+    const columns = Object.entries(schema)
+      .map(([key, value]) => {
+        let columnDef = `${key} `;
+
+        if (typeof value === 'string') {
+          if (value.includes('uuid')) {
+            columnDef += 'UUID PRIMARY KEY';
+          } else if (value.includes('varchar')) {
+            columnDef += 'VARCHAR(255)';
+          } else if (value.includes('int')) {
+            columnDef += 'INTEGER';
+          } else if (value.includes('bool')) {
+            columnDef += 'BOOLEAN';
+          } else if (value.includes('date')) {
+            columnDef += 'TIMESTAMP';
+          } else if (value.includes('json')) {
+            columnDef += 'JSONB';
+          } else {
+            columnDef += 'TEXT';
+          }
+        } else {
+          columnDef += 'TEXT';
+        }
+
+        return columnDef;
+      })
+      .join(', ');
+
     return `CREATE TABLE IF NOT EXISTS ${tableName} (${columns})`;
   }
 }
@@ -305,8 +355,8 @@ export class DatabaseFactory {
 
 // Database configuration based on environment
 export const getDatabaseConfig = (): DatabaseConfig => {
-  const environment = config.app.environment;
-  
+  const { environment } = config.app;
+
   switch (environment) {
     case 'development':
       return {
@@ -319,7 +369,7 @@ export const getDatabaseConfig = (): DatabaseConfig => {
           path: './src/database/migrations',
         },
       };
-      
+
     case 'test':
       return {
         type: 'sqlite',
@@ -331,15 +381,22 @@ export const getDatabaseConfig = (): DatabaseConfig => {
           path: './src/database/migrations',
         },
       };
-      
+
     case 'production':
       return {
         type: 'postgresql',
-        host: config.database.url?.split('://')[1]?.split('@')[1]?.split(':')[0] || 'localhost',
-        port: parseInt(config.database.url?.split(':')[3]?.split('/')[0] || '5432'),
+        host:
+          config.database.url?.split('://')[1]?.split('@')[1]?.split(':')[0] ||
+          'localhost',
+        port: parseInt(
+          config.database.url?.split(':')[3]?.split('/')[0] || '5432'
+        ),
         database: config.database.url?.split('/')[3] || 'gutsafe_prod',
-        username: config.database.url?.split('://')[1]?.split(':')[0] || 'gutsafe',
-        password: config.database.url?.split('://')[1]?.split(':')[1]?.split('@')[0] || '',
+        username:
+          config.database.url?.split('://')[1]?.split(':')[0] || 'gutsafe',
+        password:
+          config.database.url?.split('://')[1]?.split(':')[1]?.split('@')[0] ||
+          '',
         ssl: true,
         pool: {
           min: 5,
@@ -358,7 +415,7 @@ export const getDatabaseConfig = (): DatabaseConfig => {
           path: './src/database/migrations',
         },
       };
-      
+
     default:
       throw new Error(`Unknown environment: ${environment}`);
   }
@@ -368,7 +425,7 @@ export const getDatabaseConfig = (): DatabaseConfig => {
 class DatabaseManager {
   private static instance: DatabaseManager;
   private connection: DatabaseConnection | null = null;
-  private config: DatabaseConfig;
+  private readonly config: DatabaseConfig;
 
   private constructor() {
     this.config = getDatabaseConfig();

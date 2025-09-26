@@ -16,12 +16,19 @@ import {
   ScrollView,
   useColorScheme,
 } from 'react-native';
+
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
-import { ScanHistory, FoodItem, ScanResult, GutCondition, SeverityLevel } from '../types';
-import OfflineService from '../services/OfflineService';
+import { Typography } from '../constants/typography';
 import NetworkService from '../services/NetworkService';
+import OfflineService from '../services/OfflineService';
+import type {
+  ScanHistory,
+  FoodItem,
+  ScanResult,
+  GutCondition,
+  SeverityLevel,
+} from '../types';
 
 interface OfflineScannerProps {
   onScanComplete: (scan: ScanHistory) => void;
@@ -59,7 +66,7 @@ export const OfflineScanner: React.FC<OfflineScannerProps> = ({
     };
 
     updateNetworkStatus();
-    
+
     // Listen for network changes
     const handleNetworkChange = () => {
       updateNetworkStatus();
@@ -74,18 +81,24 @@ export const OfflineScanner: React.FC<OfflineScannerProps> = ({
     };
   }, [networkService]);
 
-  const performSearch = useCallback(async (query: string) => {
-    setIsSearching(true);
-    try {
-      const results = await offlineService.searchCachedFoods(query);
-      setSearchResults(results);
-    } catch (error) {
-      console.error('Search failed:', error);
-      Alert.alert('Search Error', 'Failed to search cached foods. Please try again.');
-    } finally {
-      setIsSearching(false);
-    }
-  }, [offlineService]);
+  const performSearch = useCallback(
+    async (query: string) => {
+      setIsSearching(true);
+      try {
+        const results = await offlineService.searchCachedFoods(query);
+        setSearchResults(results);
+      } catch (error) {
+        console.error('Search failed:', error);
+        Alert.alert(
+          'Search Error',
+          'Failed to search cached foods. Please try again.'
+        );
+      } finally {
+        setIsSearching(false);
+      }
+    },
+    [offlineService]
+  );
 
   useEffect(() => {
     if (searchQuery.trim().length >= 2) {
@@ -116,7 +129,8 @@ export const OfflineScanner: React.FC<OfflineScannerProps> = ({
       flaggedIngredients: [] as any[],
       conditionWarnings: [] as any[],
       safeAlternatives: [] as string[],
-      explanation: 'Offline analysis - limited data available. Please check online for complete analysis.',
+      explanation:
+        'Offline analysis - limited data available. Please check online for complete analysis.',
       dataSource: 'Offline Cache',
       lastUpdated: new Date(),
     };
@@ -138,7 +152,7 @@ export const OfflineScanner: React.FC<OfflineScannerProps> = ({
 
     // Check ingredients for common triggers
     for (const trigger of commonTriggers) {
-      const hasTrigger = foodItem.ingredients.some(ingredient =>
+      const hasTrigger = foodItem.ingredients.some((ingredient) =>
         ingredient.toLowerCase().includes(trigger.ingredient)
       );
 
@@ -164,7 +178,8 @@ export const OfflineScanner: React.FC<OfflineScannerProps> = ({
       analysis.explanation = 'No common triggers detected in offline analysis.';
     } else if (analysis.flaggedIngredients.length > 2) {
       analysis.overallSafety = 'avoid';
-      analysis.explanation = 'Multiple potential triggers detected. Consider avoiding or checking online for detailed analysis.';
+      analysis.explanation =
+        'Multiple potential triggers detected. Consider avoiding or checking online for detailed analysis.';
     }
 
     // Generate basic safe alternatives
@@ -193,12 +208,12 @@ export const OfflineScanner: React.FC<OfflineScannerProps> = ({
 
     try {
       const scanResult = await analyzeFood(foodItem);
-      
+
       // Store offline scan for later sync
       await offlineService.storeOfflineScan(scanResult);
-      
+
       onScanComplete(scanResult);
-      
+
       Alert.alert(
         'Scan Complete',
         'Food analyzed offline. Results will be synced when online.',
@@ -206,52 +221,55 @@ export const OfflineScanner: React.FC<OfflineScannerProps> = ({
       );
     } catch (error) {
       console.error('Analysis failed:', error);
-      Alert.alert('Analysis Error', 'Failed to analyze food. Please try again.');
+      Alert.alert(
+        'Analysis Error',
+        'Failed to analyze food. Please try again.'
+      );
     } finally {
       setIsAnalyzing(false);
     }
   };
 
   const handleManualEntry = () => {
-    Alert.prompt(
-      'Manual Food Entry',
-      'Enter the food name:',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Analyze',
-          onPress: async (foodName) => {
-            if (foodName && foodName.trim()) {
-              const manualFoodItem: FoodItem = {
-                id: `manual_${Date.now()}`,
-                name: foodName.trim(),
-                brand: 'Unknown',
-                category: 'Unknown',
-                barcode: '0000000000000',
-                ingredients: [foodName.trim()],
-                allergens: [],
-                additives: [],
-                glutenFree: false,
-                lactoseFree: false,
-                histamineLevel: 'moderate',
-                dataSource: 'Manual Entry',
-              };
+    Alert.prompt('Manual Food Entry', 'Enter the food name:', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Analyze',
+        onPress: async (foodName) => {
+          if (foodName?.trim()) {
+            const manualFoodItem: FoodItem = {
+              id: `manual_${Date.now()}`,
+              name: foodName.trim(),
+              brand: 'Unknown',
+              category: 'Unknown',
+              barcode: '0000000000000',
+              ingredients: [foodName.trim()],
+              allergens: [],
+              additives: [],
+              glutenFree: false,
+              lactoseFree: false,
+              histamineLevel: 'moderate',
+              dataSource: 'Manual Entry',
+            };
 
-              await handleFoodSelect(manualFoodItem);
-            }
-          },
+            await handleFoodSelect(manualFoodItem);
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>Offline Scanner</Text>
-        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <Text style={[styles.closeButtonText, { color: colors.accent }]}>✕</Text>
+        <Text style={[styles.title, { color: colors.text }]}>
+          Offline Scanner
+        </Text>
+        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+          <Text style={[styles.closeButtonText, { color: colors.accent }]}>
+            ✕
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -261,7 +279,9 @@ export const OfflineScanner: React.FC<OfflineScannerProps> = ({
           <Text style={[styles.networkStatusText, { color: colors.text }]}>
             {networkStatus.isOnline ? '🟢 Online' : '🔴 Offline'}
           </Text>
-          <Text style={[styles.networkQualityText, { color: colors.textSecondary }]}>
+          <Text
+            style={[styles.networkQualityText, { color: colors.textSecondary }]}
+          >
             Quality: {networkStatus.quality}%
           </Text>
         </View>
@@ -271,14 +291,19 @@ export const OfflineScanner: React.FC<OfflineScannerProps> = ({
       </View>
 
       {/* Search Input */}
-      <View style={[styles.searchContainer, { backgroundColor: colors.surface }]}>
+      <View
+        style={[styles.searchContainer, { backgroundColor: colors.surface }]}
+      >
         <TextInput
-          style={[styles.searchInput, { color: colors.text, borderColor: colors.border }]}
           placeholder="Search cached foods..."
           placeholderTextColor={colors.textSecondary}
+          returnKeyType="search"
+          style={[
+            styles.searchInput,
+            { color: colors.text, borderColor: colors.border },
+          ]}
           value={searchQuery}
           onChangeText={setSearchQuery}
-          returnKeyType="search"
         />
         {isSearching && (
           <Text style={[styles.searchingText, { color: colors.textSecondary }]}>
@@ -301,37 +326,58 @@ export const OfflineScanner: React.FC<OfflineScannerProps> = ({
 
       {/* Search Results */}
       <ScrollView style={styles.resultsContainer}>
-        {searchResults.length === 0 && searchQuery.length >= 2 && !isSearching && (
-          <View style={styles.noResults}>
-            <Text style={[styles.noResultsText, { color: colors.textSecondary }]}>
-              No cached foods found for "{searchQuery}"
-            </Text>
-            <TouchableOpacity
-              style={[styles.manualEntryButton, { backgroundColor: colors.accent }]}
-              onPress={handleManualEntry}
-            >
-              <Text style={[styles.manualEntryButtonText, { color: Colors.white }]}>
-                Add Manually
+        {searchResults.length === 0 &&
+          searchQuery.length >= 2 &&
+          !isSearching && (
+            <View style={styles.noResults}>
+              <Text
+                style={[styles.noResultsText, { color: colors.textSecondary }]}
+              >
+                No cached foods found for "{searchQuery}"
               </Text>
-            </TouchableOpacity>
-          </View>
-        )}
+              <TouchableOpacity
+                style={[
+                  styles.manualEntryButton,
+                  { backgroundColor: colors.accent },
+                ]}
+                onPress={handleManualEntry}
+              >
+                <Text
+                  style={[
+                    styles.manualEntryButtonText,
+                    { color: Colors.white },
+                  ]}
+                >
+                  Add Manually
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
         {searchResults.map((food) => (
           <TouchableOpacity
             key={food.id}
-            style={[styles.foodItem, { backgroundColor: colors.surface, borderColor: colors.border }]}
-            onPress={() => handleFoodSelect(food)}
             disabled={isAnalyzing}
+            style={[
+              styles.foodItem,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+            onPress={() => handleFoodSelect(food)}
           >
             <View style={styles.foodInfo}>
-              <Text style={[styles.foodName, { color: colors.text }]}>{food.name}</Text>
+              <Text style={[styles.foodName, { color: colors.text }]}>
+                {food.name}
+              </Text>
               {food.brand && (
-                <Text style={[styles.foodBrand, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.foodBrand, { color: colors.textSecondary }]}
+                >
                   {food.brand}
                 </Text>
               )}
-              <Text style={[styles.foodCategory, { color: colors.textSecondary }]}>
+              <Text
+                style={[styles.foodCategory, { color: colors.textSecondary }]}
+              >
                 {food.category}
               </Text>
             </View>
@@ -346,8 +392,11 @@ export const OfflineScanner: React.FC<OfflineScannerProps> = ({
 
       {/* Offline Notice */}
       <View style={[styles.offlineNotice, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.offlineNoticeText, { color: colors.textSecondary }]}>
-          ⚠️ Offline mode: Limited analysis available. Full analysis requires internet connection.
+        <Text
+          style={[styles.offlineNoticeText, { color: colors.textSecondary }]}
+        >
+          ⚠️ Offline mode: Limited analysis available. Full analysis requires
+          internet connection.
         </Text>
       </View>
     </View>
@@ -355,142 +404,142 @@ export const OfflineScanner: React.FC<OfflineScannerProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
-  title: {
-    fontSize: Typography.fontSize.h2,
-    fontFamily: Typography.fontFamily.bold,
+  analyzeText: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.bodySmall,
   },
   closeButton: {
     padding: Spacing.xs,
   },
   closeButtonText: {
-    fontSize: 24,
     fontFamily: Typography.fontFamily.bold,
+    fontSize: 24,
   },
-  networkStatus: {
+  container: {
+    flex: 1,
+  },
+  foodActions: {
+    alignItems: 'center',
+  },
+  foodBrand: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.bodySmall,
+    marginBottom: Spacing.xs,
+  },
+  foodCategory: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.caption,
+  },
+  foodInfo: {
+    flex: 1,
+  },
+  foodItem: {
+    alignItems: 'center',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    marginHorizontal: Spacing.lg,
-    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.sm,
+    padding: Spacing.md,
   },
-  networkInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  networkStatusText: {
-    fontSize: Typography.fontSize.body,
+  foodName: {
     fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+    marginBottom: Spacing.xs,
   },
-  networkQualityText: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.regular,
-  },
-  offlineNote: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
-  },
-  searchContainer: {
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
   },
-  searchInput: {
-    borderWidth: 1,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.regular,
-  },
-  searchingText: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.regular,
-    textAlign: 'center',
-    marginTop: Spacing.sm,
-  },
-  manualEntryContainer: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
-  },
   manualEntryButton: {
+    alignItems: 'center',
+    borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
   },
   manualEntryButtonText: {
-    fontSize: Typography.fontSize.body,
     fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
   },
-  resultsContainer: {
-    flex: 1,
+  manualEntryContainer: {
+    paddingBottom: Spacing.md,
     paddingHorizontal: Spacing.lg,
+  },
+  networkInfo: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  networkQualityText: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.bodySmall,
+  },
+  networkStatus: {
+    alignItems: 'center',
+    borderRadius: BorderRadius.md,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+  },
+  networkStatusText: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
   },
   noResults: {
     alignItems: 'center',
     paddingVertical: Spacing.xl,
   },
   noResultsText: {
-    fontSize: Typography.fontSize.body,
     fontFamily: Typography.fontFamily.regular,
-    textAlign: 'center',
+    fontSize: Typography.fontSize.body,
     marginBottom: Spacing.md,
+    textAlign: 'center',
   },
-  foodItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: Spacing.md,
-    marginBottom: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-  },
-  foodInfo: {
-    flex: 1,
-  },
-  foodName: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.semiBold,
-    marginBottom: Spacing.xs,
-  },
-  foodBrand: {
-    fontSize: Typography.fontSize.bodySmall,
+  offlineNote: {
     fontFamily: Typography.fontFamily.regular,
-    marginBottom: Spacing.xs,
-  },
-  foodCategory: {
     fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
-  },
-  foodActions: {
-    alignItems: 'center',
-  },
-  analyzeText: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.semiBold,
   },
   offlineNotice: {
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
+    marginHorizontal: Spacing.lg,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
-    borderRadius: BorderRadius.md,
   },
   offlineNoticeText: {
-    fontSize: Typography.fontSize.caption,
     fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.caption,
     textAlign: 'center',
+  },
+  resultsContainer: {
+    flex: 1,
+    paddingHorizontal: Spacing.lg,
+  },
+  searchContainer: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  searchInput: {
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  searchingText: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.bodySmall,
+    marginTop: Spacing.sm,
+    textAlign: 'center',
+  },
+  title: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h2,
   },
 });

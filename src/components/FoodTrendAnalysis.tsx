@@ -15,10 +15,11 @@ import {
   useColorScheme,
   // Dimensions,
 } from 'react-native';
+
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
-import { FoodTrendData } from '../types';
+import { Typography } from '../constants/typography';
+import type { FoodTrendData } from '../types';
 
 // const { width } = Dimensions.get('window');
 
@@ -49,25 +50,37 @@ export const FoodTrendAnalysis: React.FC<FoodTrendAnalysisProps> = ({
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'improving': return '📈';
-      case 'declining': return '📉';
-      case 'stable': return '➡️';
-      default: return '📊';
+      case 'improving':
+        return '📈';
+      case 'declining':
+        return '📉';
+      case 'stable':
+        return '➡️';
+      default:
+        return '📊';
     }
   };
 
   const getTrendColor = (trend: string) => {
     switch (trend) {
-      case 'improving': return Colors.safe;
-      case 'declining': return Colors.avoid;
-      case 'stable': return Colors.caution;
-      default: return colors.text;
+      case 'improving':
+        return Colors.safe;
+      case 'declining':
+        return Colors.avoid;
+      case 'stable':
+        return Colors.caution;
+      default:
+        return colors.text;
     }
   };
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.8) return Colors.safe;
-    if (confidence >= 0.6) return Colors.caution;
+    if (confidence >= 0.8) {
+      return Colors.safe;
+    }
+    if (confidence >= 0.6) {
+      return Colors.caution;
+    }
     return Colors.avoid;
   };
 
@@ -75,11 +88,19 @@ export const FoodTrendAnalysis: React.FC<FoodTrendAnalysisProps> = ({
     const now = new Date();
     const diffTime = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+
+    if (diffDays === 0) {
+      return 'Today';
+    }
+    if (diffDays === 1) {
+      return 'Yesterday';
+    }
+    if (diffDays < 7) {
+      return `${diffDays} days ago`;
+    }
+    if (diffDays < 30) {
+      return `${Math.floor(diffDays / 7)} weeks ago`;
+    }
     return `${Math.floor(diffDays / 30)} months ago`;
   };
 
@@ -88,7 +109,7 @@ export const FoodTrendAnalysis: React.FC<FoodTrendAnalysisProps> = ({
       <Text style={[styles.title, { color: colors.text }]}>
         Food Trend Analysis
       </Text>
-      
+
       {showChart && (
         <View style={styles.chartContainer}>
           <Text style={[styles.chartTitle, { color: colors.text }]}>
@@ -102,13 +123,15 @@ export const FoodTrendAnalysis: React.FC<FoodTrendAnalysisProps> = ({
                     style={[
                       styles.bar,
                       {
-                        width: `${(food.totalScans / Math.max(...sortedData.map(f => f.totalScans))) * 100}%`,
+                        width: `${(food.totalScans / Math.max(...sortedData.map((f) => f.totalScans))) * 100}%`,
                         backgroundColor: getTrendColor(food.trend),
                       },
                     ]}
                   />
                 </View>
-                <Text style={[styles.barLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.barLabel, { color: colors.textSecondary }]}
+                >
                   {food.foodName}
                 </Text>
                 <Text style={[styles.barValue, { color: colors.text }]}>
@@ -120,16 +143,21 @@ export const FoodTrendAnalysis: React.FC<FoodTrendAnalysisProps> = ({
         </View>
       )}
 
-      <ScrollView style={styles.foodList} showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} style={styles.foodList}>
         {sortedData.map((food, _index) => (
           <TouchableOpacity
             key={food.foodName}
             style={[
               styles.foodItem,
               { backgroundColor: colors.background },
-              selectedFood?.foodName === food.foodName && styles.selectedFoodItem,
+              selectedFood?.foodName === food.foodName &&
+                styles.selectedFoodItem,
             ]}
-            onPress={() => setSelectedFood(selectedFood?.foodName === food.foodName ? null : food)}
+            onPress={() =>
+              setSelectedFood(
+                selectedFood?.foodName === food.foodName ? null : food
+              )
+            }
           >
             <View style={styles.foodHeader}>
               <Text style={[styles.foodName, { color: colors.text }]}>
@@ -137,7 +165,12 @@ export const FoodTrendAnalysis: React.FC<FoodTrendAnalysisProps> = ({
               </Text>
               <View style={styles.trendContainer}>
                 <Text style={styles.trendIcon}>{getTrendIcon(food.trend)}</Text>
-                <Text style={[styles.trendText, { color: getTrendColor(food.trend) }]}>
+                <Text
+                  style={[
+                    styles.trendText,
+                    { color: getTrendColor(food.trend) },
+                  ]}
+                >
                   {food.trend}
                 </Text>
               </View>
@@ -148,7 +181,9 @@ export const FoodTrendAnalysis: React.FC<FoodTrendAnalysisProps> = ({
                 <Text style={[styles.statValue, { color: colors.text }]}>
                   {food.totalScans}
                 </Text>
-                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.statLabel, { color: colors.textSecondary }]}
+                >
                   Total Scans
                 </Text>
               </View>
@@ -156,7 +191,9 @@ export const FoodTrendAnalysis: React.FC<FoodTrendAnalysisProps> = ({
                 <Text style={[styles.statValue, { color: Colors.safe }]}>
                   {food.safeCount}
                 </Text>
-                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.statLabel, { color: colors.textSecondary }]}
+                >
                   Safe
                 </Text>
               </View>
@@ -164,7 +201,9 @@ export const FoodTrendAnalysis: React.FC<FoodTrendAnalysisProps> = ({
                 <Text style={[styles.statValue, { color: Colors.caution }]}>
                   {food.cautionCount}
                 </Text>
-                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.statLabel, { color: colors.textSecondary }]}
+                >
                   Caution
                 </Text>
               </View>
@@ -172,17 +211,26 @@ export const FoodTrendAnalysis: React.FC<FoodTrendAnalysisProps> = ({
                 <Text style={[styles.statValue, { color: Colors.avoid }]}>
                   {food.avoidCount}
                 </Text>
-                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.statLabel, { color: colors.textSecondary }]}
+                >
                   Avoid
                 </Text>
               </View>
             </View>
 
             <View style={styles.foodDetails}>
-              <Text style={[styles.lastScanned, { color: colors.textSecondary }]}>
+              <Text
+                style={[styles.lastScanned, { color: colors.textSecondary }]}
+              >
                 Last scanned: {formatLastScanned(food.lastScanned)}
               </Text>
-              <Text style={[styles.confidence, { color: getConfidenceColor(food.confidence) }]}>
+              <Text
+                style={[
+                  styles.confidence,
+                  { color: getConfidenceColor(food.confidence) },
+                ]}
+              >
                 Confidence: {Math.round(food.confidence * 100)}%
               </Text>
             </View>
@@ -192,9 +240,13 @@ export const FoodTrendAnalysis: React.FC<FoodTrendAnalysisProps> = ({
                 <Text style={[styles.detailsTitle, { color: colors.text }]}>
                   Detailed Analysis
                 </Text>
-                <Text style={[styles.detailsText, { color: colors.textSecondary }]}>
-                  This food has been scanned {food.totalScans} times with a {Math.round(food.confidence * 100)}% confidence level.
-                  The trend shows it's {food.trend} in terms of gut health compatibility.
+                <Text
+                  style={[styles.detailsText, { color: colors.textSecondary }]}
+                >
+                  This food has been scanned {food.totalScans} times with a{' '}
+                  {Math.round(food.confidence * 100)}% confidence level. The
+                  trend shows it's {food.trend} in terms of gut health
+                  compatibility.
                 </Text>
               </View>
             )}
@@ -210,7 +262,8 @@ export const FoodTrendAnalysis: React.FC<FoodTrendAnalysisProps> = ({
           <View style={styles.insightItem}>
             <Text style={styles.insightBullet}>•</Text>
             <Text style={[styles.insightText, { color: colors.textSecondary }]}>
-              Most scanned food: {sortedData[0]?.foodName} ({sortedData[0]?.totalScans} times)
+              Most scanned food: {sortedData[0]?.foodName} (
+              {sortedData[0]?.totalScans} times)
             </Text>
           </View>
           <View style={styles.insightItem}>
@@ -222,7 +275,13 @@ export const FoodTrendAnalysis: React.FC<FoodTrendAnalysisProps> = ({
           <View style={styles.insightItem}>
             <Text style={styles.insightBullet}>•</Text>
             <Text style={[styles.insightText, { color: colors.textSecondary }]}>
-              Average confidence: {Math.round((data.reduce((sum, food) => sum + food.confidence, 0) / data.length) * 100)}%
+              Average confidence:{' '}
+              {Math.round(
+                (data.reduce((sum, food) => sum + food.confidence, 0) /
+                  data.length) *
+                  100
+              )}
+              %
             </Text>
           </View>
         </View>
@@ -232,48 +291,16 @@ export const FoodTrendAnalysis: React.FC<FoodTrendAnalysisProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginHorizontal: Spacing.lg,
-    marginVertical: Spacing.sm,
-    borderRadius: 16,
-    padding: Spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  title: {
-    fontSize: Typography.fontSize.title3,
-    fontWeight: Typography.fontWeight.bold,
-    marginBottom: Spacing.md,
-  },
-  chartContainer: {
-    marginBottom: Spacing.lg,
-  },
-  chartTitle: {
-    fontSize: Typography.fontSize.body,
-    fontWeight: Typography.fontWeight.semiBold,
-    marginBottom: Spacing.sm,
-  },
-  chartArea: {
-    gap: Spacing.sm,
-  },
-  chartBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
+  bar: {
+    borderRadius: 10,
+    height: '100%',
   },
   barContainer: {
-    flex: 1,
-    height: 20,
     backgroundColor: 'rgba(0,0,0,0.1)',
     borderRadius: 10,
+    flex: 1,
+    height: 20,
     overflow: 'hidden',
-  },
-  bar: {
-    height: '100%',
-    borderRadius: 10,
   },
   barLabel: {
     fontSize: Typography.fontSize.caption,
@@ -286,34 +313,138 @@ const styles = StyleSheet.create({
     minWidth: 30,
     textAlign: 'right',
   },
+  chartArea: {
+    gap: Spacing.sm,
+  },
+  chartBar: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  chartContainer: {
+    marginBottom: Spacing.lg,
+  },
+  chartTitle: {
+    fontSize: Typography.fontSize.body,
+    fontWeight: Typography.fontWeight.semiBold,
+    marginBottom: Spacing.sm,
+  },
+  confidence: {
+    fontSize: Typography.fontSize.caption,
+    fontWeight: Typography.fontWeight.semiBold,
+  },
+  container: {
+    borderRadius: 16,
+    elevation: 3,
+    marginHorizontal: Spacing.lg,
+    marginVertical: Spacing.sm,
+    padding: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  detailsText: {
+    fontSize: Typography.fontSize.bodySmall,
+    fontWeight: Typography.fontWeight.regular,
+    lineHeight: 18,
+  },
+  detailsTitle: {
+    fontSize: Typography.fontSize.bodySmall,
+    fontWeight: Typography.fontWeight.semiBold,
+    marginBottom: Spacing.xs,
+  },
+  expandedDetails: {
+    borderTopColor: 'rgba(0,0,0,0.1)',
+    borderTopWidth: 1,
+    marginTop: Spacing.sm,
+    paddingTop: Spacing.sm,
+  },
+  foodDetails: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  foodHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
+  },
+  foodItem: {
+    borderColor: 'rgba(0,0,0,0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: Spacing.sm,
+    padding: Spacing.md,
+  },
   foodList: {
     maxHeight: 300,
   },
-  foodItem: {
-    borderRadius: 12,
-    padding: Spacing.md,
+  foodName: {
+    flex: 1,
+    fontSize: Typography.fontSize.body,
+    fontWeight: Typography.fontWeight.semiBold,
+  },
+  foodStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
     marginBottom: Spacing.sm,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.1)',
+  },
+  insightBullet: {
+    fontSize: 16,
+    marginRight: Spacing.sm,
+    marginTop: 2,
+  },
+  insightItem: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    marginBottom: Spacing.xs,
+  },
+  insightText: {
+    flex: 1,
+    fontSize: Typography.fontSize.bodySmall,
+    lineHeight: 18,
+  },
+  insightsContainer: {
+    borderTopColor: 'rgba(0,0,0,0.1)',
+    borderTopWidth: 1,
+    marginTop: Spacing.lg,
+    paddingTop: Spacing.md,
+  },
+  insightsTitle: {
+    fontSize: Typography.fontSize.body,
+    fontWeight: Typography.fontWeight.semiBold,
+    marginBottom: Spacing.sm,
+  },
+  lastScanned: {
+    fontSize: Typography.fontSize.caption,
+    fontWeight: Typography.fontWeight.regular,
   },
   selectedFoodItem: {
     borderColor: Colors.primary,
     borderWidth: 2,
   },
-  foodHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  statItem: {
     alignItems: 'center',
-    marginBottom: Spacing.sm,
   },
-  foodName: {
+  statLabel: {
+    fontSize: Typography.fontSize.caption,
+    fontWeight: Typography.fontWeight.regular,
+  },
+  statValue: {
     fontSize: Typography.fontSize.body,
-    fontWeight: Typography.fontWeight.semiBold,
-    flex: 1,
+    fontWeight: Typography.fontWeight.bold,
+    marginBottom: 2,
+  },
+  title: {
+    fontSize: Typography.fontSize.title3,
+    fontWeight: Typography.fontWeight.bold,
+    marginBottom: Spacing.md,
   },
   trendContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
     gap: Spacing.xs,
   },
   trendIcon: {
@@ -323,77 +454,5 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.caption,
     fontWeight: Typography.fontWeight.semiBold,
     textTransform: 'capitalize',
-  },
-  foodStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: Spacing.sm,
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: Typography.fontSize.body,
-    fontWeight: Typography.fontWeight.bold,
-    marginBottom: 2,
-  },
-  statLabel: {
-    fontSize: Typography.fontSize.caption,
-    fontWeight: Typography.fontWeight.regular,
-  },
-  foodDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  lastScanned: {
-    fontSize: Typography.fontSize.caption,
-    fontWeight: Typography.fontWeight.regular,
-  },
-  confidence: {
-    fontSize: Typography.fontSize.caption,
-    fontWeight: Typography.fontWeight.semiBold,
-  },
-  expandedDetails: {
-    marginTop: Spacing.sm,
-    paddingTop: Spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.1)',
-  },
-  detailsTitle: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontWeight: Typography.fontWeight.semiBold,
-    marginBottom: Spacing.xs,
-  },
-  detailsText: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontWeight: Typography.fontWeight.regular,
-    lineHeight: 18,
-  },
-  insightsContainer: {
-    marginTop: Spacing.lg,
-    paddingTop: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.1)',
-  },
-  insightsTitle: {
-    fontSize: Typography.fontSize.body,
-    fontWeight: Typography.fontWeight.semiBold,
-    marginBottom: Spacing.sm,
-  },
-  insightItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.xs,
-  },
-  insightBullet: {
-    fontSize: 16,
-    marginRight: Spacing.sm,
-    marginTop: 2,
-  },
-  insightText: {
-    flex: 1,
-    fontSize: Typography.fontSize.bodySmall,
-    lineHeight: 18,
   },
 });

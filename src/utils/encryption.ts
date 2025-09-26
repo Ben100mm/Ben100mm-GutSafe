@@ -6,12 +6,12 @@
  */
 
 import * as CryptoJS from 'crypto-js';
+
 import { logger } from './logger';
 
 // Encryption configuration
-const ENCRYPTION_KEY = process.env.REACT_APP_ENCRYPTION_KEY || 'gutsafe-health-data-key-2024'; // In production, this should be from secure storage
-const ALGORITHM = 'AES';
-const KEY_SIZE = 256;
+const ENCRYPTION_KEY =
+  process.env['REACT_APP_ENCRYPTION_KEY'] || 'gutsafe-health-data-key-2024'; // In production, this should be from secure storage
 
 // Sensitive data fields that should be encrypted
 const SENSITIVE_FIELDS = [
@@ -39,7 +39,7 @@ export interface DecryptionResult {
 
 export class HealthDataEncryption {
   private static instance: HealthDataEncryption;
-  private key: string;
+  private readonly key: string;
 
   constructor() {
     this.key = this.generateKey();
@@ -67,8 +67,12 @@ export class HealthDataEncryption {
     const encryptedData = { ...data };
 
     // Encrypt sensitive fields
-    Object.keys(encryptedData).forEach(key => {
-      if (SENSITIVE_FIELDS.includes(key) && encryptedData[key] !== null && encryptedData[key] !== undefined) {
+    Object.keys(encryptedData).forEach((key) => {
+      if (
+        SENSITIVE_FIELDS.includes(key) &&
+        encryptedData[key] !== null &&
+        encryptedData[key] !== undefined
+      ) {
         try {
           const encrypted = this.encrypt(encryptedData[key]);
           encryptedData[key] = {
@@ -78,7 +82,11 @@ export class HealthDataEncryption {
             timestamp: encrypted.timestamp,
           };
         } catch (error) {
-          logger.error('Failed to encrypt sensitive field', 'HealthDataEncryption', { field: key, error });
+          logger.error(
+            'Failed to encrypt sensitive field',
+            'HealthDataEncryption',
+            { field: key, error }
+          );
           // Keep original data if encryption fails
         }
       }
@@ -96,13 +104,24 @@ export class HealthDataEncryption {
     const decryptedData = { ...data };
 
     // Decrypt sensitive fields
-    Object.keys(decryptedData).forEach(key => {
-      if (decryptedData[key] && typeof decryptedData[key] === 'object' && decryptedData[key].__encrypted) {
+    Object.keys(decryptedData).forEach((key) => {
+      if (
+        decryptedData[key] &&
+        typeof decryptedData[key] === 'object' &&
+        decryptedData[key].__encrypted
+      ) {
         try {
-          const decrypted = this.decrypt(decryptedData[key].data, decryptedData[key].iv);
+          const decrypted = this.decrypt(
+            decryptedData[key].data,
+            decryptedData[key].iv
+          );
           decryptedData[key] = decrypted;
         } catch (error) {
-          logger.error('Failed to decrypt sensitive field', 'HealthDataEncryption', { field: key, error });
+          logger.error(
+            'Failed to decrypt sensitive field',
+            'HealthDataEncryption',
+            { field: key, error }
+          );
           // Keep encrypted data if decryption fails
         }
       }
@@ -117,7 +136,7 @@ export class HealthDataEncryption {
       const jsonString = JSON.stringify(value);
       const iv = CryptoJS.lib.WordArray.random(16);
       const encrypted = CryptoJS.AES.encrypt(jsonString, this.key, {
-        iv: iv,
+        iv,
         mode: CryptoJS.mode.CBC,
         padding: CryptoJS.pad.Pkcs7,
       });
@@ -200,7 +219,9 @@ export class HealthDataEncryption {
       this.decrypt(data.data, data.iv);
       return true;
     } catch (error) {
-      logger.warn('Encryption validation failed', 'HealthDataEncryption', { error });
+      logger.warn('Encryption validation failed', 'HealthDataEncryption', {
+        error,
+      });
       return false;
     }
   }
@@ -208,7 +229,7 @@ export class HealthDataEncryption {
   // Secure data cleanup
   secureCleanup(data: any): void {
     if (data && typeof data === 'object') {
-      Object.keys(data).forEach(key => {
+      Object.keys(data).forEach((key) => {
         if (SENSITIVE_FIELDS.includes(key)) {
           // Overwrite with random data before deletion
           data[key] = CryptoJS.lib.WordArray.random(32).toString();

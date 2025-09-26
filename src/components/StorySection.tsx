@@ -17,9 +17,10 @@ import {
   Platform,
   // ScrollView,
 } from 'react-native';
+
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
+import { Typography } from '../constants/typography';
 import { HapticFeedback } from '../utils/haptics';
 
 // const { width } = Dimensions.get('window');
@@ -61,7 +62,7 @@ export const StorySection: React.FC<StorySectionProps> = ({
     if (enableAnimation && performanceMode !== 'low') {
       const timer = setTimeout(() => {
         // setIsVisible(true);
-        
+
         Animated.parallel([
           Animated.timing(fadeAnim, {
             toValue: 1,
@@ -133,7 +134,7 @@ export const StorySection: React.FC<StorySectionProps> = ({
       case 'cta':
         return {
           ...baseStyles,
-          backgroundColor: colors.accent + '10',
+          backgroundColor: `${colors.accent}10`,
           borderColor: colors.accent,
           borderWidth: 2,
         };
@@ -162,10 +163,7 @@ export const StorySection: React.FC<StorySectionProps> = ({
         getSectionStyles(),
         {
           opacity: fadeAnim,
-          transform: [
-            { translateY: slideAnim },
-            { scale: scaleAnim },
-          ],
+          transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
         },
       ]}
     >
@@ -183,25 +181,24 @@ export const StorySection: React.FC<StorySectionProps> = ({
         </View>
 
         {visualComponent && (
-          <View style={styles.visualContainer}>
-            {visualComponent}
-          </View>
+          <View style={styles.visualContainer}>{visualComponent}</View>
         )}
 
         {ctaText && onCTAPress && (
           <TouchableOpacity
+            accessibilityLabel={ctaText}
+            accessibilityRole="button"
+            activeOpacity={0.8}
             style={[
               styles.ctaButton,
               {
-                backgroundColor: sectionType === 'cta' ? colors.accent : colors.surface,
+                backgroundColor:
+                  sectionType === 'cta' ? colors.accent : colors.surface,
                 borderColor: colors.accent,
                 borderWidth: sectionType === 'cta' ? 0 : 2,
               },
             ]}
             onPress={handleCTAPress}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel={ctaText}
           >
             <Text
               style={[
@@ -222,9 +219,9 @@ export const StorySection: React.FC<StorySectionProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: Spacing.lg,
-    marginHorizontal: Spacing.md,
     borderRadius: BorderRadius.lg,
+    marginHorizontal: Spacing.md,
+    marginVertical: Spacing.lg,
     ...Platform.select({
       web: {
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
@@ -241,39 +238,18 @@ const styles = StyleSheet.create({
   content: {
     padding: Spacing.xl,
   },
-  textContent: {
-    marginBottom: Spacing.lg,
-  },
-  title: {
-    fontSize: Typography.fontSize.h2,
-    fontFamily: Typography.fontFamily.bold,
-    fontWeight: Typography.fontWeight.bold,
-    lineHeight: Typography.lineHeight.h2,
-    marginBottom: Spacing.sm,
-  },
-  subtitle: {
-    fontSize: Typography.fontSize.bodyLarge,
-    fontFamily: Typography.fontFamily.medium,
-    fontWeight: Typography.fontWeight.medium,
-    lineHeight: Typography.lineHeight.bodyLarge,
-    marginBottom: Spacing.md,
-  },
   contentText: {
-    fontSize: Typography.fontSize.body,
     fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
     fontWeight: Typography.fontWeight.regular,
     lineHeight: Typography.lineHeight.body,
   },
-  visualContainer: {
-    marginVertical: Spacing.lg,
-    alignItems: 'center',
-  },
   ctaButton: {
+    alignItems: 'center',
+    borderRadius: BorderRadius.full,
+    marginTop: Spacing.md,
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.lg,
-    borderRadius: BorderRadius.full,
-    alignItems: 'center',
-    marginTop: Spacing.md,
     ...Platform.select({
       web: {
         boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
@@ -288,10 +264,31 @@ const styles = StyleSheet.create({
     }),
   },
   ctaText: {
-    fontSize: Typography.fontSize.button,
     fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.button,
     fontWeight: Typography.fontWeight.semiBold,
     lineHeight: Typography.lineHeight.button,
+  },
+  subtitle: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.bodyLarge,
+    fontWeight: Typography.fontWeight.medium,
+    lineHeight: Typography.lineHeight.bodyLarge,
+    marginBottom: Spacing.md,
+  },
+  textContent: {
+    marginBottom: Spacing.lg,
+  },
+  title: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h2,
+    fontWeight: Typography.fontWeight.bold,
+    lineHeight: Typography.lineHeight.h2,
+    marginBottom: Spacing.sm,
+  },
+  visualContainer: {
+    alignItems: 'center',
+    marginVertical: Spacing.lg,
   },
 });
 

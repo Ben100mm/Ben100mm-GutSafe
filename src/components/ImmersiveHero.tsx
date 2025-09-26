@@ -17,9 +17,10 @@ import {
   Platform,
 } from 'react-native';
 import LinearGradient from 'react-native-web-linear-gradient';
+
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
+import { Typography } from '../constants/typography';
 import { HapticFeedback } from '../utils/haptics';
 // import { AnimationPresets, TransformUtils } from '../utils/animations';
 
@@ -57,11 +58,12 @@ export const ImmersiveHero: React.FC<ImmersiveHeroProps> = ({
 
   useEffect(() => {
     // Progressive loading based on performance mode
-    const loadDelay = performanceMode === 'high' ? 0 : performanceMode === 'medium' ? 100 : 300;
-    
+    const loadDelay =
+      performanceMode === 'high' ? 0 : performanceMode === 'medium' ? 100 : 300;
+
     setTimeout(() => {
       // setIsLoaded(true);
-      
+
       // Entrance animation
       Animated.parallel([
         Animated.timing(fadeAnim, {
@@ -100,7 +102,14 @@ export const ImmersiveHero: React.FC<ImmersiveHeroProps> = ({
         ).start();
       }
     }, loadDelay);
-  }, [performanceMode, enableParticles, fadeAnim, particleAnim, scaleAnim, slideAnim]);
+  }, [
+    performanceMode,
+    enableParticles,
+    fadeAnim,
+    particleAnim,
+    scaleAnim,
+    slideAnim,
+  ]);
 
   const handleCTAPress = () => {
     HapticFeedback.buttonPress();
@@ -111,26 +120,38 @@ export const ImmersiveHero: React.FC<ImmersiveHeroProps> = ({
     if (backgroundType === 'gradient') {
       return (
         <LinearGradient
-          colors={isDark ? [Colors.primary, Colors.primaryLight] : [Colors.primaryLight, Colors.primary]}
-          start={{ x: 0, y: 0 }}
+          colors={
+            isDark
+              ? [Colors.primary, Colors.primaryLight]
+              : [Colors.primaryLight, Colors.primary]
+          }
           end={{ x: 1, y: 1 }}
+          start={{ x: 0, y: 0 }}
           style={styles.background}
         />
       );
     } else if (backgroundType === 'pattern') {
       return (
-        <View style={[styles.background, { backgroundColor: colors.background }]}>
+        <View
+          style={[styles.background, { backgroundColor: colors.background }]}
+        >
           {/* Pattern overlay would go here */}
           <View style={styles.patternOverlay} />
         </View>
       );
     } else {
-      return <View style={[styles.background, { backgroundColor: colors.background }]} />;
+      return (
+        <View
+          style={[styles.background, { backgroundColor: colors.background }]}
+        />
+      );
     }
   };
 
   const renderParticles = () => {
-    if (!enableParticles || performanceMode === 'low') return null;
+    if (!enableParticles || performanceMode === 'low') {
+      return null;
+    }
 
     return (
       <View style={styles.particlesContainer}>
@@ -172,34 +193,29 @@ export const ImmersiveHero: React.FC<ImmersiveHeroProps> = ({
     <View style={styles.container}>
       {renderBackground()}
       {renderParticles()}
-      
+
       <Animated.View
         style={[
           styles.content,
           {
             opacity: fadeAnim,
-            transform: [
-              { translateY: slideAnim },
-              { scale: scaleAnim },
-            ],
+            transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
           },
         ]}
       >
         <View style={styles.textContainer}>
-          <Text style={[styles.title, { color: colors.text }]}>
-            {title}
-          </Text>
+          <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             {subtitle}
           </Text>
         </View>
 
         <TouchableOpacity
+          accessibilityLabel={ctaText}
+          accessibilityRole="button"
+          activeOpacity={0.8}
           style={[styles.ctaButton, { backgroundColor: colors.accent }]}
           onPress={handleCTAPress}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-          accessibilityLabel={ctaText}
         >
           <Text style={[styles.ctaText, { color: colors.surface }]}>
             {ctaText}
@@ -224,81 +240,40 @@ export const ImmersiveHero: React.FC<ImmersiveHeroProps> = ({
           },
         ]}
       >
-        <View style={[styles.scrollDot, { backgroundColor: colors.textTertiary }]} />
+        <View
+          style={[styles.scrollDot, { backgroundColor: colors.textTertiary }]}
+        />
       </Animated.View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  background: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
   container: {
+    alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
     minHeight: height * 0.8,
     position: 'relative',
-  },
-  background: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  patternOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    opacity: 0.1,
-    // Pattern would be implemented here
-  },
-  particlesContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  particle: {
-    position: 'absolute',
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Colors.primaryLight,
   },
   content: {
     alignItems: 'center',
     paddingHorizontal: Spacing.xl,
     zIndex: 2,
   },
-  textContainer: {
-    alignItems: 'center',
-    marginBottom: Spacing.xl,
-  },
-  title: {
-    fontSize: Typography.fontSize.hero,
-    fontFamily: Typography.fontFamily.bold,
-    fontWeight: Typography.fontWeight.bold,
-    lineHeight: Typography.lineHeight.hero,
-    textAlign: 'center',
-    marginBottom: Spacing.md,
-  },
-  subtitle: {
-    fontSize: Typography.fontSize.bodyLarge,
-    fontFamily: Typography.fontFamily.regular,
-    fontWeight: Typography.fontWeight.regular,
-    lineHeight: Typography.lineHeight.bodyLarge,
-    textAlign: 'center',
-    maxWidth: width * 0.8,
-  },
   ctaButton: {
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.lg,
+    alignItems: 'center',
     borderRadius: BorderRadius.full,
     minWidth: 200,
-    alignItems: 'center',
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.lg,
     ...Platform.select({
       web: {
         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
@@ -313,20 +288,63 @@ const styles = StyleSheet.create({
     }),
   },
   ctaText: {
-    fontSize: Typography.fontSize.button,
     fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.button,
     fontWeight: Typography.fontWeight.semiBold,
     lineHeight: Typography.lineHeight.button,
   },
-  scrollIndicator: {
+  particle: {
+    backgroundColor: Colors.primaryLight,
+    borderRadius: 2,
+    height: 4,
     position: 'absolute',
-    bottom: Spacing.xl,
-    alignItems: 'center',
+    width: 4,
+  },
+  particlesContainer: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  patternOverlay: {
+    bottom: 0,
+    left: 0,
+    opacity: 0.1,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    // Pattern would be implemented here
   },
   scrollDot: {
-    width: 6,
-    height: 6,
     borderRadius: 3,
+    height: 6,
+    width: 6,
+  },
+  scrollIndicator: {
+    alignItems: 'center',
+    bottom: Spacing.xl,
+    position: 'absolute',
+  },
+  subtitle: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.bodyLarge,
+    fontWeight: Typography.fontWeight.regular,
+    lineHeight: Typography.lineHeight.bodyLarge,
+    maxWidth: width * 0.8,
+    textAlign: 'center',
+  },
+  textContainer: {
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
+  },
+  title: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.hero,
+    fontWeight: Typography.fontWeight.bold,
+    lineHeight: Typography.lineHeight.hero,
+    marginBottom: Spacing.md,
+    textAlign: 'center',
   },
 });
 

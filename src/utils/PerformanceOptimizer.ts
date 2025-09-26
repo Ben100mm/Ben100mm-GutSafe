@@ -14,7 +14,7 @@ import { InteractionManager, Dimensions } from 'react-native';
  */
 class PerformanceOptimizer {
   private static instance: PerformanceOptimizer;
-  private performanceMetrics: Map<string, number> = new Map();
+  private readonly performanceMetrics: Map<string, number> = new Map();
   private isMonitoring: boolean = false;
 
   private constructor() {}
@@ -45,19 +45,25 @@ class PerformanceOptimizer {
     immediate: boolean = false
   ): T {
     let timeout: NodeJS.Timeout | null = null;
-    
+
     return ((...args: Parameters<T>) => {
       const later = () => {
         timeout = null;
-        if (!immediate) func(...args);
+        if (!immediate) {
+          func(...args);
+        }
       };
-      
+
       const callNow = immediate && !timeout;
-      
-      if (timeout) clearTimeout(timeout);
+
+      if (timeout) {
+        clearTimeout(timeout);
+      }
       timeout = setTimeout(later, wait);
-      
-      if (callNow) func(...args);
+
+      if (callNow) {
+        func(...args);
+      }
     }) as T;
   }
 
@@ -69,12 +75,12 @@ class PerformanceOptimizer {
     limit: number
   ): T {
     let inThrottle: boolean = false;
-    
+
     return ((...args: Parameters<T>) => {
       if (!inThrottle) {
         func(...args);
         inThrottle = true;
-        setTimeout(() => inThrottle = false, limit);
+        setTimeout(() => (inThrottle = false), limit);
       }
     }) as T;
   }
@@ -87,14 +93,14 @@ class PerformanceOptimizer {
     keyGenerator?: (...args: Parameters<T>) => string
   ): T {
     const cache = new Map<string, ReturnType<T>>();
-    
+
     return ((...args: Parameters<T>) => {
       const key = keyGenerator ? keyGenerator(...args) : JSON.stringify(args);
-      
+
       if (cache.has(key)) {
         return cache.get(key);
       }
-      
+
       const result = func(...args);
       cache.set(key, result);
       return result;
@@ -126,10 +132,7 @@ class PerformanceOptimizer {
   /**
    * Measure performance of a function
    */
-  measurePerformance<T>(
-    name: string,
-    fn: () => T
-  ): T {
+  measurePerformance<T>(name: string, fn: () => T): T {
     if (!this.isMonitoring) {
       return fn();
     }
@@ -137,10 +140,10 @@ class PerformanceOptimizer {
     const startTime = performance.now();
     const result = fn();
     const endTime = performance.now();
-    
+
     const duration = endTime - startTime;
     this.performanceMetrics.set(name, duration);
-    
+
     return result;
   }
 
@@ -158,10 +161,10 @@ class PerformanceOptimizer {
     const startTime = performance.now();
     const result = await fn();
     const endTime = performance.now();
-    
+
     const duration = endTime - startTime;
     this.performanceMetrics.set(name, duration);
-    
+
     return result;
   }
 
@@ -183,41 +186,46 @@ class PerformanceOptimizer {
     recommendations: string[];
   } {
     const metrics = Array.from(this.performanceMetrics.entries());
-    
+
     if (metrics.length === 0) {
       return {
         totalFunctions: 0,
         averageTime: 0,
         slowestFunction: '',
         fastestFunction: '',
-        recommendations: []
+        recommendations: [],
       };
     }
 
     const times = metrics.map(([_, time]) => time);
-    const averageTime = times.reduce((sum, time) => sum + time, 0) / times.length;
-    
+    const averageTime =
+      times.reduce((sum, time) => sum + time, 0) / times.length;
+
     const sortedMetrics = metrics.sort((a, b) => b[1] - a[1]);
     const slowestFunction = sortedMetrics[0]?.[0];
     const fastestFunction = sortedMetrics[sortedMetrics.length - 1]?.[0];
-    
+
     const recommendations: string[] = [];
-    
+
     if (averageTime > 100) {
-      recommendations.push('Consider optimizing functions - average time is high');
+      recommendations.push(
+        'Consider optimizing functions - average time is high'
+      );
     }
-    
+
     const slowFunctions = metrics.filter(([_, time]) => time > 200);
     if (slowFunctions.length > 0) {
-      recommendations.push(`Optimize slow functions: ${slowFunctions.map(([name]) => name).join(', ')}`);
+      recommendations.push(
+        `Optimize slow functions: ${slowFunctions.map(([name]) => name).join(', ')}`
+      );
     }
-    
+
     return {
       totalFunctions: metrics.length,
       averageTime: Math.round(averageTime * 100) / 100,
       slowestFunction: slowestFunction || 'Unknown',
       fastestFunction: fastestFunction || 'Unknown',
-      recommendations
+      recommendations,
     };
   }
 
@@ -232,14 +240,14 @@ class PerformanceOptimizer {
     const { width: screenWidth } = Dimensions.get('window');
     const targetWidth = width || screenWidth;
     const targetHeight = height || Math.round(targetWidth * 0.75);
-    
+
     // Add query parameters for image optimization
     const url = new URL(uri);
     url.searchParams.set('w', targetWidth.toString());
     url.searchParams.set('h', targetHeight.toString());
     url.searchParams.set('q', '80'); // Quality
     url.searchParams.set('f', 'webp'); // Format
-    
+
     return url.toString();
   }
 
@@ -247,7 +255,7 @@ class PerformanceOptimizer {
    * Preload critical resources
    */
   static async preloadResources(resources: string[]): Promise<void> {
-    const preloadPromises = resources.map(resource => {
+    const preloadPromises = resources.map((resource) => {
       return new Promise<void>((resolve, reject) => {
         const img = new Image();
         img.onload = () => resolve();
@@ -255,7 +263,7 @@ class PerformanceOptimizer {
         img.src = resource;
       });
     });
-    
+
     await Promise.allSettled(preloadPromises);
   }
 
@@ -271,10 +279,13 @@ class PerformanceOptimizer {
     maxToRenderPerBatch: number;
     windowSize: number;
     removeClippedSubviews: boolean;
-    getItemLayout?: (data: any, index: number) => { length: number; offset: number; index: number };
+    getItemLayout?: (
+      data: any,
+      index: number
+    ) => { length: number; offset: number; index: number };
   } {
     const visibleItems = Math.ceil(screenHeight / itemHeight);
-    
+
     return {
       initialNumToRender: Math.min(visibleItems, 10),
       maxToRenderPerBatch: Math.min(visibleItems * 2, 20),
@@ -302,7 +313,7 @@ class PerformanceOptimizer {
       'Implement lazy loading for screens',
       'Use FlatList instead of ScrollView for large lists',
       'Avoid inline functions in render methods',
-      'Use useCallback and useMemo hooks appropriately'
+      'Use useCallback and useMemo hooks appropriately',
     ];
   }
 
@@ -312,7 +323,7 @@ class PerformanceOptimizer {
   static isLowEndDevice(): boolean {
     const { width, height } = Dimensions.get('window');
     const totalPixels = width * height;
-    
+
     // Consider device low-end if screen resolution is low
     return totalPixels < 1000000; // Less than 1MP
   }
@@ -328,13 +339,13 @@ class PerformanceOptimizer {
     maxListItems: number;
   } {
     const isLowEnd = this.isLowEndDevice();
-    
+
     return {
       enableAnimations: !isLowEnd,
       enableHaptics: !isLowEnd,
       enableBlur: !isLowEnd,
       imageQuality: isLowEnd ? 60 : 80,
-      maxListItems: isLowEnd ? 50 : 100
+      maxListItems: isLowEnd ? 50 : 100,
     };
   }
 
@@ -347,18 +358,18 @@ class PerformanceOptimizer {
     jsHeapSizeLimit: number;
   } {
     if ('memory' in performance) {
-      const memory = (performance as any).memory;
+      const { memory } = performance as any;
       return {
         usedJSHeapSize: memory.usedJSHeapSize,
         totalJSHeapSize: memory.totalJSHeapSize,
-        jsHeapSizeLimit: memory.jsHeapSizeLimit
+        jsHeapSizeLimit: memory.jsHeapSizeLimit,
       };
     }
-    
+
     return {
       usedJSHeapSize: 0,
       totalJSHeapSize: 0,
-      jsHeapSizeLimit: 0
+      jsHeapSizeLimit: 0,
     };
   }
 
@@ -384,13 +395,17 @@ class PerformanceOptimizer {
   exportPerformanceData(): string {
     const report = this.getPerformanceReport();
     const metrics = Array.from(this.performanceMetrics.entries());
-    
-    return JSON.stringify({
-      timestamp: new Date().toISOString(),
-      report,
-      metrics: metrics.map(([name, time]) => ({ name, time })),
-      memory: PerformanceOptimizer.getMemoryUsage()
-    }, null, 2);
+
+    return JSON.stringify(
+      {
+        timestamp: new Date().toISOString(),
+        report,
+        metrics: metrics.map(([name, time]) => ({ name, time })),
+        memory: PerformanceOptimizer.getMemoryUsage(),
+      },
+      null,
+      2
+    );
   }
 }
 

@@ -6,15 +6,19 @@
  */
 
 import * as CryptoJS from 'crypto-js';
+
+import {
+  dataProtectionService,
+  DataClassification,
+} from './DataProtectionService';
 import { logger } from './logger';
-import { dataProtectionService, DataClassification } from './DataProtectionService';
 
 // Transmission security levels
 export enum SecurityLevel {
   LOW = 'low',
   MEDIUM = 'medium',
   HIGH = 'high',
-  CRITICAL = 'critical'
+  CRITICAL = 'critical',
 }
 
 // Secure transmission configuration
@@ -75,16 +79,16 @@ interface SecureResponse {
  */
 export class SecureTransmissionService {
   private static instance: SecureTransmissionService;
-  private endpointConfigs: Map<string, EndpointSecurity>;
-  private transmissionConfig: TransmissionConfig;
-  private apiKeys: Map<string, string>;
-  private requestCache: Map<string, { data: any; timestamp: number }>;
+  private readonly endpointConfigs: Map<string, EndpointSecurity>;
+  private readonly transmissionConfig: TransmissionConfig;
+  private readonly apiKeys: Map<string, string>;
+  private readonly requestCache: Map<string, { data: any; timestamp: number }>;
 
   private constructor() {
     this.endpointConfigs = new Map();
     this.apiKeys = new Map();
     this.requestCache = new Map();
-    
+
     this.transmissionConfig = {
       useTLS: true,
       encryptPayload: true,
@@ -92,7 +96,7 @@ export class SecureTransmissionService {
       compressPayload: true,
       timeout: 30000,
       retryAttempts: 3,
-      validateCertificate: true
+      validateCertificate: true,
     };
 
     this.initializeEndpointConfigs();
@@ -116,7 +120,7 @@ export class SecureTransmissionService {
       requiresAuth: false,
       allowedMethods: ['POST'],
       rateLimit: { requests: 10, windowMs: 60000 },
-      encryption: { required: true, algorithm: 'AES-256-GCM' }
+      encryption: { required: true, algorithm: 'AES-256-GCM' },
     });
 
     this.endpointConfigs.set('/api/user/profile', {
@@ -125,7 +129,7 @@ export class SecureTransmissionService {
       requiresAuth: true,
       allowedMethods: ['GET', 'PUT', 'DELETE'],
       rateLimit: { requests: 100, windowMs: 60000 },
-      encryption: { required: true, algorithm: 'AES-256-CBC' }
+      encryption: { required: true, algorithm: 'AES-256-CBC' },
     });
 
     this.endpointConfigs.set('/api/health-data', {
@@ -134,7 +138,7 @@ export class SecureTransmissionService {
       requiresAuth: true,
       allowedMethods: ['GET', 'POST', 'PUT'],
       rateLimit: { requests: 50, windowMs: 60000 },
-      encryption: { required: true, algorithm: 'AES-256-GCM' }
+      encryption: { required: true, algorithm: 'AES-256-GCM' },
     });
 
     // Medium security endpoints
@@ -144,7 +148,7 @@ export class SecureTransmissionService {
       requiresAuth: true,
       allowedMethods: ['GET', 'POST'],
       rateLimit: { requests: 200, windowMs: 60000 },
-      encryption: { required: false, algorithm: 'AES-128-CBC' }
+      encryption: { required: false, algorithm: 'AES-128-CBC' },
     });
 
     this.endpointConfigs.set('/api/analytics', {
@@ -153,7 +157,7 @@ export class SecureTransmissionService {
       requiresAuth: true,
       allowedMethods: ['GET', 'POST'],
       rateLimit: { requests: 100, windowMs: 60000 },
-      encryption: { required: true, algorithm: 'AES-128-CBC' }
+      encryption: { required: true, algorithm: 'AES-128-CBC' },
     });
 
     // Low security endpoints
@@ -163,7 +167,7 @@ export class SecureTransmissionService {
       requiresAuth: false,
       allowedMethods: ['GET'],
       rateLimit: { requests: 1000, windowMs: 60000 },
-      encryption: { required: false, algorithm: 'none' }
+      encryption: { required: false, algorithm: 'none' },
     });
   }
 
@@ -182,17 +186,21 @@ export class SecureTransmissionService {
   ): Promise<SecureResponse> {
     const startTime = Date.now();
     const requestId = this.generateRequestId();
-    
+
     try {
       // Get endpoint configuration
       const endpointConfig = this.getEndpointConfig(endpoint);
       if (!endpointConfig) {
-        throw new Error(`No security configuration found for endpoint: ${endpoint}`);
+        throw new Error(
+          `No security configuration found for endpoint: ${endpoint}`
+        );
       }
 
       // Validate request method
       if (!endpointConfig.allowedMethods.includes(method)) {
-        throw new Error(`Method ${method} not allowed for endpoint ${endpoint}`);
+        throw new Error(
+          `Method ${method} not allowed for endpoint ${endpoint}`
+        );
       }
 
       // Check rate limiting
@@ -217,7 +225,13 @@ export class SecureTransmissionService {
       );
 
       // Make the actual request
-      const response = await this.executeRequest(endpoint, method, secureRequest, endpointConfig, options);
+      const response = await this.executeRequest(
+        endpoint,
+        method,
+        secureRequest,
+        endpointConfig,
+        options
+      );
 
       // Process secure response
       const secureResponse = await this.processSecureResponse(
@@ -236,7 +250,7 @@ export class SecureTransmissionService {
         endpoint,
         method,
         requestId,
-        processingTime: Date.now() - startTime
+        processingTime: Date.now() - startTime,
       });
 
       return secureResponse;
@@ -245,7 +259,7 @@ export class SecureTransmissionService {
         endpoint,
         method,
         requestId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -270,19 +284,21 @@ export class SecureTransmissionService {
   private isRateLimited(endpoint: string, userId?: string): boolean {
     const key = `${endpoint}:${userId || 'anonymous'}`;
     const config = this.getEndpointConfig(endpoint);
-    
-    if (!config) return false;
+
+    if (!config) {
+      return false;
+    }
 
     const now = Date.now();
-    const windowMs = config.rateLimit.windowMs;
+    const { windowMs } = config.rateLimit;
     const maxRequests = config.rateLimit.requests;
 
     // Simple in-memory rate limiting (in production, use Redis or similar)
     const requests = this.requestCache.get(key) || { data: [], timestamp: now };
-    
+
     // Clean old requests
-    const validRequests = requests.data.filter((timestamp: number) => 
-      now - timestamp < windowMs
+    const validRequests = requests.data.filter(
+      (timestamp: number) => now - timestamp < windowMs
     );
 
     if (validRequests.length >= maxRequests) {
@@ -311,7 +327,10 @@ export class SecureTransmissionService {
     // Classify and encrypt data based on security level
     if (payload) {
       const classification = dataProtectionService.classifyData(payload);
-      processedPayload = await dataProtectionService.encryptData(payload, classification);
+      processedPayload = await dataProtectionService.encryptData(
+        payload,
+        classification
+      );
     }
 
     // Compress payload if configured
@@ -329,8 +348,8 @@ export class SecureTransmissionService {
         requestId,
         userId,
         securityLevel,
-        checksum
-      }
+        checksum,
+      },
     };
 
     // Sign request if configured
@@ -358,7 +377,7 @@ export class SecureTransmissionService {
       method,
       headers,
       body: method !== 'GET' ? JSON.stringify(secureRequest) : undefined,
-      signal: AbortSignal.timeout(this.transmissionConfig.timeout)
+      signal: AbortSignal.timeout(this.transmissionConfig.timeout),
     };
 
     // Add TLS configuration for production
@@ -373,21 +392,25 @@ export class SecureTransmissionService {
    * Build secure URL
    */
   private buildSecureUrl(endpoint: string): string {
-    const baseUrl = process.env.REACT_APP_API_BASE_URL || 'https://api.gutsafe.app';
+    const baseUrl =
+      process.env.REACT_APP_API_BASE_URL || 'https://api.gutsafe.app';
     return `${baseUrl}${endpoint}`;
   }
 
   /**
    * Build secure headers
    */
-  private buildSecureHeaders(config: EndpointSecurity, customHeaders?: Record<string, string>): Record<string, string> {
+  private buildSecureHeaders(
+    config: EndpointSecurity,
+    customHeaders?: Record<string, string>
+  ): Record<string, string> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'X-Request-ID': this.generateRequestId(),
       'X-Security-Level': config.securityLevel,
       'X-Timestamp': Date.now().toString(),
       'User-Agent': 'GutSafe/1.0.0',
-      ...customHeaders
+      ...customHeaders,
     };
 
     // Add authentication header if required
@@ -421,7 +444,7 @@ export class SecureTransmissionService {
     }
 
     const responseData = await response.json();
-    
+
     // Verify response signature if present
     if (responseData.signature && this.transmissionConfig.signPayload) {
       if (!this.verifyResponse(responseData)) {
@@ -438,8 +461,12 @@ export class SecureTransmissionService {
     // Decrypt response data
     let decryptedData = responseData.data;
     if (responseData.metadata.encrypted) {
-      const classification = this.getClassificationFromSecurityLevel(securityLevel);
-      decryptedData = await dataProtectionService.decryptData(responseData.data, classification);
+      const classification =
+        this.getClassificationFromSecurityLevel(securityLevel);
+      decryptedData = await dataProtectionService.decryptData(
+        responseData.data,
+        classification
+      );
     }
 
     // Decompress if needed
@@ -454,9 +481,9 @@ export class SecureTransmissionService {
         requestId: responseData.metadata.requestId,
         processingTime,
         securityLevel: responseData.metadata.securityLevel,
-        checksum: responseData.metadata.checksum
+        checksum: responseData.metadata.checksum,
       },
-      signature: responseData.signature
+      signature: responseData.signature,
     };
   }
 
@@ -481,9 +508,9 @@ export class SecureTransmissionService {
   private signRequest(request: SecureRequest): string {
     const dataToSign = JSON.stringify({
       payload: request.payload,
-      metadata: request.metadata
+      metadata: request.metadata,
     });
-    
+
     const secret = this.getSigningSecret();
     return CryptoJS.HmacSHA256(dataToSign, secret).toString();
   }
@@ -495,15 +522,22 @@ export class SecureTransmissionService {
     try {
       const dataToVerify = JSON.stringify({
         data: response.data,
-        metadata: response.metadata
+        metadata: response.metadata,
       });
-      
+
       const secret = this.getSigningSecret();
-      const expectedSignature = CryptoJS.HmacSHA256(dataToVerify, secret).toString();
-      
+      const expectedSignature = CryptoJS.HmacSHA256(
+        dataToVerify,
+        secret
+      ).toString();
+
       return response.signature === expectedSignature;
     } catch (error) {
-      logger.error('Response signature verification failed', 'SecureTransmissionService', error);
+      logger.error(
+        'Response signature verification failed',
+        'SecureTransmissionService',
+        error
+      );
       return false;
     }
   }
@@ -512,7 +546,9 @@ export class SecureTransmissionService {
    * Get signing secret
    */
   private getSigningSecret(): string {
-    return process.env.REACT_APP_SIGNING_SECRET || 'gutsafe-signing-secret-2024';
+    return (
+      process.env.REACT_APP_SIGNING_SECRET || 'gutsafe-signing-secret-2024'
+    );
   }
 
   /**
@@ -534,7 +570,7 @@ export class SecureTransmissionService {
       compressed: true,
       data: compressed,
       originalSize: JSON.stringify(payload).length,
-      compressedSize: compressed.length
+      compressedSize: compressed.length,
     };
   }
 
@@ -551,7 +587,9 @@ export class SecureTransmissionService {
   /**
    * Get classification from security level
    */
-  private getClassificationFromSecurityLevel(securityLevel: SecurityLevel): DataClassification {
+  private getClassificationFromSecurityLevel(
+    securityLevel: SecurityLevel
+  ): DataClassification {
     switch (securityLevel) {
       case SecurityLevel.CRITICAL:
         return DataClassification.RESTRICTED;
@@ -569,25 +607,33 @@ export class SecureTransmissionService {
   /**
    * Cache GET request
    */
-  private getCachedRequest(endpoint: string, payload?: any): SecureResponse | null {
+  private getCachedRequest(
+    endpoint: string,
+    payload?: any
+  ): SecureResponse | null {
     const key = `${endpoint}:${JSON.stringify(payload || {})}`;
     const cached = this.requestCache.get(key);
-    
-    if (cached && Date.now() - cached.timestamp < 300000) { // 5 minutes
+
+    if (cached && Date.now() - cached.timestamp < 300000) {
+      // 5 minutes
       return cached.data;
     }
-    
+
     return null;
   }
 
   /**
    * Cache request response
    */
-  private cacheRequest(endpoint: string, payload: any, response: SecureResponse): void {
+  private cacheRequest(
+    endpoint: string,
+    payload: any,
+    response: SecureResponse
+  ): void {
     const key = `${endpoint}:${JSON.stringify(payload || {})}`;
     this.requestCache.set(key, {
       data: response,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -602,11 +648,17 @@ export class SecureTransmissionService {
   /**
    * Update endpoint security configuration
    */
-  updateEndpointSecurity(endpoint: string, config: Partial<EndpointSecurity>): void {
+  updateEndpointSecurity(
+    endpoint: string,
+    config: Partial<EndpointSecurity>
+  ): void {
     const existing = this.endpointConfigs.get(endpoint);
     if (existing) {
       this.endpointConfigs.set(endpoint, { ...existing, ...config });
-      logger.info('Endpoint security updated', 'SecureTransmissionService', { endpoint, config });
+      logger.info('Endpoint security updated', 'SecureTransmissionService', {
+        endpoint,
+        config,
+      });
     }
   }
 
@@ -619,8 +671,10 @@ export class SecureTransmissionService {
       totalEndpoints: this.endpointConfigs.size,
       transmissionConfig: this.transmissionConfig,
       cacheSize: this.requestCache.size,
-      securityLevels: Array.from(this.endpointConfigs.values()).map(config => config.securityLevel),
-      complianceScore: this.calculateSecurityScore()
+      securityLevels: Array.from(this.endpointConfigs.values()).map(
+        (config) => config.securityLevel
+      ),
+      complianceScore: this.calculateSecurityScore(),
     };
   }
 
@@ -629,29 +683,41 @@ export class SecureTransmissionService {
    */
   private calculateSecurityScore(): number {
     let score = 100;
-    
+
     // Check TLS usage
-    if (!this.transmissionConfig.useTLS) score -= 30;
-    
+    if (!this.transmissionConfig.useTLS) {
+      score -= 30;
+    }
+
     // Check encryption
-    if (!this.transmissionConfig.encryptPayload) score -= 25;
-    
+    if (!this.transmissionConfig.encryptPayload) {
+      score -= 25;
+    }
+
     // Check signing
-    if (!this.transmissionConfig.signPayload) score -= 20;
-    
+    if (!this.transmissionConfig.signPayload) {
+      score -= 20;
+    }
+
     // Check certificate validation
-    if (!this.transmissionConfig.validateCertificate) score -= 15;
-    
+    if (!this.transmissionConfig.validateCertificate) {
+      score -= 15;
+    }
+
     // Check endpoint configurations
-    const criticalEndpoints = Array.from(this.endpointConfigs.values())
-      .filter(config => config.securityLevel === SecurityLevel.CRITICAL);
-    
-    if (criticalEndpoints.length === 0) score -= 10;
-    
+    const criticalEndpoints = Array.from(this.endpointConfigs.values()).filter(
+      (config) => config.securityLevel === SecurityLevel.CRITICAL
+    );
+
+    if (criticalEndpoints.length === 0) {
+      score -= 10;
+    }
+
     return Math.max(0, score);
   }
 }
 
 // Export singleton instance
-export const secureTransmissionService = SecureTransmissionService.getInstance();
+export const secureTransmissionService =
+  SecureTransmissionService.getInstance();
 export default secureTransmissionService;

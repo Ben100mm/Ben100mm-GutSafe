@@ -6,7 +6,6 @@
  */
 
 import { logger } from './logger';
-import { dataProtectionService, DataClassification } from './DataProtectionService';
 
 // GDPR consent types
 export interface GDPRConsent {
@@ -122,12 +121,12 @@ export interface DataProcessingRecord {
  */
 export class GDPRComplianceService {
   private static instance: GDPRComplianceService;
-  private consents: Map<string, GDPRConsent>;
-  private processingActivities: Map<string, DataProcessingActivity>;
-  private privacyAssessments: Map<string, PrivacyImpactAssessment>;
-  private dataBreaches: Map<string, DataBreachRecord>;
-  private processingRecords: Map<string, DataProcessingRecord>;
-  private dataSubjectRights: Map<string, DataSubjectRights>;
+  private readonly consents: Map<string, GDPRConsent>;
+  private readonly processingActivities: Map<string, DataProcessingActivity>;
+  private readonly privacyAssessments: Map<string, PrivacyImpactAssessment>;
+  private readonly dataBreaches: Map<string, DataBreachRecord>;
+  private readonly processingRecords: Map<string, DataProcessingRecord>;
+  private readonly dataSubjectRights: Map<string, DataSubjectRights>;
 
   private constructor() {
     this.consents = new Map();
@@ -136,7 +135,7 @@ export class GDPRComplianceService {
     this.dataBreaches = new Map();
     this.processingRecords = new Map();
     this.dataSubjectRights = new Map();
-    
+
     this.initializeDefaultActivities();
   }
 
@@ -157,14 +156,18 @@ export class GDPRComplianceService {
         name: 'User Registration and Authentication',
         purpose: 'User account creation and authentication',
         legalBasis: 'Consent and contract performance',
-        dataCategories: ['personal_data', 'contact_information', 'authentication_data'],
+        dataCategories: [
+          'personal_data',
+          'contact_information',
+          'authentication_data',
+        ],
         dataSubjects: ['users'],
         recipients: ['internal_systems'],
         transfers: ['eu_only'],
         retentionPeriod: 365,
         securityMeasures: ['encryption', 'access_controls', 'audit_logging'],
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       {
         id: 'health-data-processing',
@@ -178,7 +181,7 @@ export class GDPRComplianceService {
         retentionPeriod: 90,
         securityMeasures: ['encryption', 'pseudonymization', 'access_controls'],
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       {
         id: 'analytics-processing',
@@ -192,23 +195,30 @@ export class GDPRComplianceService {
         retentionPeriod: 90,
         securityMeasures: ['anonymization', 'pseudonymization'],
         createdAt: new Date(),
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     ];
 
-    defaultActivities.forEach(activity => {
+    defaultActivities.forEach((activity) => {
       this.processingActivities.set(activity.id, activity);
     });
 
-    logger.info('Default processing activities initialized', 'GDPRComplianceService', {
-      activityCount: defaultActivities.length
-    });
+    logger.info(
+      'Default processing activities initialized',
+      'GDPRComplianceService',
+      {
+        activityCount: defaultActivities.length,
+      }
+    );
   }
 
   /**
    * Register or update user consent
    */
-  registerConsent(userId: string, consentData: Partial<GDPRConsent>): GDPRConsent {
+  registerConsent(
+    userId: string,
+    consentData: Partial<GDPRConsent>
+  ): GDPRConsent {
     const existingConsent = this.consents.get(userId);
     const now = new Date();
 
@@ -233,19 +243,19 @@ export class GDPRComplianceService {
       retentionPeriod: consentData.retentionPeriod || 365,
       withdrawalMethod: consentData.withdrawalMethod || 'email',
       contactInfo: consentData.contactInfo || {
-        email: 'privacy@gutsafe.app'
-      }
+        email: 'privacy@gutsafe.app',
+      },
     };
 
     this.consents.set(userId, consent);
-    
+
     // Initialize data subject rights
     this.initializeDataSubjectRights(userId);
 
     logger.info('GDPR consent registered/updated', 'GDPRComplianceService', {
       userId,
       consentId: consent.id,
-      version: consent.version
+      version: consent.version,
     });
 
     return consent;
@@ -263,7 +273,7 @@ export class GDPRComplianceService {
       rightToDataPortability: true,
       rightToObject: true,
       rightToWithdrawConsent: true,
-      rightToLodgeComplaint: true
+      rightToLodgeComplaint: true,
     };
 
     this.dataSubjectRights.set(userId, rights);
@@ -279,7 +289,22 @@ export class GDPRComplianceService {
   /**
    * Check if user has given specific consent
    */
-  hasConsent(userId: string, consentType: keyof Omit<GDPRConsent, 'id' | 'userId' | 'version' | 'consentDate' | 'lastUpdated' | 'legalBasis' | 'purpose' | 'retentionPeriod' | 'withdrawalMethod' | 'contactInfo'>): boolean {
+  hasConsent(
+    userId: string,
+    consentType: keyof Omit<
+      GDPRConsent,
+      | 'id'
+      | 'userId'
+      | 'version'
+      | 'consentDate'
+      | 'lastUpdated'
+      | 'legalBasis'
+      | 'purpose'
+      | 'retentionPeriod'
+      | 'withdrawalMethod'
+      | 'contactInfo'
+    >
+  ): boolean {
     const consent = this.consents.get(userId);
     return consent ? consent[consentType] : false;
   }
@@ -294,7 +319,7 @@ export class GDPRComplianceService {
     }
 
     const updatedConsent = { ...consent };
-    consentTypes.forEach(type => {
+    consentTypes.forEach((type) => {
       if (type in updatedConsent) {
         (updatedConsent as any)[type] = false;
       }
@@ -305,7 +330,7 @@ export class GDPRComplianceService {
 
     logger.info('Consent withdrawn', 'GDPRComplianceService', {
       userId,
-      withdrawnTypes: consentTypes
+      withdrawnTypes: consentTypes,
     });
 
     return updatedConsent;
@@ -314,7 +339,10 @@ export class GDPRComplianceService {
   /**
    * Process data subject access request
    */
-  async processAccessRequest(userId: string, requestType: 'full' | 'specific' = 'full'): Promise<any> {
+  async processAccessRequest(
+    userId: string,
+    requestType: 'full' | 'specific' = 'full'
+  ): Promise<any> {
     const consent = this.consents.get(userId);
     if (!consent) {
       throw new Error('No consent found for user');
@@ -332,15 +360,15 @@ export class GDPRComplianceService {
       userId,
       requestDate: new Date(),
       dataProvided: userData,
-      consent: consent,
+      consent,
       rights: this.dataSubjectRights.get(userId),
-      contactInfo: consent.contactInfo
+      contactInfo: consent.contactInfo,
     };
 
     logger.info('Data access request processed', 'GDPRComplianceService', {
       userId,
       requestId: accessResponse.requestId,
-      dataTypes: Object.keys(userData)
+      dataTypes: Object.keys(userData),
     });
 
     return accessResponse;
@@ -356,7 +384,7 @@ export class GDPRComplianceService {
     }
 
     const userData = await this.gatherUserData(userId, 'full');
-    
+
     // Format data for portability (machine-readable format)
     const portableData = {
       format: 'JSON',
@@ -364,12 +392,12 @@ export class GDPRComplianceService {
       exportDate: new Date(),
       userId,
       data: userData,
-      schema: this.getDataSchema()
+      schema: this.getDataSchema(),
     };
 
     logger.info('Data portability request processed', 'GDPRComplianceService', {
       userId,
-      dataSize: JSON.stringify(portableData).length
+      dataSize: JSON.stringify(portableData).length,
     });
 
     return portableData;
@@ -378,7 +406,10 @@ export class GDPRComplianceService {
   /**
    * Process right to erasure request
    */
-  async processErasureRequest(userId: string, reason: string): Promise<boolean> {
+  async processErasureRequest(
+    userId: string,
+    reason: string
+  ): Promise<boolean> {
     const consent = this.consents.get(userId);
     if (!consent?.rightToErasure) {
       throw new Error('User has not consented to right to erasure');
@@ -387,21 +418,21 @@ export class GDPRComplianceService {
     try {
       // Delete user data from all systems
       await this.deleteUserData(userId);
-      
+
       // Remove consent record
       this.consents.delete(userId);
       this.dataSubjectRights.delete(userId);
 
       logger.info('Data erasure request processed', 'GDPRComplianceService', {
         userId,
-        reason
+        reason,
       });
 
       return true;
     } catch (error) {
       logger.error('Data erasure failed', 'GDPRComplianceService', {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       return false;
     }
@@ -428,7 +459,7 @@ export class GDPRComplianceService {
       processedAt: new Date(),
       dataCategories,
       retentionPeriod: 90, // Default retention period
-      consentId: this.consents.get(userId)?.id
+      consentId: this.consents.get(userId)?.id || '',
     };
 
     this.processingRecords.set(processingRecord.id, processingRecord);
@@ -437,7 +468,7 @@ export class GDPRComplianceService {
       userId,
       activityId,
       dataType,
-      purpose
+      purpose,
     });
 
     return processingRecord;
@@ -448,13 +479,16 @@ export class GDPRComplianceService {
    */
   createPrivacyImpactAssessment(
     activityId: string,
-    assessmentData: Omit<PrivacyImpactAssessment, 'id' | 'activityId' | 'assessmentDate'>
+    assessmentData: Omit<
+      PrivacyImpactAssessment,
+      'id' | 'activityId' | 'assessmentDate'
+    >
   ): PrivacyImpactAssessment {
     const assessment: PrivacyImpactAssessment = {
       id: this.generateAssessmentId(),
       activityId,
       assessmentDate: new Date(),
-      ...assessmentData
+      ...assessmentData,
     };
 
     this.privacyAssessments.set(assessment.id, assessment);
@@ -462,7 +496,7 @@ export class GDPRComplianceService {
     logger.info('Privacy impact assessment created', 'GDPRComplianceService', {
       assessmentId: assessment.id,
       activityId,
-      riskLevel: assessment.riskLevel
+      riskLevel: assessment.riskLevel,
     });
 
     return assessment;
@@ -471,12 +505,14 @@ export class GDPRComplianceService {
   /**
    * Record data breach
    */
-  recordDataBreach(breachData: Omit<DataBreachRecord, 'id' | 'breachDate' | 'discoveryDate'>): DataBreachRecord {
+  recordDataBreach(
+    breachData: Omit<DataBreachRecord, 'id' | 'breachDate' | 'discoveryDate'>
+  ): DataBreachRecord {
     const breach: DataBreachRecord = {
       id: this.generateBreachId(),
       breachDate: new Date(),
       discoveryDate: new Date(),
-      ...breachData
+      ...breachData,
     };
 
     this.dataBreaches.set(breach.id, breach);
@@ -489,7 +525,7 @@ export class GDPRComplianceService {
     logger.warn('Data breach recorded', 'GDPRComplianceService', {
       breachId: breach.id,
       severity: breach.severity,
-      affectedSubjects: breach.affectedSubjects
+      affectedSubjects: breach.affectedSubjects,
     });
 
     return breach;
@@ -509,27 +545,30 @@ export class GDPRComplianceService {
       reportDate: now,
       summary: {
         totalUsers: consents.length,
-        activeConsents: consents.filter(c => c.dataProcessing).length,
+        activeConsents: consents.filter((c) => c.dataProcessing).length,
         processingActivities: activities.length,
         privacyAssessments: assessments.length,
         dataBreaches: breaches.length,
-        complianceScore: this.calculateComplianceScore()
+        complianceScore: this.calculateComplianceScore(),
       },
       consentBreakdown: {
-        dataProcessing: consents.filter(c => c.dataProcessing).length,
-        analytics: consents.filter(c => c.analytics).length,
-        marketing: consents.filter(c => c.marketing).length,
-        dataSharing: consents.filter(c => c.dataSharing).length
+        dataProcessing: consents.filter((c) => c.dataProcessing).length,
+        analytics: consents.filter((c) => c.analytics).length,
+        marketing: consents.filter((c) => c.marketing).length,
+        dataSharing: consents.filter((c) => c.dataSharing).length,
       },
       riskAssessment: {
-        highRiskActivities: activities.filter(a => 
-          assessments.some(ass => ass.activityId === a.id && ass.riskLevel === 'high')
+        highRiskActivities: activities.filter((a) =>
+          assessments.some(
+            (ass) => ass.activityId === a.id && ass.riskLevel === 'high'
+          )
         ).length,
-        recentBreaches: breaches.filter(b => 
-          now.getTime() - b.discoveryDate.getTime() < 30 * 24 * 60 * 60 * 1000
-        ).length
+        recentBreaches: breaches.filter(
+          (b) =>
+            now.getTime() - b.discoveryDate.getTime() < 30 * 24 * 60 * 60 * 1000
+        ).length,
       },
-      recommendations: this.generateComplianceRecommendations()
+      recommendations: this.generateComplianceRecommendations(),
     };
   }
 
@@ -543,19 +582,25 @@ export class GDPRComplianceService {
     const assessments = Array.from(this.privacyAssessments.values());
 
     // Deduct points for missing elements
-    if (consents.length === 0) score -= 30;
-    if (activities.length < 3) score -= 20;
-    if (assessments.length === 0) score -= 25;
-    
+    if (consents.length === 0) {
+      score -= 30;
+    }
+    if (activities.length < 3) {
+      score -= 20;
+    }
+    if (assessments.length === 0) {
+      score -= 25;
+    }
+
     // Check for high-risk activities without assessments
-    const highRiskActivities = activities.filter(a => 
-      !assessments.some(ass => ass.activityId === a.id)
+    const highRiskActivities = activities.filter(
+      (a) => !assessments.some((ass) => ass.activityId === a.id)
     );
     score -= highRiskActivities.length * 10;
 
     // Check for recent breaches
-    const recentBreaches = Array.from(this.dataBreaches.values()).filter(b => 
-      Date.now() - b.discoveryDate.getTime() < 30 * 24 * 60 * 60 * 1000
+    const recentBreaches = Array.from(this.dataBreaches.values()).filter(
+      (b) => Date.now() - b.discoveryDate.getTime() < 30 * 24 * 60 * 60 * 1000
     );
     score -= recentBreaches.length * 15;
 
@@ -580,11 +625,13 @@ export class GDPRComplianceService {
     }
 
     if (assessments.length === 0) {
-      recommendations.push('Conduct privacy impact assessments for high-risk activities');
+      recommendations.push(
+        'Conduct privacy impact assessments for high-risk activities'
+      );
     }
 
-    const recentBreaches = Array.from(this.dataBreaches.values()).filter(b => 
-      Date.now() - b.discoveryDate.getTime() < 30 * 24 * 60 * 60 * 1000
+    const recentBreaches = Array.from(this.dataBreaches.values()).filter(
+      (b) => Date.now() - b.discoveryDate.getTime() < 30 * 24 * 60 * 60 * 1000
     );
 
     if (recentBreaches.length > 0) {
@@ -597,13 +644,16 @@ export class GDPRComplianceService {
   /**
    * Gather user data (placeholder - would integrate with actual data sources)
    */
-  private async gatherUserData(userId: string, requestType: string): Promise<any> {
+  private async gatherUserData(
+    userId: string,
+    _requestType: string
+  ): Promise<any> {
     // In a real implementation, this would query all data sources
     return {
       profile: { userId, email: 'user@example.com' },
       healthData: { symptoms: [], medications: [] },
       scanHistory: [],
-      preferences: {}
+      preferences: {},
     };
   }
 
@@ -625,14 +675,14 @@ export class GDPRComplianceService {
         profile: {
           userId: 'string',
           email: 'string',
-          preferences: 'object'
+          preferences: 'object',
         },
         healthData: {
           symptoms: 'array',
           medications: 'array',
-          scanHistory: 'array'
-        }
-      }
+          scanHistory: 'array',
+        },
+      },
     };
   }
 
@@ -643,7 +693,7 @@ export class GDPRComplianceService {
     // In a real implementation, this would schedule notification to authorities
     logger.warn('Regulatory notification scheduled', 'GDPRComplianceService', {
       breachId: breach.id,
-      severity: breach.severity
+      severity: breach.severity,
     });
   }
 

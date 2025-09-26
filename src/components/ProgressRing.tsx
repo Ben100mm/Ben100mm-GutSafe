@@ -14,10 +14,11 @@ import {
   // Dimensions,
   useColorScheme,
 } from 'react-native';
+
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
-import { ProgressRing as ProgressRingType } from '../types';
+import { Typography } from '../constants/typography';
+import type { ProgressRing as ProgressRingType } from '../types';
 
 interface ProgressRingProps {
   data: ProgressRingType;
@@ -41,7 +42,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = isDark ? Colors.dark : Colors.light;
-  
+
   const animatedValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -66,19 +67,21 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
     <View style={styles.container}>
       <View style={[styles.ringContainer, { width: size, height: size }]}>
         {/* Simple circular progress using View with border */}
-        <View style={[
-          styles.progressCircle,
-          {
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-            borderWidth: strokeWidth,
-            borderColor: colors.border,
-            borderTopColor: data.color,
-            transform: [{ rotate: `${(data.value / 100) * 360}deg` }],
-          }
-        ]} />
-        
+        <View
+          style={[
+            styles.progressCircle,
+            {
+              width: size,
+              height: size,
+              borderRadius: size / 2,
+              borderWidth: strokeWidth,
+              borderColor: colors.border,
+              borderTopColor: data.color,
+              transform: [{ rotate: `${(data.value / 100) * 360}deg` }],
+            },
+          ]}
+        />
+
         {/* Center content */}
         <View style={styles.centerContent}>
           {showValue && (
@@ -93,11 +96,9 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
           )}
         </View>
       </View>
-      
+
       {/* Label below ring */}
-      <Text style={[styles.label, { color: colors.text }]}>
-        {data.label}
-      </Text>
+      <Text style={[styles.label, { color: colors.text }]}>{data.label}</Text>
     </View>
   );
 };
@@ -119,11 +120,12 @@ export const MultipleProgressRings: React.FC<MultipleProgressRingsProps> = ({
   const isDark = colorScheme === 'dark';
   const colors = isDark ? Colors.dark : Colors.light;
 
-  const containerStyle = layout === 'horizontal' 
-    ? styles.horizontalContainer 
-    : layout === 'vertical' 
-    ? styles.verticalContainer 
-    : styles.gridContainer;
+  const containerStyle =
+    layout === 'horizontal'
+      ? styles.horizontalContainer
+      : layout === 'vertical'
+        ? styles.verticalContainer
+        : styles.gridContainer;
 
   return (
     <View style={[containerStyle, { backgroundColor: colors.surface }]}>
@@ -140,53 +142,53 @@ export const MultipleProgressRings: React.FC<MultipleProgressRingsProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ringContainer: {
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  progressCircle: {
-    position: 'absolute',
-  },
   centerContent: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  value: {
-    fontSize: Typography.fontSize.title2,
-    fontWeight: Typography.fontWeight.bold,
-    lineHeight: Typography.lineHeight.title2,
+  container: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+    padding: Spacing.lg,
+  },
+  horizontalContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: Spacing.lg,
+  },
+  label: {
+    fontSize: Typography.fontSize.caption,
+    fontWeight: Typography.fontWeight.medium,
+    marginTop: Spacing.sm,
+    textAlign: 'center',
+  },
+  progressCircle: {
+    position: 'absolute',
+  },
+  ringContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
   },
   unit: {
     fontSize: Typography.fontSize.caption,
     fontWeight: Typography.fontWeight.medium,
     marginTop: 2,
   },
-  label: {
-    fontSize: Typography.fontSize.caption,
-    fontWeight: Typography.fontWeight.medium,
-    textAlign: 'center',
-    marginTop: Spacing.sm,
-  },
-  horizontalContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    padding: Spacing.lg,
+  value: {
+    fontSize: Typography.fontSize.title2,
+    fontWeight: Typography.fontWeight.bold,
+    lineHeight: Typography.lineHeight.title2,
   },
   verticalContainer: {
-    flexDirection: 'column',
     alignItems: 'center',
-    padding: Spacing.lg,
-  },
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around',
+    flexDirection: 'column',
     padding: Spacing.lg,
   },
 });

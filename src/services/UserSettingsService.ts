@@ -5,8 +5,8 @@
  * @private
  */
 
+import type { UserSettings } from '../types/comprehensive';
 import { logger } from '../utils/logger';
-import { UserSettings } from '../types/comprehensive';
 
 /**
  * UserSettingsService - Handles user settings
@@ -14,7 +14,7 @@ import { UserSettings } from '../types/comprehensive';
 class UserSettingsService {
   private static instance: UserSettingsService;
   private settings: UserSettings | null = null;
-  private listeners: ((settings: UserSettings) => void)[] = [];
+  private readonly listeners: ((settings: UserSettings) => void)[] = [];
 
   private constructor() {}
 
@@ -45,14 +45,27 @@ class UserSettingsService {
     };
   }
 
-  async updatePreferences(preferences: Partial<UserSettings['preferences']>): Promise<void> {
-    if (!this.settings) return;
-    this.settings.preferences = { ...this.settings.preferences, ...preferences };
+  async updatePreferences(
+    preferences: Partial<UserSettings['preferences']>
+  ): Promise<void> {
+    if (!this.settings) {
+      return;
+    }
+    this.settings.preferences = {
+      ...this.settings.preferences,
+      ...preferences,
+    };
     this.notifyListeners();
   }
 
-  async setSettingValue(section: keyof UserSettings, key: string, value: any): Promise<void> {
-    if (!this.settings) return;
+  async setSettingValue(
+    section: keyof UserSettings,
+    key: string,
+    value: any
+  ): Promise<void> {
+    if (!this.settings) {
+      return;
+    }
     (this.settings[section] as any)[key] = value;
     this.notifyListeners();
   }
@@ -72,13 +85,17 @@ class UserSettingsService {
         gutProfile: {
           id: 'default',
           conditions: {
-            'ibs-fodmap': { enabled: false, severity: 'mild', knownTriggers: [] },
-            'gluten': { enabled: false, severity: 'mild', knownTriggers: [] },
-            'lactose': { enabled: false, severity: 'mild', knownTriggers: [] },
-            'reflux': { enabled: false, severity: 'mild', knownTriggers: [] },
-            'histamine': { enabled: false, severity: 'mild', knownTriggers: [] },
-            'allergies': { enabled: false, severity: 'mild', knownTriggers: [] },
-            'additives': { enabled: false, severity: 'mild', knownTriggers: [] },
+            'ibs-fodmap': {
+              enabled: false,
+              severity: 'mild',
+              knownTriggers: [],
+            },
+            gluten: { enabled: false, severity: 'mild', knownTriggers: [] },
+            lactose: { enabled: false, severity: 'mild', knownTriggers: [] },
+            reflux: { enabled: false, severity: 'mild', knownTriggers: [] },
+            histamine: { enabled: false, severity: 'mild', knownTriggers: [] },
+            allergies: { enabled: false, severity: 'mild', knownTriggers: [] },
+            additives: { enabled: false, severity: 'mild', knownTriggers: [] },
           },
           preferences: {
             dietaryRestrictions: [],
@@ -95,18 +112,30 @@ class UserSettingsService {
         notifications: {
           enabled: true,
           mealReminders: true,
+          newSafeFoods: true,
           scanReminders: true,
           weeklyReports: true,
+        },
+        haptics: {
+          enabled: true,
+          intensity: 'medium' as const,
+        },
+        accessibility: {
+          voiceOver: false,
+          largeText: false,
+          highContrast: false,
+          reducedMotion: false,
         },
       },
       privacy: {
         dataSharing: false,
         analytics: false,
         crashReporting: false,
+        personalizedAds: false,
       },
       sync: {
         enabled: false,
-        lastSync: null,
+        frequency: 'daily' as const,
       },
       scanning: {
         autoScan: false,
@@ -131,7 +160,7 @@ class UserSettingsService {
 
   private notifyListeners(): void {
     if (this.settings) {
-      this.listeners.forEach(listener => listener(this.settings!));
+      this.listeners.forEach((listener) => listener(this.settings!));
     }
   }
 

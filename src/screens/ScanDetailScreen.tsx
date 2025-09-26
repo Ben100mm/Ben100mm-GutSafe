@@ -5,6 +5,8 @@
  * @private
  */
 
+import type { RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
@@ -18,19 +20,24 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+
 import LinearGradient from '../components/LinearGradientWrapper';
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
-import { ScanHistory, ScanResult, SeverityLevel, GutCondition } from '../types';
+import { Typography } from '../constants/typography';
+import type {
+  ScanHistory,
+  ScanResult,
+  SeverityLevel,
+  GutCondition,
+} from '../types';
 import { SharingService } from '../utils/sharing';
 
-type ScanDetailRouteParams = {
+interface ScanDetailRouteParams {
   ScanDetail: {
     scanId: string;
   };
-};
+}
 
 type ScanDetailRouteProp = RouteProp<ScanDetailRouteParams, 'ScanDetail'>;
 
@@ -57,7 +64,8 @@ const mockScanData: { [key: string]: ScanHistory } = {
       flaggedIngredients: [],
       conditionWarnings: [],
       safeAlternatives: ['Coconut yogurt', 'Almond yogurt'],
-      explanation: 'This Greek yogurt is low in histamine and contains probiotics that may benefit gut health. No problematic ingredients detected.',
+      explanation:
+        'This Greek yogurt is low in histamine and contains probiotics that may benefit gut health. No problematic ingredients detected.',
       dataSource: 'USDA Food Database',
       lastUpdated: new Date(Date.now() - 2 * 60 * 60 * 1000),
     },
@@ -104,7 +112,8 @@ const mockScanData: { [key: string]: ScanHistory } = {
         },
       ],
       safeAlternatives: ['Sourdough bread', 'Gluten-free bread', 'Rice cakes'],
-      explanation: 'This wheat bread contains gluten and fructans that may trigger digestive symptoms in sensitive individuals.',
+      explanation:
+        'This wheat bread contains gluten and fructans that may trigger digestive symptoms in sensitive individuals.',
       dataSource: 'Monash FODMAP Database',
       lastUpdated: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
     },
@@ -149,8 +158,13 @@ const mockScanData: { [key: string]: ScanHistory } = {
           condition: 'histamine' as GutCondition,
         },
       ],
-      safeAlternatives: ['Fresh mozzarella', 'Cottage cheese', 'Ricotta cheese'],
-      explanation: 'This aged cheddar cheese contains very high levels of histamine and tyramine, which can trigger severe reactions in sensitive individuals.',
+      safeAlternatives: [
+        'Fresh mozzarella',
+        'Cottage cheese',
+        'Ricotta cheese',
+      ],
+      explanation:
+        'This aged cheddar cheese contains very high levels of histamine and tyramine, which can trigger severe reactions in sensitive individuals.',
       dataSource: 'Histamine Intolerance Database',
       lastUpdated: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
     },
@@ -167,8 +181,10 @@ export const ScanDetailScreen: React.FC = () => {
 
   const { scanId } = route.params;
   const [scanData, setScanData] = useState<ScanHistory | null>(null);
-  const [userFeedback, setUserFeedback] = useState<'accurate' | 'inaccurate' | null>(null);
-  
+  const [userFeedback, setUserFeedback] = useState<
+    'accurate' | 'inaccurate' | null
+  >(null);
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
 
@@ -179,7 +195,7 @@ export const ScanDetailScreen: React.FC = () => {
       if (data) {
         setScanData(data);
         setUserFeedback(data.userFeedback || null);
-        
+
         // Animate content in
         Animated.parallel([
           Animated.timing(fadeAnim, {
@@ -200,8 +216,10 @@ export const ScanDetailScreen: React.FC = () => {
   }, [scanId, fadeAnim, slideAnim]);
 
   const getResultConfig = () => {
-    if (!scanData) return null;
-    
+    if (!scanData) {
+      return null;
+    }
+
     switch (scanData.analysis.overallSafety) {
       case 'safe':
         return {
@@ -269,7 +287,9 @@ export const ScanDetailScreen: React.FC = () => {
   // };
 
   const handleShareWithOptions = async () => {
-    if (!scanData) return;
+    if (!scanData) {
+      return;
+    }
     await SharingService.shareWithOptions({
       type: 'scan_result',
       title: `GutSafe Scan: ${scanData.foodItem.name}`,
@@ -280,8 +300,10 @@ export const ScanDetailScreen: React.FC = () => {
   };
 
   const handleAddToSafeFoods = () => {
-    if (!scanData) return;
-    
+    if (!scanData) {
+      return;
+    }
+
     Alert.alert(
       'Add to Safe Foods',
       `Add "${scanData.foodItem.name}" to your safe foods list?`,
@@ -310,45 +332,65 @@ export const ScanDetailScreen: React.FC = () => {
 
   if (!scanData) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
         <View style={styles.loadingContainer}>
-          <Text style={[styles.loadingText, { color: colors.text }]}>Loading...</Text>
+          <Text style={[styles.loadingText, { color: colors.text }]}>
+            Loading...
+          </Text>
         </View>
       </SafeAreaView>
     );
   }
 
   const resultConfig = getResultConfig();
-  if (!resultConfig) return null;
+  if (!resultConfig) {
+    return null;
+  }
 
   const { foodItem, analysis } = scanData;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={[styles.backButtonText, { color: colors.accent }]}>‹ Back</Text>
+          <Text style={[styles.backButtonText, { color: colors.accent }]}>
+            ‹ Back
+          </Text>
         </TouchableOpacity>
         <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.actionButton} onPress={handleAddToSafeFoods}>
-            <Text style={[styles.actionButtonText, { color: colors.accent }]}>+ Safe</Text>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={handleAddToSafeFoods}
+          >
+            <Text style={[styles.actionButtonText, { color: colors.accent }]}>
+              + Safe
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={handleShareWithOptions}>
-            <Text style={[styles.actionButtonText, { color: colors.accent }]}>Share</Text>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={handleShareWithOptions}
+          >
+            <Text style={[styles.actionButtonText, { color: colors.accent }]}>
+              Share
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        style={styles.scrollView}
       >
         <Animated.View
           style={[
@@ -398,25 +440,43 @@ export const ScanDetailScreen: React.FC = () => {
                     <Text style={styles.severityIcon}>
                       {getSeverityIcon(ingredient.severity)}
                     </Text>
-                    <Text style={[styles.ingredientName, { color: colors.text }]}>
+                    <Text
+                      style={[styles.ingredientName, { color: colors.text }]}
+                    >
                       {ingredient.ingredient}
                     </Text>
-                    <View style={[
-                      styles.severityBadge,
-                      { backgroundColor: `${getSeverityColor(ingredient.severity)}20` }
-                    ]}>
-                      <Text style={[
-                        styles.severityText,
-                        { color: getSeverityColor(ingredient.severity) }
-                      ]}>
+                    <View
+                      style={[
+                        styles.severityBadge,
+                        {
+                          backgroundColor: `${getSeverityColor(ingredient.severity)}20`,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.severityText,
+                          { color: getSeverityColor(ingredient.severity) },
+                        ]}
+                      >
                         {ingredient.severity}
                       </Text>
                     </View>
                   </View>
-                  <Text style={[styles.ingredientReason, { color: colors.textSecondary }]}>
+                  <Text
+                    style={[
+                      styles.ingredientReason,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
                     {ingredient.reason}
                   </Text>
-                  <Text style={[styles.conditionText, { color: colors.textTertiary }]}>
+                  <Text
+                    style={[
+                      styles.conditionText,
+                      { color: colors.textTertiary },
+                    ]}
+                  >
                     Affects: {ingredient.condition}
                   </Text>
                 </View>
@@ -432,9 +492,17 @@ export const ScanDetailScreen: React.FC = () => {
               </Text>
               <View style={styles.alternativesGrid}>
                 {analysis.safeAlternatives.map((alternative, index) => (
-                  <View key={index} style={[styles.alternativeCard, { backgroundColor: colors.background }]}>
+                  <View
+                    key={index}
+                    style={[
+                      styles.alternativeCard,
+                      { backgroundColor: colors.background },
+                    ]}
+                  >
                     <Text style={styles.alternativeIcon}>✅</Text>
-                    <Text style={[styles.alternativeText, { color: colors.text }]}>
+                    <Text
+                      style={[styles.alternativeText, { color: colors.text }]}
+                    >
                       {alternative}
                     </Text>
                   </View>
@@ -453,7 +521,12 @@ export const ScanDetailScreen: React.FC = () => {
                 <Text style={[styles.dataSourceName, { color: colors.text }]}>
                   {analysis.dataSource}
                 </Text>
-                <Text style={[styles.dataSourceDescription, { color: colors.textSecondary }]}>
+                <Text
+                  style={[
+                    styles.dataSourceDescription,
+                    { color: colors.textSecondary },
+                  ]}
+                >
                   Last updated: {analysis.lastUpdated.toLocaleDateString()}
                 </Text>
               </View>
@@ -470,7 +543,9 @@ export const ScanDetailScreen: React.FC = () => {
             </Text>
             <View style={styles.detailsGrid}>
               <View style={styles.detailItem}>
-                <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.detailLabel, { color: colors.textSecondary }]}
+                >
                   Category
                 </Text>
                 <Text style={[styles.detailValue, { color: colors.text }]}>
@@ -479,7 +554,12 @@ export const ScanDetailScreen: React.FC = () => {
               </View>
               {foodItem.histamineLevel && (
                 <View style={styles.detailItem}>
-                  <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
+                  <Text
+                    style={[
+                      styles.detailLabel,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
                     Histamine Level
                   </Text>
                   <Text style={[styles.detailValue, { color: colors.text }]}>
@@ -488,7 +568,9 @@ export const ScanDetailScreen: React.FC = () => {
                 </View>
               )}
               <View style={styles.detailItem}>
-                <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.detailLabel, { color: colors.textSecondary }]}
+                >
                   Scanned
                 </Text>
                 <Text style={[styles.detailValue, { color: colors.text }]}>
@@ -497,7 +579,12 @@ export const ScanDetailScreen: React.FC = () => {
               </View>
               {foodItem.barcode && (
                 <View style={styles.detailItem}>
-                  <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
+                  <Text
+                    style={[
+                      styles.detailLabel,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
                     Barcode
                   </Text>
                   <Text style={[styles.detailValue, { color: colors.text }]}>
@@ -518,16 +605,26 @@ export const ScanDetailScreen: React.FC = () => {
                 style={[
                   styles.feedbackButton,
                   {
-                    backgroundColor: userFeedback === 'accurate' ? Colors.safe : colors.background,
+                    backgroundColor:
+                      userFeedback === 'accurate'
+                        ? Colors.safe
+                        : colors.background,
                     borderColor: Colors.safe,
                   },
                 ]}
                 onPress={() => handleFeedback('accurate')}
               >
-                <Text style={[
-                  styles.feedbackButtonText,
-                  { color: userFeedback === 'accurate' ? Colors.white : Colors.safe }
-                ]}>
+                <Text
+                  style={[
+                    styles.feedbackButtonText,
+                    {
+                      color:
+                        userFeedback === 'accurate'
+                          ? Colors.white
+                          : Colors.safe,
+                    },
+                  ]}
+                >
                   ✓ Accurate
                 </Text>
               </TouchableOpacity>
@@ -535,16 +632,26 @@ export const ScanDetailScreen: React.FC = () => {
                 style={[
                   styles.feedbackButton,
                   {
-                    backgroundColor: userFeedback === 'inaccurate' ? Colors.avoid : colors.background,
+                    backgroundColor:
+                      userFeedback === 'inaccurate'
+                        ? Colors.avoid
+                        : colors.background,
                     borderColor: Colors.avoid,
                   },
                 ]}
                 onPress={() => handleFeedback('inaccurate')}
               >
-                <Text style={[
-                  styles.feedbackButtonText,
-                  { color: userFeedback === 'inaccurate' ? Colors.white : Colors.avoid }
-                ]}>
+                <Text
+                  style={[
+                    styles.feedbackButtonText,
+                    {
+                      color:
+                        userFeedback === 'inaccurate'
+                          ? Colors.white
+                          : Colors.avoid,
+                    },
+                  ]}
+                >
                   ✗ Inaccurate
                 </Text>
               </TouchableOpacity>
@@ -557,61 +664,194 @@ export const ScanDetailScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  actionButton: {
+    padding: Spacing.xs,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
+  actionButtonText: {
+    fontFamily: Typography.fontFamily.semiBold,
     fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.regular,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  alternativeCard: {
     alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    flexDirection: 'row',
+    flex: 1,
+    minWidth: '45%',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  alternativeIcon: {
+    fontSize: 16,
+    marginRight: Spacing.sm,
+  },
+  alternativeText: {
+    flex: 1,
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.bodySmall,
+  },
+  alternativesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
   },
   backButton: {
     padding: Spacing.xs,
   },
   backButtonText: {
-    fontSize: Typography.fontSize.body,
     fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+  },
+  brandName: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
+    opacity: 0.9,
+  },
+  conditionText: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.caption,
+    fontStyle: 'italic',
+  },
+  confidenceContainer: {
+    alignItems: 'center',
+  },
+  confidenceLabel: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.caption,
+    opacity: 0.8,
+  },
+  confidenceValue: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h2,
+  },
+  container: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+  },
+  dataSourceContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  dataSourceDescription: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.caption,
+  },
+  dataSourceIcon: {
+    marginLeft: Spacing.md,
+  },
+  dataSourceIconText: {
+    fontSize: 24,
+  },
+  dataSourceInfo: {
+    flex: 1,
+  },
+  dataSourceName: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+    marginBottom: 2,
+  },
+  detailItem: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  detailLabel: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
+  },
+  detailValue: {
+    flex: 1,
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+    marginLeft: Spacing.md,
+    textAlign: 'right',
+  },
+  detailsGrid: {
+    gap: Spacing.md,
+  },
+  explanation: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
+    lineHeight: Typography.lineHeight.body,
+  },
+  feedbackButton: {
+    alignItems: 'center',
+    borderRadius: BorderRadius.md,
+    borderWidth: 2,
+    flex: 1,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  feedbackButtonText: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+  },
+  feedbackButtons: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  foodName: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h2,
+    marginBottom: 2,
+  },
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
   },
   headerActions: {
     flexDirection: 'row',
     gap: Spacing.md,
   },
-  actionButton: {
-    padding: Spacing.xs,
+  ingredientCard: {
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderRadius: BorderRadius.sm,
+    marginBottom: Spacing.sm,
+    padding: Spacing.md,
   },
-  actionButtonText: {
-    fontSize: Typography.fontSize.body,
+  ingredientHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginBottom: Spacing.xs,
+  },
+  ingredientName: {
+    flex: 1,
     fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+    marginRight: Spacing.sm,
   },
-  scrollView: {
+  ingredientReason: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.bodySmall,
+    marginBottom: 2,
+  },
+  loadingContainer: {
+    alignItems: 'center',
     flex: 1,
+    justifyContent: 'center',
   },
-  scrollContent: {
-    paddingBottom: Spacing.xxl,
-  },
-  content: {
-    flex: 1,
+  loadingText: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
   },
   resultHeader: {
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
     borderRadius: BorderRadius.lg,
+    marginBottom: Spacing.md,
+    marginHorizontal: Spacing.lg,
     padding: Spacing.lg,
   },
   resultHeaderContent: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
   },
   resultIcon: {
     fontSize: 32,
@@ -621,173 +861,40 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   resultTitle: {
-    fontSize: Typography.fontSize.h3,
-    fontFamily: Typography.fontFamily.bold,
     color: Colors.white,
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h3,
     marginBottom: Spacing.xs,
   },
-  foodName: {
-    fontSize: Typography.fontSize.h2,
-    fontFamily: Typography.fontFamily.bold,
-    color: Colors.white,
-    marginBottom: 2,
+  scrollContent: {
+    paddingBottom: Spacing.xxl,
   },
-  brandName: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.white,
-    opacity: 0.9,
-  },
-  confidenceContainer: {
-    alignItems: 'center',
-  },
-  confidenceValue: {
-    fontSize: Typography.fontSize.h2,
-    fontFamily: Typography.fontFamily.bold,
-    color: Colors.white,
-  },
-  confidenceLabel: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.white,
-    opacity: 0.8,
+  scrollView: {
+    flex: 1,
   },
   section: {
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
     borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
+    marginHorizontal: Spacing.lg,
     padding: Spacing.lg,
   },
   sectionTitle: {
-    fontSize: Typography.fontSize.h3,
     fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h3,
     marginBottom: Spacing.md,
   },
-  explanation: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.regular,
-    lineHeight: Typography.lineHeight.body,
-  },
-  ingredientCard: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
+  severityBadge: {
     borderRadius: BorderRadius.sm,
-    padding: Spacing.md,
-    marginBottom: Spacing.sm,
-  },
-  ingredientHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
   },
   severityIcon: {
     fontSize: 16,
     marginRight: Spacing.sm,
   },
-  ingredientName: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.semiBold,
-    flex: 1,
-    marginRight: Spacing.sm,
-  },
-  severityBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.sm,
-  },
   severityText: {
-    fontSize: Typography.fontSize.caption,
     fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.caption,
     textTransform: 'capitalize',
-  },
-  ingredientReason: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.regular,
-    marginBottom: 2,
-  },
-  conditionText: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
-    fontStyle: 'italic',
-  },
-  alternativesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-  },
-  alternativeCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.lg,
-    flex: 1,
-    minWidth: '45%',
-  },
-  alternativeIcon: {
-    fontSize: 16,
-    marginRight: Spacing.sm,
-  },
-  alternativeText: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.regular,
-    flex: 1,
-  },
-  detailsGrid: {
-    gap: Spacing.md,
-  },
-  detailItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  detailLabel: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.regular,
-  },
-  detailValue: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.semiBold,
-    textAlign: 'right',
-    flex: 1,
-    marginLeft: Spacing.md,
-  },
-  feedbackButtons: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-  },
-  feedbackButton: {
-    flex: 1,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    borderRadius: BorderRadius.md,
-    borderWidth: 2,
-    alignItems: 'center',
-  },
-  feedbackButtonText: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.semiBold,
-  },
-  dataSourceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  dataSourceInfo: {
-    flex: 1,
-  },
-  dataSourceName: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.semiBold,
-    marginBottom: 2,
-  },
-  dataSourceDescription: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
-  },
-  dataSourceIcon: {
-    marginLeft: Spacing.md,
-  },
-  dataSourceIconText: {
-    fontSize: 24,
   },
 });

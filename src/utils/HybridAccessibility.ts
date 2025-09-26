@@ -13,12 +13,12 @@ interface HybridAccessibilityConfig {
   highContrast: boolean;
   largeText: boolean;
   reducedMotion: boolean;
-  
+
   // Immersive accessibility
   enableAudioDescriptions: boolean;
   enableHapticFeedback: boolean;
   enableVoiceOver: boolean;
-  
+
   // Performance-aware accessibility
   adaptiveAnimations: boolean;
   progressiveEnhancement: boolean;
@@ -48,8 +48,10 @@ class HybridAccessibility {
   async initialize(): Promise<void> {
     try {
       // Check system accessibility settings
-      const isScreenReaderEnabled = await AccessibilityInfo.isScreenReaderEnabled();
-      const isReduceMotionEnabled = await AccessibilityInfo.isReduceMotionEnabled();
+      const isScreenReaderEnabled =
+        await AccessibilityInfo.isScreenReaderEnabled();
+      const isReduceMotionEnabled =
+        await AccessibilityInfo.isReduceMotionEnabled();
       const isBoldTextEnabled = await AccessibilityInfo.isBoldTextEnabled();
 
       this.config.enableVoiceOver = isScreenReaderEnabled;
@@ -57,25 +59,33 @@ class HybridAccessibility {
       this.config.largeText = isBoldTextEnabled;
 
       // Listen for accessibility changes
-      AccessibilityInfo.addEventListener('screenReaderChanged', this.handleScreenReaderChange);
-      AccessibilityInfo.addEventListener('reduceMotionChanged', this.handleReduceMotionChange);
-      AccessibilityInfo.addEventListener('boldTextChanged', this.handleBoldTextChange);
-
+      AccessibilityInfo.addEventListener(
+        'screenReaderChanged',
+        this.handleScreenReaderChange
+      );
+      AccessibilityInfo.addEventListener(
+        'reduceMotionChanged',
+        this.handleReduceMotionChange
+      );
+      AccessibilityInfo.addEventListener(
+        'boldTextChanged',
+        this.handleBoldTextChange
+      );
     } catch (error) {
       console.warn('Failed to initialize accessibility:', error);
     }
   }
 
-  private handleScreenReaderChange = (isEnabled: boolean) => {
+  private readonly handleScreenReaderChange = (isEnabled: boolean) => {
     this.config.enableVoiceOver = isEnabled;
     this.config.enableAudioDescriptions = isEnabled;
   };
 
-  private handleReduceMotionChange = (isEnabled: boolean) => {
+  private readonly handleReduceMotionChange = (isEnabled: boolean) => {
     this.config.reducedMotion = isEnabled;
   };
 
-  private handleBoldTextChange = (isEnabled: boolean) => {
+  private readonly handleBoldTextChange = (isEnabled: boolean) => {
     this.config.largeText = isEnabled;
   };
 
@@ -95,9 +105,7 @@ class HybridAccessibility {
         disabled,
         selected,
       },
-      accessibilityActions: [
-        { name: 'activate', label: 'Activate' },
-      ],
+      accessibilityActions: [{ name: 'activate', label: 'Activate' }],
     };
   }
 
@@ -126,16 +134,14 @@ class HybridAccessibility {
     label: string,
     hint?: string,
     enableHaptic: boolean = true,
-    enableAudio: boolean = false
+    _enableAudio: boolean = false
   ) {
     const config = {
       accessible: true,
       accessibilityRole: 'button' as const,
       accessibilityLabel: label,
       accessibilityHint: hint,
-      accessibilityActions: [
-        { name: 'activate', label: 'Activate' },
-      ],
+      accessibilityActions: [{ name: 'activate', label: 'Activate' }],
     };
 
     if (enableHaptic && this.config.enableHapticFeedback) {
@@ -153,7 +159,7 @@ class HybridAccessibility {
   createImmersiveCardConfig(
     title: string,
     description: string,
-    enable3D: boolean = false
+    _enable3D: boolean = false
   ) {
     return {
       accessible: true,
@@ -185,11 +191,7 @@ class HybridAccessibility {
   }
 
   // Hybrid design specific methods
-  createHeroSectionConfig(
-    title: string,
-    subtitle: string,
-    ctaText: string
-  ) {
+  createHeroSectionConfig(title: string, subtitle: string, ctaText: string) {
     return {
       accessible: true,
       accessibilityRole: 'banner' as const,
@@ -223,18 +225,13 @@ class HybridAccessibility {
     };
   }
 
-  createStickyCTAConfig(
-    text: string,
-    position: 'bottom' | 'top' | 'floating'
-  ) {
+  createStickyCTAConfig(text: string, position: 'bottom' | 'top' | 'floating') {
     return {
       accessible: true,
       accessibilityRole: 'button' as const,
       accessibilityLabel: text,
       accessibilityHint: `Sticky ${position} action button`,
-      accessibilityActions: [
-        { name: 'activate', label: 'Activate' },
-      ],
+      accessibilityActions: [{ name: 'activate', label: 'Activate' }],
     };
   }
 

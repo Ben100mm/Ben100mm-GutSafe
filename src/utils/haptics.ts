@@ -13,20 +13,20 @@ export enum HapticType {
   LIGHT = 'light',
   MEDIUM = 'medium',
   HEAVY = 'heavy',
-  
+
   // Selection feedback
   SELECTION = 'selection',
-  
+
   // Success/Error feedback
   SUCCESS = 'success',
   WARNING = 'warning',
   ERROR = 'error',
-  
+
   // Impact feedback
   IMPACT_LIGHT = 'impact_light',
   IMPACT_MEDIUM = 'impact_medium',
   IMPACT_HEAVY = 'impact_heavy',
-  
+
   // Notification feedback
   NOTIFICATION_SUCCESS = 'notification_success',
   NOTIFICATION_WARNING = 'notification_warning',
@@ -35,7 +35,8 @@ export enum HapticType {
 
 class HapticService {
   private isEnabled: boolean = true;
-  private isSupported: boolean = Platform.OS === 'ios' || Platform.OS === 'android';
+  private readonly isSupported: boolean =
+    Platform.OS === 'ios' || Platform.OS === 'android';
 
   /**
    * Enable or disable haptic feedback

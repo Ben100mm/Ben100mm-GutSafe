@@ -5,9 +5,12 @@
  * @private
  */
 
-import { render, RenderOptions } from '@testing-library/react-native';
-import React, { ReactElement } from 'react';
+import type { RenderOptions } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
+import type { ReactElement } from 'react';
+import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+
 import { ErrorBoundary } from '../components/ErrorBoundary';
 // import { logger } from './logger';
 
@@ -46,12 +49,12 @@ export const mockRoute = {
 };
 
 // Custom render function with providers
-const AllTheProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const AllTheProviders: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   return (
     <ErrorBoundary>
-      <SafeAreaProvider>
-        {children}
-      </SafeAreaProvider>
+      <SafeAreaProvider>{children}</SafeAreaProvider>
     </ErrorBoundary>
   );
 };
@@ -99,13 +102,25 @@ export const createMockScanHistory = (overrides: Partial<any> = {}) => ({
 export const createMockGutProfile = (overrides: Partial<any> = {}) => ({
   id: 'test-profile-1',
   conditions: {
-    'ibs-fodmap': { enabled: true, severity: 'mild' as const, knownTriggers: [] },
-    'gluten': { enabled: false, severity: 'mild' as const, knownTriggers: [] },
-    'lactose': { enabled: true, severity: 'moderate' as const, knownTriggers: ['dairy'] },
-    'reflux': { enabled: false, severity: 'mild' as const, knownTriggers: [] },
-    'histamine': { enabled: false, severity: 'mild' as const, knownTriggers: [] },
-    'allergies': { enabled: false, severity: 'mild' as const, knownTriggers: [] },
-    'additives': { enabled: true, severity: 'mild' as const, knownTriggers: ['MSG'] },
+    'ibs-fodmap': {
+      enabled: true,
+      severity: 'mild' as const,
+      knownTriggers: [],
+    },
+    gluten: { enabled: false, severity: 'mild' as const, knownTriggers: [] },
+    lactose: {
+      enabled: true,
+      severity: 'moderate' as const,
+      knownTriggers: ['dairy'],
+    },
+    reflux: { enabled: false, severity: 'mild' as const, knownTriggers: [] },
+    histamine: { enabled: false, severity: 'mild' as const, knownTriggers: [] },
+    allergies: { enabled: false, severity: 'mild' as const, knownTriggers: [] },
+    additives: {
+      enabled: true,
+      severity: 'mild' as const,
+      knownTriggers: ['MSG'],
+    },
   },
   preferences: {
     dietaryRestrictions: ['vegetarian'],
@@ -194,7 +209,8 @@ export const createMockOfflineService = () => ({
 });
 
 // Test helpers
-export const waitFor = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+export const waitFor = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 export const mockAsyncStorage = {
   getItem: jest.fn(),
@@ -208,8 +224,12 @@ export const mockAsyncStorage = {
 };
 
 export const mockCamera = {
-  requestCameraPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
-  getCameraPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
+  requestCameraPermissionsAsync: jest.fn(() =>
+    Promise.resolve({ status: 'granted' })
+  ),
+  getCameraPermissionsAsync: jest.fn(() =>
+    Promise.resolve({ status: 'granted' })
+  ),
 };
 
 export const mockHaptics = {
@@ -252,7 +272,9 @@ export const measureMemoryUsage = () => {
 };
 
 // Mock error boundary
-export const MockErrorBoundary: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const MockErrorBoundary: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   return <>{children}</>;
 };
 

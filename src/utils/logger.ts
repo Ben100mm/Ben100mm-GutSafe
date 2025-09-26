@@ -24,9 +24,10 @@ interface LogEntry {
 
 class Logger {
   private static instance: Logger;
-  private logLevel: LogLevel = (typeof __DEV__ !== 'undefined' && __DEV__) ? LogLevel.DEBUG : LogLevel.ERROR;
+  private logLevel: LogLevel =
+    typeof __DEV__ !== 'undefined' && __DEV__ ? LogLevel.DEBUG : LogLevel.ERROR;
   private logs: LogEntry[] = [];
-  private maxLogs = 1000;
+  private readonly maxLogs = 1000;
 
   static getInstance(): Logger {
     if (!Logger.instance) {
@@ -47,7 +48,12 @@ class Logger {
     return level >= this.logLevel;
   }
 
-  private addLog(level: LogLevel, message: string, context?: string, data?: any): void {
+  private addLog(
+    level: LogLevel,
+    message: string,
+    context?: string,
+    data?: any
+  ): void {
     const entry: LogEntry = {
       level,
       message,
@@ -57,7 +63,7 @@ class Logger {
     };
 
     this.logs.push(entry);
-    
+
     // Keep only the last maxLogs entries
     if (this.logs.length > this.maxLogs) {
       this.logs = this.logs.slice(-this.maxLogs);
@@ -67,7 +73,7 @@ class Logger {
     if (__DEV__) {
       const prefix = `[${LogLevel[level]}] ${context ? `[${context}] ` : ''}`;
       const fullMessage = `${prefix}${message}`;
-      
+
       switch (level) {
         case LogLevel.DEBUG:
           console.log(fullMessage, data || '');

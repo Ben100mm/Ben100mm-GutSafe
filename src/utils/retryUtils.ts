@@ -5,8 +5,14 @@
  * @private
  */
 
-import { Result, NetworkError, ServiceError } from '../types/comprehensive';
-import { errorHandler, RetryConfig } from './errorHandler';
+import type {
+  Result,
+  NetworkError,
+  ServiceError,
+} from '../types/comprehensive';
+
+import type { RetryConfig } from './errorHandler';
+import { errorHandler } from './errorHandler';
 import { logger } from './logger';
 
 // Retry strategies
@@ -17,7 +23,9 @@ export enum RetryStrategy {
 }
 
 // Retry condition function type
-export type RetryCondition = (error: Error | NetworkError | ServiceError) => boolean;
+export type RetryCondition = (
+  error: Error | NetworkError | ServiceError
+) => boolean;
 
 // Default retry configurations for different scenarios
 export const DEFAULT_RETRY_CONFIGS = {
@@ -78,7 +86,10 @@ class RetryUtils {
     config: Partial<RetryConfig> = {},
     context?: string
   ): Promise<Result<T, NetworkError | ServiceError>> {
-    const retryConfig = this.mergeConfigs(DEFAULT_RETRY_CONFIGS.API_CALL, config);
+    const retryConfig = this.mergeConfigs(
+      DEFAULT_RETRY_CONFIGS.API_CALL,
+      config
+    );
     return this.retryWithStrategy(apiCall, retryConfig, context);
   }
 
@@ -90,7 +101,10 @@ class RetryUtils {
     config: Partial<RetryConfig> = {},
     context?: string
   ): Promise<Result<T, ServiceError>> {
-    const retryConfig = this.mergeConfigs(DEFAULT_RETRY_CONFIGS.DATABASE_OPERATION, config);
+    const retryConfig = this.mergeConfigs(
+      DEFAULT_RETRY_CONFIGS.DATABASE_OPERATION,
+      config
+    );
     return this.retryWithStrategy(operation, retryConfig, context);
   }
 
@@ -102,7 +116,10 @@ class RetryUtils {
     config: Partial<RetryConfig> = {},
     context?: string
   ): Promise<Result<T, NetworkError>> {
-    const retryConfig = this.mergeConfigs(DEFAULT_RETRY_CONFIGS.FILE_UPLOAD, config);
+    const retryConfig = this.mergeConfigs(
+      DEFAULT_RETRY_CONFIGS.FILE_UPLOAD,
+      config
+    );
     return this.retryWithStrategy(uploadOperation, retryConfig, context);
   }
 
@@ -114,7 +131,10 @@ class RetryUtils {
     config: Partial<RetryConfig> = {},
     context?: string
   ): Promise<Result<T, ServiceError>> {
-    const retryConfig = this.mergeConfigs(DEFAULT_RETRY_CONFIGS.CRITICAL_OPERATION, config);
+    const retryConfig = this.mergeConfigs(
+      DEFAULT_RETRY_CONFIGS.CRITICAL_OPERATION,
+      config
+    );
     return this.retryWithStrategy(operation, retryConfig, context);
   }
 
@@ -127,7 +147,10 @@ class RetryUtils {
     config: Partial<RetryConfig> = {},
     context?: string
   ): Promise<Result<T, Error>> {
-    const retryConfig = this.mergeConfigs(DEFAULT_RETRY_CONFIGS.API_CALL, config);
+    const retryConfig = this.mergeConfigs(
+      DEFAULT_RETRY_CONFIGS.API_CALL,
+      config
+    );
     let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= retryConfig.maxAttempts; attempt++) {
@@ -149,19 +172,24 @@ class RetryUtils {
 
         // Calculate delay
         const delay = this.calculateDelay(attempt, retryConfig);
-        
-        logger.warn(`Retry attempt ${attempt}/${retryConfig.maxAttempts}`, context, {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          delay,
-          nextAttemptIn: delay,
-        });
+
+        logger.warn(
+          `Retry attempt ${attempt}/${retryConfig.maxAttempts}`,
+          context,
+          {
+            error: error instanceof Error ? error.message : 'Unknown error',
+            delay,
+            nextAttemptIn: delay,
+          }
+        );
 
         await this.sleep(delay);
       }
     }
 
     // All retries failed
-    const error = lastError || new Error('Operation failed after all retry attempts');
+    const error =
+      lastError || new Error('Operation failed after all retry attempts');
     return errorHandler.createErrorResult<T>(error, { operation: context });
   }
 
@@ -194,7 +222,7 @@ class RetryUtils {
 
         // Calculate delay based on strategy
         const delay = this.calculateDelayWithStrategy(attempt, config);
-        
+
         logger.warn(`Retry attempt ${attempt}/${config.maxAttempts}`, context, {
           error: error instanceof Error ? error.message : 'Unknown error',
           strategy: config.strategy,
@@ -207,14 +235,18 @@ class RetryUtils {
     }
 
     // All retries failed
-    const error = lastError || new Error('Operation failed after all retry attempts');
+    const error =
+      lastError || new Error('Operation failed after all retry attempts');
     return errorHandler.createErrorResult<T>(error, { operation: context });
   }
 
   /**
    * Calculate delay based on strategy
    */
-  private calculateDelayWithStrategy(attempt: number, config: RetryConfig & { strategy: RetryStrategy }): number {
+  private calculateDelayWithStrategy(
+    attempt: number,
+    config: RetryConfig & { strategy: RetryStrategy }
+  ): number {
     switch (config.strategy) {
       case RetryStrategy.EXPONENTIAL_BACKOFF:
         return this.calculateExponentialBackoff(attempt, config);
@@ -230,8 +262,12 @@ class RetryUtils {
   /**
    * Calculate exponential backoff delay
    */
-  private calculateExponentialBackoff(attempt: number, config: RetryConfig): number {
-    const delay = config.baseDelay * Math.pow(config.backoffMultiplier, attempt - 1);
+  private calculateExponentialBackoff(
+    attempt: number,
+    config: RetryConfig
+  ): number {
+    const delay =
+      config.baseDelay * Math.pow(config.backoffMultiplier, attempt - 1);
     return Math.min(delay, config.maxDelay);
   }
 
@@ -265,31 +301,47 @@ class RetryUtils {
     if ('code' in error && typeof error.code === 'string') {
       return error.code;
     }
-    
+
     // Try to extract from error name or message
     if (error.name && error.name !== 'Error') {
       return error.name.toUpperCase();
     }
-    
+
     // Check for common error patterns
-    if (error.message.includes('Network')) return 'NETWORK_ERROR';
-    if (error.message.includes('Timeout')) return 'TIMEOUT_ERROR';
-    if (error.message.includes('Rate limit')) return 'RATE_LIMIT_ERROR';
-    if (error.message.includes('Connection')) return 'CONNECTION_ERROR';
-    if (error.message.includes('Database')) return 'DATABASE_ERROR';
-    if (error.message.includes('Service')) return 'SERVICE_ERROR';
-    
+    if (error.message.includes('Network')) {
+      return 'NETWORK_ERROR';
+    }
+    if (error.message.includes('Timeout')) {
+      return 'TIMEOUT_ERROR';
+    }
+    if (error.message.includes('Rate limit')) {
+      return 'RATE_LIMIT_ERROR';
+    }
+    if (error.message.includes('Connection')) {
+      return 'CONNECTION_ERROR';
+    }
+    if (error.message.includes('Database')) {
+      return 'DATABASE_ERROR';
+    }
+    if (error.message.includes('Service')) {
+      return 'SERVICE_ERROR';
+    }
+
     return 'UNKNOWN_ERROR';
   }
 
   /**
    * Merge retry configurations
    */
-  private mergeConfigs(defaultConfig: RetryConfig, customConfig: Partial<RetryConfig>): RetryConfig {
+  private mergeConfigs(
+    defaultConfig: RetryConfig,
+    customConfig: Partial<RetryConfig>
+  ): RetryConfig {
     return {
       ...defaultConfig,
       ...customConfig,
-      retryableErrors: customConfig.retryableErrors || defaultConfig.retryableErrors,
+      retryableErrors:
+        customConfig.retryableErrors || defaultConfig.retryableErrors,
     };
   }
 
@@ -297,7 +349,7 @@ class RetryUtils {
    * Sleep for specified milliseconds
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -328,7 +380,9 @@ class RetryUtils {
   static createNetworkRetryCondition(): RetryCondition {
     return (error: Error | NetworkError | ServiceError) => {
       const errorCode = 'code' in error ? error.code : error.name;
-      return ['NETWORK_ERROR', 'TIMEOUT_ERROR', 'CONNECTION_ERROR'].includes(errorCode);
+      return ['NETWORK_ERROR', 'TIMEOUT_ERROR', 'CONNECTION_ERROR'].includes(
+        errorCode
+      );
     };
   }
 
@@ -339,17 +393,19 @@ class RetryUtils {
     return (error: Error | NetworkError | ServiceError) => {
       const errorCode = 'code' in error ? error.code : error.name;
       const message = error.message.toLowerCase();
-      
-      return [
-        'NETWORK_ERROR',
-        'TIMEOUT_ERROR',
-        'RATE_LIMIT_ERROR',
-        'SERVICE_ERROR',
-        'DATABASE_ERROR',
-      ].includes(errorCode) || 
-      message.includes('temporary') ||
-      message.includes('unavailable') ||
-      message.includes('timeout');
+
+      return (
+        [
+          'NETWORK_ERROR',
+          'TIMEOUT_ERROR',
+          'RATE_LIMIT_ERROR',
+          'SERVICE_ERROR',
+          'DATABASE_ERROR',
+        ].includes(errorCode) ||
+        message.includes('temporary') ||
+        message.includes('unavailable') ||
+        message.includes('timeout')
+      );
     };
   }
 }

@@ -16,11 +16,12 @@ import {
   // Dimensions,
   Platform,
 } from 'react-native';
+
 // import LinearGradient from 'react-native-web-linear-gradient';
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
-import { ScanResult, SeverityLevel, GutCondition } from '../types';
+import { Typography } from '../constants/typography';
+import type { ScanResult, SeverityLevel, GutCondition } from '../types';
 
 // const { width } = Dimensions.get('window');
 
@@ -145,14 +146,22 @@ export const TrafficLightResults: React.FC<TrafficLightResultsProps> = ({
   };
 
   const getConfidenceColor = (conf: number) => {
-    if (conf >= 0.8) return Colors.safe;
-    if (conf >= 0.6) return Colors.caution;
+    if (conf >= 0.8) {
+      return Colors.safe;
+    }
+    if (conf >= 0.6) {
+      return Colors.caution;
+    }
     return Colors.avoid;
   };
 
   const getConfidenceText = (conf: number) => {
-    if (conf >= 0.8) return 'High Confidence';
-    if (conf >= 0.6) return 'Medium Confidence';
+    if (conf >= 0.8) {
+      return 'High Confidence';
+    }
+    if (conf >= 0.6) {
+      return 'Medium Confidence';
+    }
     return 'Low Confidence';
   };
 
@@ -169,50 +178,59 @@ export const TrafficLightResults: React.FC<TrafficLightResultsProps> = ({
     }).format(date);
   };
 
-  const displayedAlternatives = showAllAlternatives 
-    ? safeAlternatives 
+  const displayedAlternatives = showAllAlternatives
+    ? safeAlternatives
     : safeAlternatives.slice(0, 3);
 
   return (
-    <Animated.View 
+    <Animated.View
       style={[
         styles.container,
-        { 
+        {
           opacity: fadeAnim,
           transform: [{ translateY: slideAnim }],
-        }
+        },
       ]}
     >
       {/* Main Safety Indicator */}
       <View style={[styles.safetyCard, { backgroundColor: colors.surface }]}>
         <View style={styles.safetyHeader}>
           <View style={styles.safetyIconContainer}>
-            <Text style={styles.safetyIcon}>{getSafetyIcon(overallSafety)}</Text>
+            <Text style={styles.safetyIcon}>
+              {getSafetyIcon(overallSafety)}
+            </Text>
           </View>
           <View style={styles.safetyInfo}>
             <Text style={[styles.safetyTitle, { color: colors.text }]}>
               {getSafetyTitle(overallSafety)}
             </Text>
-            <Text style={[styles.safetySubtitle, { color: colors.textSecondary }]}>
+            <Text
+              style={[styles.safetySubtitle, { color: colors.textSecondary }]}
+            >
               {explanation}
             </Text>
           </View>
         </View>
-        
+
         {/* Confidence Indicator */}
         <View style={styles.confidenceContainer}>
           <View style={styles.confidenceBar}>
-            <View 
+            <View
               style={[
                 styles.confidenceFill,
-                { 
+                {
                   width: `${confidence * 100}%`,
                   backgroundColor: getConfidenceColor(confidence),
-                }
-              ]} 
+                },
+              ]}
             />
           </View>
-          <Text style={[styles.confidenceText, { color: getConfidenceColor(confidence) }]}>
+          <Text
+            style={[
+              styles.confidenceText,
+              { color: getConfidenceColor(confidence) },
+            ]}
+          >
             {getConfidenceText(confidence)}
           </Text>
         </View>
@@ -231,11 +249,13 @@ export const TrafficLightResults: React.FC<TrafficLightResultsProps> = ({
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>
                   Problematic Ingredients ({flaggedIngredients.length})
                 </Text>
-                <Text style={[styles.expandIcon, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.expandIcon, { color: colors.textSecondary }]}
+                >
                   {expandedSection === 'ingredients' ? '▼' : '▶'}
                 </Text>
               </TouchableOpacity>
-              
+
               {expandedSection === 'ingredients' && (
                 <View style={styles.sectionContent}>
                   {flaggedIngredients.map((ingredient, index) => (
@@ -248,26 +268,48 @@ export const TrafficLightResults: React.FC<TrafficLightResultsProps> = ({
                         <Text style={styles.severityIcon}>
                           {getSeverityIcon(ingredient.severity)}
                         </Text>
-                        <Text style={[styles.ingredientName, { color: colors.text }]}>
+                        <Text
+                          style={[
+                            styles.ingredientName,
+                            { color: colors.text },
+                          ]}
+                        >
                           {ingredient.ingredient}
                         </Text>
-                        <View style={[
-                          styles.severityBadge,
-                          { backgroundColor: getSeverityColor(ingredient.severity) + '20' }
-                        ]}>
-                          <Text style={[
-                            styles.severityText,
-                            { color: getSeverityColor(ingredient.severity) }
-                          ]}>
+                        <View
+                          style={[
+                            styles.severityBadge,
+                            {
+                              backgroundColor: `${getSeverityColor(ingredient.severity)}20`,
+                            },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.severityText,
+                              { color: getSeverityColor(ingredient.severity) },
+                            ]}
+                          >
                             {ingredient.severity.toUpperCase()}
                           </Text>
                         </View>
                       </View>
-                      <Text style={[styles.ingredientReason, { color: colors.textSecondary }]}>
+                      <Text
+                        style={[
+                          styles.ingredientReason,
+                          { color: colors.textSecondary },
+                        ]}
+                      >
                         {ingredient.reason}
                       </Text>
-                      <Text style={[styles.ingredientCondition, { color: colors.accent }]}>
-                        Affects: {ingredient.condition.replace('-', ' ').toUpperCase()}
+                      <Text
+                        style={[
+                          styles.ingredientCondition,
+                          { color: colors.accent },
+                        ]}
+                      >
+                        Affects:{' '}
+                        {ingredient.condition.replace('-', ' ').toUpperCase()}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -286,11 +328,13 @@ export const TrafficLightResults: React.FC<TrafficLightResultsProps> = ({
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>
                   Safe Alternatives ({safeAlternatives.length})
                 </Text>
-                <Text style={[styles.expandIcon, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.expandIcon, { color: colors.textSecondary }]}
+                >
                   {expandedSection === 'alternatives' ? '▼' : '▶'}
                 </Text>
               </TouchableOpacity>
-              
+
               {expandedSection === 'alternatives' && (
                 <View style={styles.sectionContent}>
                   <View style={styles.alternativesGrid}>
@@ -299,27 +343,38 @@ export const TrafficLightResults: React.FC<TrafficLightResultsProps> = ({
                         key={index}
                         style={[
                           styles.alternativeChip,
-                          { 
-                            backgroundColor: Colors.safe + '20',
-                            borderColor: Colors.safe + '40',
-                          }
+                          {
+                            backgroundColor: `${Colors.safe}20`,
+                            borderColor: `${Colors.safe}40`,
+                          },
                         ]}
                         onPress={() => onAlternativePress?.(alternative)}
                       >
-                        <Text style={[styles.alternativeText, { color: Colors.safe }]}>
+                        <Text
+                          style={[
+                            styles.alternativeText,
+                            { color: Colors.safe },
+                          ]}
+                        >
                           {alternative}
                         </Text>
                       </TouchableOpacity>
                     ))}
                   </View>
-                  
+
                   {safeAlternatives.length > 3 && (
                     <TouchableOpacity
                       style={styles.showMoreButton}
-                      onPress={() => setShowAllAlternatives(!showAllAlternatives)}
+                      onPress={() =>
+                        setShowAllAlternatives(!showAllAlternatives)
+                      }
                     >
-                      <Text style={[styles.showMoreText, { color: colors.accent }]}>
-                        {showAllAlternatives ? 'Show Less' : `Show ${safeAlternatives.length - 3} More`}
+                      <Text
+                        style={[styles.showMoreText, { color: colors.accent }]}
+                      >
+                        {showAllAlternatives
+                          ? 'Show Less'
+                          : `Show ${safeAlternatives.length - 3} More`}
                       </Text>
                     </TouchableOpacity>
                   )}
@@ -337,36 +392,58 @@ export const TrafficLightResults: React.FC<TrafficLightResultsProps> = ({
               <Text style={[styles.sectionTitle, { color: colors.text }]}>
                 Analysis Details
               </Text>
-              <Text style={[styles.expandIcon, { color: colors.textSecondary }]}>
+              <Text
+                style={[styles.expandIcon, { color: colors.textSecondary }]}
+              >
                 {expandedSection === 'metadata' ? '▼' : '▶'}
               </Text>
             </TouchableOpacity>
-            
+
             {expandedSection === 'metadata' && (
               <View style={styles.sectionContent}>
                 <View style={styles.metadataItem}>
-                  <Text style={[styles.metadataLabel, { color: colors.textSecondary }]}>
+                  <Text
+                    style={[
+                      styles.metadataLabel,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
                     Data Source:
                   </Text>
                   <Text style={[styles.metadataValue, { color: colors.text }]}>
                     {dataSource}
                   </Text>
                 </View>
-                
+
                 <View style={styles.metadataItem}>
-                  <Text style={[styles.metadataLabel, { color: colors.textSecondary }]}>
+                  <Text
+                    style={[
+                      styles.metadataLabel,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
                     Last Updated:
                   </Text>
                   <Text style={[styles.metadataValue, { color: colors.text }]}>
                     {formatDate(lastUpdated)}
                   </Text>
                 </View>
-                
+
                 <View style={styles.metadataItem}>
-                  <Text style={[styles.metadataLabel, { color: colors.textSecondary }]}>
+                  <Text
+                    style={[
+                      styles.metadataLabel,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
                     Confidence:
                   </Text>
-                  <Text style={[styles.metadataValue, { color: getConfidenceColor(confidence) }]}>
+                  <Text
+                    style={[
+                      styles.metadataValue,
+                      { color: getConfidenceColor(confidence) },
+                    ]}
+                  >
                     {Math.round(confidence * 100)}%
                   </Text>
                 </View>
@@ -380,16 +457,27 @@ export const TrafficLightResults: React.FC<TrafficLightResultsProps> = ({
       <View style={styles.quickActions}>
         <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: colors.accent }]}
-          onPress={() => {/* Add to safe foods */}}
+          onPress={() => {
+            /* Add to safe foods */
+          }}
         >
           <Text style={[styles.actionButtonText, { color: Colors.white }]}>
             Add to Safe Foods
           </Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: 'transparent', borderColor: colors.border, borderWidth: 1 }]}
-          onPress={() => {/* Share result */}}
+          style={[
+            styles.actionButton,
+            {
+              backgroundColor: 'transparent',
+              borderColor: colors.border,
+              borderWidth: 1,
+            },
+          ]}
+          onPress={() => {
+            /* Share result */
+          }}
         >
           <Text style={[styles.actionButtonText, { color: colors.text }]}>
             Share Result
@@ -401,186 +489,188 @@ export const TrafficLightResults: React.FC<TrafficLightResultsProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    padding: Spacing.lg,
-  },
-  safetyCard: {
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.lg,
-    ...(Platform.OS === 'web' ? {
-      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-    } : {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 2,
-    }),
-  },
-  safetyHeader: {
-    flexDirection: 'row',
+  actionButton: {
     alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  safetyIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(15, 82, 87, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: Spacing.md,
-  },
-  safetyIcon: {
-    fontSize: 30,
-  },
-  safetyInfo: {
+    borderRadius: BorderRadius.md,
     flex: 1,
-  },
-  safetyTitle: {
-    fontSize: Typography.fontSize.h3,
-    fontFamily: Typography.fontFamily.bold,
-    marginBottom: Spacing.xs,
-  },
-  safetySubtitle: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.regular,
-    lineHeight: 20,
-  },
-  confidenceContainer: {
-    marginTop: Spacing.sm,
-  },
-  confidenceBar: {
-    height: 6,
-    backgroundColor: 'rgba(15, 82, 87, 0.1)',
-    borderRadius: 3,
-    marginBottom: Spacing.xs,
-  },
-  confidenceFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  confidenceText: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.medium,
-    textAlign: 'right',
-  },
-  breakdownContainer: {
-    gap: Spacing.md,
-  },
-  section: {
-    borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: Spacing.lg,
-  },
-  sectionTitle: {
-    fontSize: Typography.fontSize.h4,
-    fontFamily: Typography.fontFamily.semiBold,
-  },
-  expandIcon: {
-    fontSize: 16,
-    fontFamily: Typography.fontFamily.bold,
-  },
-  sectionContent: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
-  },
-  ingredientItem: {
     paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(15, 82, 87, 0.1)',
   },
-  ingredientHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.xs,
-  },
-  severityIcon: {
-    fontSize: 16,
-    marginRight: Spacing.sm,
-  },
-  ingredientName: {
-    fontSize: Typography.fontSize.body,
+  actionButtonText: {
     fontFamily: Typography.fontFamily.semiBold,
-    flex: 1,
+    fontSize: Typography.fontSize.body,
   },
-  severityBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.sm,
+  alternativeChip: {
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
-  severityText: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.bold,
-  },
-  ingredientReason: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.regular,
-    lineHeight: 18,
-    marginBottom: Spacing.xs,
-  },
-  ingredientCondition: {
-    fontSize: Typography.fontSize.caption,
+  alternativeText: {
     fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.bodySmall,
   },
   alternativesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.sm,
   },
-  alternativeChip: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
+  breakdownContainer: {
+    gap: Spacing.md,
   },
-  alternativeText: {
-    fontSize: Typography.fontSize.bodySmall,
+  confidenceBar: {
+    backgroundColor: 'rgba(15, 82, 87, 0.1)',
+    borderRadius: 3,
+    height: 6,
+    marginBottom: Spacing.xs,
+  },
+  confidenceContainer: {
+    marginTop: Spacing.sm,
+  },
+  confidenceFill: {
+    borderRadius: 3,
+    height: '100%',
+  },
+  confidenceText: {
     fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.caption,
+    textAlign: 'right',
   },
-  showMoreButton: {
-    marginTop: Spacing.md,
+  container: {
+    padding: Spacing.lg,
+  },
+  expandIcon: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: 16,
+  },
+  ingredientCondition: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.caption,
+  },
+  ingredientHeader: {
     alignItems: 'center',
+    flexDirection: 'row',
+    marginBottom: Spacing.xs,
   },
-  showMoreText: {
-    fontSize: Typography.fontSize.bodySmall,
+  ingredientItem: {
+    borderBottomColor: 'rgba(15, 82, 87, 0.1)',
+    borderBottomWidth: 1,
+    paddingVertical: Spacing.md,
+  },
+  ingredientName: {
+    flex: 1,
     fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+  },
+  ingredientReason: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.bodySmall,
+    lineHeight: 18,
+    marginBottom: Spacing.xs,
   },
   metadataItem: {
+    alignItems: 'center',
+    borderBottomColor: 'rgba(15, 82, 87, 0.1)',
+    borderBottomWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(15, 82, 87, 0.1)',
   },
   metadataLabel: {
-    fontSize: Typography.fontSize.bodySmall,
     fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.bodySmall,
   },
   metadataValue: {
-    fontSize: Typography.fontSize.bodySmall,
     fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.bodySmall,
   },
   quickActions: {
     flexDirection: 'row',
     gap: Spacing.md,
     marginTop: Spacing.lg,
   },
-  actionButton: {
-    flex: 1,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
+  safetyCard: {
+    borderRadius: BorderRadius.lg,
+    marginBottom: Spacing.lg,
+    padding: Spacing.lg,
+    ...(Platform.OS === 'web'
+      ? {
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+        }
+      : {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 2,
+        }),
   },
-  actionButtonText: {
+  safetyHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginBottom: Spacing.md,
+  },
+  safetyIcon: {
+    fontSize: 30,
+  },
+  safetyIconContainer: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(15, 82, 87, 0.1)',
+    borderRadius: 30,
+    height: 60,
+    justifyContent: 'center',
+    marginRight: Spacing.md,
+    width: 60,
+  },
+  safetyInfo: {
+    flex: 1,
+  },
+  safetySubtitle: {
+    fontFamily: Typography.fontFamily.regular,
     fontSize: Typography.fontSize.body,
+    lineHeight: 20,
+  },
+  safetyTitle: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h3,
+    marginBottom: Spacing.xs,
+  },
+  section: {
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+  },
+  sectionContent: {
+    paddingBottom: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+  },
+  sectionHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: Spacing.lg,
+  },
+  sectionTitle: {
     fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.h4,
+  },
+  severityBadge: {
+    borderRadius: BorderRadius.sm,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+  },
+  severityIcon: {
+    fontSize: 16,
+    marginRight: Spacing.sm,
+  },
+  severityText: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.caption,
+  },
+  showMoreButton: {
+    alignItems: 'center',
+    marginTop: Spacing.md,
+  },
+  showMoreText: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.bodySmall,
   },
 });

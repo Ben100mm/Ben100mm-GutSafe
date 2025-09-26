@@ -5,7 +5,7 @@
  * @private
  */
 
-import { GutSymptom, MedicationSupplement, GutProfile } from '../types';
+import type { GutSymptom, MedicationSupplement, GutProfile } from '../types';
 import { logger } from '../utils/logger';
 
 // Health Service Types
@@ -92,7 +92,7 @@ class HealthService {
   private symptomLogs: SymptomLog[] = [];
   private medicationLogs: MedicationLog[] = [];
   private gutProfile: GutProfile | null = null;
-  private listeners: Set<(summary: HealthSummary) => void> = new Set();
+  private readonly listeners: Set<(summary: HealthSummary) => void> = new Set();
 
   private constructor() {}
 
@@ -111,7 +111,11 @@ class HealthService {
       await this.loadHealthData();
       logger.info('HealthService initialized', 'HealthService');
     } catch (error) {
-      logger.error('Failed to initialize HealthService', 'HealthService', error);
+      logger.error(
+        'Failed to initialize HealthService',
+        'HealthService',
+        error
+      );
       throw error;
     }
   }
@@ -132,10 +136,16 @@ class HealthService {
     logger.info('Gut profile set', 'HealthService', { profileId: profile.id });
   }
 
+  getGutProfile(): GutProfile | null {
+    return this.gutProfile;
+  }
+
   /**
    * Log symptoms
    */
-  async logSymptoms(symptomData: Omit<SymptomLog, 'id' | 'timestamp'>): Promise<string> {
+  async logSymptoms(
+    symptomData: Omit<SymptomLog, 'id' | 'timestamp'>
+  ): Promise<string> {
     try {
       const log: SymptomLog = {
         ...symptomData,
@@ -147,9 +157,9 @@ class HealthService {
       await this.saveHealthData();
       this.notifyListeners();
 
-      logger.info('Symptoms logged', 'HealthService', { 
-        logId: log.id, 
-        symptomCount: log.symptoms.length 
+      logger.info('Symptoms logged', 'HealthService', {
+        logId: log.id,
+        symptomCount: log.symptoms.length,
       });
 
       return log.id;
@@ -163,8 +173,8 @@ class HealthService {
    * Get symptom logs
    */
   getSymptomLogs(limit?: number): SymptomLog[] {
-    const logs = [...this.symptomLogs].sort((a, b) => 
-      b.timestamp.getTime() - a.timestamp.getTime()
+    const logs = [...this.symptomLogs].sort(
+      (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
     );
     return limit ? logs.slice(0, limit) : logs;
   }
@@ -172,20 +182,28 @@ class HealthService {
   /**
    * Update symptom log
    */
-  async updateSymptomLog(logId: string, updates: Partial<SymptomLog>): Promise<void> {
+  async updateSymptomLog(
+    logId: string,
+    updates: Partial<SymptomLog>
+  ): Promise<void> {
     try {
-      const index = this.symptomLogs.findIndex(log => log.id === logId);
+      const index = this.symptomLogs.findIndex((log) => log.id === logId);
       if (index === -1) {
         throw new Error('Symptom log not found');
       }
 
+      const existingLog = this.symptomLogs[index];
+      if (!existingLog) {
+        throw new Error(`Symptom log with ID ${logId} not found`);
+      }
+
       this.symptomLogs[index] = {
-        ...this.symptomLogs[index],
+        ...existingLog,
         ...updates,
         id: logId, // Ensure ID doesn't change
-        symptoms: updates.symptoms || this.symptomLogs[index].symptoms,
-        foodItems: updates.foodItems || this.symptomLogs[index].foodItems,
-        timestamp: updates.timestamp || this.symptomLogs[index].timestamp,
+        symptoms: updates.symptoms || existingLog.symptoms,
+        foodItems: updates.foodItems || existingLog.foodItems,
+        timestamp: updates.timestamp || existingLog.timestamp,
       };
 
       await this.saveHealthData();
@@ -203,7 +221,7 @@ class HealthService {
    */
   async deleteSymptomLog(logId: string): Promise<void> {
     try {
-      const index = this.symptomLogs.findIndex(log => log.id === logId);
+      const index = this.symptomLogs.findIndex((log) => log.id === logId);
       if (index === -1) {
         throw new Error('Symptom log not found');
       }
@@ -222,7 +240,9 @@ class HealthService {
   /**
    * Log medication intake
    */
-  async logMedication(medicationData: Omit<MedicationLog, 'id' | 'takenAt'>): Promise<string> {
+  async logMedication(
+    medicationData: Omit<MedicationLog, 'id' | 'takenAt'>
+  ): Promise<string> {
     try {
       const log: MedicationLog = {
         ...medicationData,
@@ -234,9 +254,9 @@ class HealthService {
       await this.saveHealthData();
       this.notifyListeners();
 
-      logger.info('Medication logged', 'HealthService', { 
-        logId: log.id, 
-        medication: log.medication.name 
+      logger.info('Medication logged', 'HealthService', {
+        logId: log.id,
+        medication: log.medication.name,
       });
 
       return log.id;
@@ -250,8 +270,8 @@ class HealthService {
    * Get medication logs
    */
   getMedicationLogs(limit?: number): MedicationLog[] {
-    const logs = [...this.medicationLogs].sort((a, b) => 
-      b.takenAt.getTime() - a.takenAt.getTime()
+    const logs = [...this.medicationLogs].sort(
+      (a, b) => b.takenAt.getTime() - a.takenAt.getTime()
     );
     return limit ? logs.slice(0, limit) : logs;
   }
@@ -263,9 +283,8 @@ class HealthService {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
 
-    const relevantLogs = this.medicationLogs.filter(log => 
-      log.medication.id === medicationId && 
-      log.takenAt >= cutoffDate
+    const relevantLogs = this.medicationLogs.filter(
+      (log) => log.medication.id === medicationId && log.takenAt >= cutoffDate
     );
 
     // This would calculate actual compliance based on prescribed schedule
@@ -290,13 +309,17 @@ class HealthService {
         correlations,
       };
 
-      logger.info('Symptom patterns analyzed', 'HealthService', { 
-        patternCount: patterns.length 
+      logger.info('Symptom patterns analyzed', 'HealthService', {
+        patternCount: patterns.length,
       });
 
       return insights;
     } catch (error) {
-      logger.error('Failed to analyze symptom patterns', 'HealthService', error);
+      logger.error(
+        'Failed to analyze symptom patterns',
+        'HealthService',
+        error
+      );
       throw error;
     }
   }
@@ -305,7 +328,10 @@ class HealthService {
    * Get health summary
    */
   getHealthSummary(): HealthSummary {
-    const totalSymptoms = this.symptomLogs.reduce((sum, log) => sum + log.symptoms.length, 0);
+    const totalSymptoms = this.symptomLogs.reduce(
+      (sum, log) => sum + log.symptoms.length,
+      0
+    );
     const averageSeverity = this.calculateAverageSeverity();
     const mostCommonSymptoms = this.getMostCommonSymptoms();
     const medicationCompliance = this.calculateOverallMedicationCompliance();
@@ -330,8 +356,8 @@ class HealthService {
 
     // Group symptoms by type
     const symptomGroups = new Map<string, SymptomLog[]>();
-    this.symptomLogs.forEach(log => {
-      log.symptoms.forEach(symptom => {
+    this.symptomLogs.forEach((log) => {
+      log.symptoms.forEach((symptom) => {
         if (!symptomGroups.has(symptom.type)) {
           symptomGroups.set(symptom.type, []);
         }
@@ -378,10 +404,7 @@ class HealthService {
         'Consider avoiding dairy products',
         'Try gentle stretching exercises',
       ],
-      longTerm: [
-        'Maintain a food diary',
-        'Consider probiotic supplements',
-      ],
+      longTerm: ['Maintain a food diary', 'Consider probiotic supplements'],
       lifestyle: [
         'Improve sleep hygiene',
         'Practice stress management techniques',
@@ -414,16 +437,23 @@ class HealthService {
    * Calculate average severity
    */
   private calculateAverageSeverity(): number {
-    if (this.symptomLogs.length === 0) return 0;
-    
+    if (this.symptomLogs.length === 0) {
+      return 0;
+    }
+
     const totalSeverity = this.symptomLogs.reduce((sum, log) => {
-      return sum + log.symptoms.reduce((symptomSum, symptom) => 
-        symptomSum + symptom.severity, 0
+      return (
+        sum +
+        log.symptoms.reduce(
+          (symptomSum, symptom) => symptomSum + symptom.severity,
+          0
+        )
       );
     }, 0);
 
-    const totalSymptoms = this.symptomLogs.reduce((sum, log) => 
-      sum + log.symptoms.length, 0
+    const totalSymptoms = this.symptomLogs.reduce(
+      (sum, log) => sum + log.symptoms.length,
+      0
     );
 
     return totalSymptoms > 0 ? totalSeverity / totalSymptoms : 0;
@@ -432,21 +462,29 @@ class HealthService {
   /**
    * Calculate average severity for specific symptom
    */
-  private calculateAverageSeverityForSymptom(_symptomType: string): number {
-    const relevantLogs = this.symptomLogs.filter(log => 
-      log.symptoms.some(symptom => symptom.type === _symptomType)
+  private calculateAverageSeverityForSymptom(symptomType: string): number {
+    const relevantLogs = this.symptomLogs.filter((log) =>
+      log.symptoms.some((symptom) => symptom.type === symptomType)
     );
 
-    if (relevantLogs.length === 0) return 0;
+    if (relevantLogs.length === 0) {
+      return 0;
+    }
 
     const totalSeverity = relevantLogs.reduce((sum, log) => {
-      return sum + log.symptoms
-        .filter(symptom => symptom.type === symptomType)
-        .reduce((symptomSum, symptom) => symptomSum + symptom.severity, 0);
+      return (
+        sum +
+        log.symptoms
+          .filter((symptom) => symptom.type === symptomType)
+          .reduce((symptomSum, symptom) => symptomSum + symptom.severity, 0)
+      );
     }, 0);
 
-    const totalSymptoms = relevantLogs.reduce((sum, log) => 
-      sum + log.symptoms.filter(symptom => symptom.type === symptomType).length, 0
+    const totalSymptoms = relevantLogs.reduce(
+      (sum, log) =>
+        sum +
+        log.symptoms.filter((symptom) => symptom.type === symptomType).length,
+      0
     );
 
     return totalSymptoms > 0 ? totalSeverity / totalSymptoms : 0;
@@ -457,9 +495,9 @@ class HealthService {
    */
   private getMostCommonSymptoms(): Array<{ symptom: string; count: number }> {
     const symptomCounts = new Map<string, number>();
-    
-    this.symptomLogs.forEach(log => {
-      log.symptoms.forEach(symptom => {
+
+    this.symptomLogs.forEach((log) => {
+      log.symptoms.forEach((symptom) => {
         const count = symptomCounts.get(symptom.type) || 0;
         symptomCounts.set(symptom.type, count + 1);
       });
@@ -475,8 +513,10 @@ class HealthService {
    * Calculate overall medication compliance
    */
   private calculateOverallMedicationCompliance(): number {
-    if (this.medicationLogs.length === 0) return 0;
-    
+    if (this.medicationLogs.length === 0) {
+      return 0;
+    }
+
     // This would calculate based on prescribed schedules in a real implementation
     return 0.85; // Mock value
   }
@@ -500,7 +540,9 @@ class HealthService {
   /**
    * Calculate time of day pattern
    */
-  private calculateTimeOfDayPattern(_symptomType: string): SymptomPattern['timeOfDay'] {
+  private calculateTimeOfDayPattern(
+    _symptomType: string
+  ): SymptomPattern['timeOfDay'] {
     // This would analyze time patterns in a real implementation
     return {
       morning: 0.2,
@@ -513,7 +555,9 @@ class HealthService {
   /**
    * Calculate day of week pattern
    */
-  private calculateDayOfWeekPattern(_symptomType: string): SymptomPattern['dayOfWeek'] {
+  private calculateDayOfWeekPattern(
+    _symptomType: string
+  ): SymptomPattern['dayOfWeek'] {
     // This would analyze day patterns in a real implementation
     return {
       monday: 0.15,
@@ -529,7 +573,9 @@ class HealthService {
   /**
    * Calculate correlations for symptom
    */
-  private calculateCorrelationsForSymptom(_symptomType: string): SymptomPattern['correlation'] {
+  private calculateCorrelationsForSymptom(
+    _symptomType: string
+  ): SymptomPattern['correlation'] {
     // This would calculate actual correlations in a real implementation
     return {
       food: 0.6,
@@ -569,7 +615,7 @@ class HealthService {
    */
   private notifyListeners(): void {
     const summary = this.getHealthSummary();
-    this.listeners.forEach(listener => {
+    this.listeners.forEach((listener) => {
       try {
         listener(summary);
       } catch (error) {

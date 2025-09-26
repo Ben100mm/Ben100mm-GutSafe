@@ -5,8 +5,13 @@
  * @private
  */
 
-import { GutProfile } from '../types';
-import { UserSettings, AppError, ServiceError, Result } from '../types/comprehensive';
+import type { GutProfile } from '../types';
+import type {
+  UserSettings,
+  AppError,
+  ServiceError,
+  Result,
+} from '../types/comprehensive';
 import { logger } from '../utils/logger';
 import { validators } from '../utils/validation';
 
@@ -28,14 +33,14 @@ export interface AuthState {
  */
 class AuthService {
   private static instance: AuthService;
-  private authState: AuthState = {
+  private readonly authState: AuthState = {
     isAuthenticated: false,
     user: null,
     settings: null,
     isLoading: false,
     error: null,
   };
-  private listeners: Set<(state: AuthState) => void> = new Set();
+  private readonly listeners: Set<(state: AuthState) => void> = new Set();
 
   private constructor() {}
 
@@ -53,21 +58,30 @@ class AuthService {
     try {
       this.authState.isLoading = true;
       this.notifyListeners();
-      
+
       // Load saved settings
       await this.loadUserSettings();
-      
+
       // Check authentication status
       await this.checkAuthStatus();
-      
+
       this.authState.isLoading = false;
       this.notifyListeners();
-      
+
       logger.info('AuthService initialized', 'AuthService');
     } catch (error) {
-      this.authState.error = error instanceof Error 
-        ? { code: 'AUTH_INIT_ERROR', message: error.message, timestamp: new Date() }
-        : { code: 'AUTH_INIT_ERROR', message: 'Unknown error', timestamp: new Date() };
+      this.authState.error =
+        error instanceof Error
+          ? {
+              code: 'AUTH_INIT_ERROR',
+              message: error.message,
+              timestamp: new Date(),
+            }
+          : {
+              code: 'AUTH_INIT_ERROR',
+              message: 'Unknown error',
+              timestamp: new Date(),
+            };
       this.authState.isLoading = false;
       this.notifyListeners();
       logger.error('Failed to initialize AuthService', 'AuthService', error);
@@ -92,15 +106,18 @@ class AuthService {
   /**
    * Sign in user
    */
-  async signIn(email: string, _password: string): Promise<Result<void, ServiceError>> {
+  async signIn(
+    email: string,
+    _password: string
+  ): Promise<Result<void, ServiceError>> {
     try {
       this.authState.isLoading = true;
       this.authState.error = null;
       this.notifyListeners();
 
       // Mock authentication - replace with real implementation
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       this.authState.isAuthenticated = true;
       this.authState.user = {
         id: '1',
@@ -109,7 +126,7 @@ class AuthService {
       };
       this.authState.isLoading = false;
       this.notifyListeners();
-      
+
       logger.info('User signed in', 'AuthService', { email });
       return { success: true, data: undefined };
     } catch (error) {
@@ -119,13 +136,13 @@ class AuthService {
         service: 'AuthService',
         operation: 'signIn',
         timestamp: new Date(),
-        details: { email, error }
+        details: { email, error },
       };
-      
+
       this.authState.error = serviceError;
       this.authState.isLoading = false;
       this.notifyListeners();
-      
+
       return { success: false, error: serviceError };
     }
   }
@@ -139,7 +156,7 @@ class AuthService {
       this.authState.user = null;
       this.authState.settings = null;
       this.notifyListeners();
-      
+
       logger.info('User signed out', 'AuthService');
     } catch (error) {
       logger.error('Failed to sign out', 'AuthService', error);
@@ -157,34 +174,39 @@ class AuthService {
   /**
    * Update user settings
    */
-  async updateUserSettings(updates: Partial<UserSettings>): Promise<Result<void, ServiceError>> {
+  async updateUserSettings(
+    updates: Partial<UserSettings>
+  ): Promise<Result<void, ServiceError>> {
     try {
       if (!this.authState.settings) {
         this.authState.settings = this.getDefaultSettings();
       }
-      
+
       // Validate the updated settings
       const validatedSettings = validators.userSettings.validate({
         ...this.authState.settings,
         ...updates,
       });
-      
+
       this.authState.settings = validatedSettings as UserSettings;
       await this.saveUserSettings();
       this.notifyListeners();
-      
+
       logger.info('User settings updated', 'AuthService', { updates });
       return { success: true, data: undefined };
     } catch (error) {
       const serviceError: ServiceError = {
         code: 'SERVICE_ERROR',
-        message: error instanceof Error ? error.message : 'Failed to update user settings',
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Failed to update user settings',
         service: 'AuthService',
         operation: 'updateUserSettings',
         timestamp: new Date(),
-        details: { updates, error }
+        details: { updates, error },
       };
-      
+
       logger.error('Failed to update user settings', 'AuthService', error);
       return { success: false, error: serviceError };
     }
@@ -198,12 +220,14 @@ class AuthService {
       if (!this.authState.settings) {
         this.authState.settings = this.getDefaultSettings();
       }
-      
+
       this.authState.settings.profile.gutProfile = profile;
       await this.saveUserSettings();
       this.notifyListeners();
-      
-      logger.info('Gut profile updated', 'AuthService', { profileId: profile.id });
+
+      logger.info('Gut profile updated', 'AuthService', {
+        profileId: profile.id,
+      });
     } catch (error) {
       logger.error('Failed to update gut profile', 'AuthService', error);
       throw error;
@@ -221,13 +245,17 @@ class AuthService {
         gutProfile: {
           id: 'default',
           conditions: {
-            'ibs-fodmap': { enabled: false, severity: 'mild', knownTriggers: [] },
-            'gluten': { enabled: false, severity: 'mild', knownTriggers: [] },
-            'lactose': { enabled: false, severity: 'mild', knownTriggers: [] },
-            'reflux': { enabled: false, severity: 'mild', knownTriggers: [] },
-            'histamine': { enabled: false, severity: 'mild', knownTriggers: [] },
-            'allergies': { enabled: false, severity: 'mild', knownTriggers: [] },
-            'additives': { enabled: false, severity: 'mild', knownTriggers: [] },
+            'ibs-fodmap': {
+              enabled: false,
+              severity: 'mild',
+              knownTriggers: [],
+            },
+            gluten: { enabled: false, severity: 'mild', knownTriggers: [] },
+            lactose: { enabled: false, severity: 'mild', knownTriggers: [] },
+            reflux: { enabled: false, severity: 'mild', knownTriggers: [] },
+            histamine: { enabled: false, severity: 'mild', knownTriggers: [] },
+            allergies: { enabled: false, severity: 'mild', knownTriggers: [] },
+            additives: { enabled: false, severity: 'mild', knownTriggers: [] },
           },
           preferences: {
             dietaryRestrictions: [],
@@ -316,7 +344,7 @@ class AuthService {
    * Notify listeners of state changes
    */
   private notifyListeners(): void {
-    this.listeners.forEach(listener => {
+    this.listeners.forEach((listener) => {
       try {
         listener({ ...this.authState });
       } catch (error) {

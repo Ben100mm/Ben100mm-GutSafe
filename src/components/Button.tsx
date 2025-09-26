@@ -6,19 +6,20 @@
  */
 
 import React, { useCallback, useMemo } from 'react';
+import type { ViewStyle, TextStyle } from 'react-native';
 import {
   TouchableOpacity,
   Text,
   StyleSheet,
-  ViewStyle,
-  TextStyle,
   ActivityIndicator,
 } from 'react-native';
-import LinearGradient from './LinearGradientWrapper';
+
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
+import { Typography } from '../constants/typography';
 import { getButtonAccessibilityProps } from '../utils/accessibilityHelpers';
+
+import LinearGradient from './LinearGradientWrapper';
 
 interface ButtonProps {
   title: string;
@@ -31,138 +32,152 @@ interface ButtonProps {
   textStyle?: TextStyle;
 }
 
-export const Button: React.FC<ButtonProps> = React.memo(({
-  title,
-  onPress,
-  variant = 'primary',
-  size = 'medium',
-  disabled = false,
-  loading = false,
-  style,
-  textStyle,
-}) => {
-  const buttonStyle = useMemo(() => [
-    styles.button,
-    styles[size],
-    variant === 'outline' && styles.outline,
-    disabled && styles.disabled,
-    style,
-  ], [size, variant, disabled, style]);
-
-  const textStyleCombined = useMemo(() => [
-    styles.text,
-    styles[`${size}Text`],
-    variant === 'outline' && styles.outlineText,
-    disabled && styles.disabledText,
-    textStyle,
-  ], [size, variant, disabled, textStyle]);
-
-  const accessibilityProps = useMemo(() => getButtonAccessibilityProps({
+export const Button: React.FC<ButtonProps> = React.memo(
+  ({
     title,
-    disabled: disabled || loading,
-    loading,
-    variant,
-  }), [title, disabled, loading, variant]);
+    onPress,
+    variant = 'primary',
+    size = 'medium',
+    disabled = false,
+    loading = false,
+    style,
+    textStyle,
+  }) => {
+    const buttonStyle = useMemo(
+      () => [
+        styles.button,
+        styles[size],
+        variant === 'outline' && styles.outline,
+        disabled && styles.disabled,
+        style,
+      ],
+      [size, variant, disabled, style]
+    );
 
-  const handlePress = useCallback(() => {
-    if (!disabled && !loading) {
-      onPress();
+    const textStyleCombined = useMemo(
+      () => [
+        styles.text,
+        styles[`${size}Text`],
+        variant === 'outline' && styles.outlineText,
+        disabled && styles.disabledText,
+        textStyle,
+      ],
+      [size, variant, disabled, textStyle]
+    );
+
+    const accessibilityProps = useMemo(
+      () =>
+        getButtonAccessibilityProps({
+          title,
+          disabled: disabled || loading,
+          loading,
+          variant,
+        }),
+      [title, disabled, loading, variant]
+    );
+
+    const handlePress = useCallback(() => {
+      if (!disabled && !loading) {
+        onPress();
+      }
+    }, [onPress, disabled, loading]);
+
+    if (variant === 'primary') {
+      return (
+        <TouchableOpacity
+          disabled={disabled || loading}
+          style={[buttonStyle, { overflow: 'hidden' }]}
+          onPress={handlePress}
+          {...accessibilityProps}
+        >
+          <LinearGradient
+            colors={
+              disabled ? [Colors.body, Colors.body] : Colors.primaryGradient
+            }
+            style={styles.gradient}
+          >
+            {loading ? (
+              <ActivityIndicator color={Colors.white} size="small" />
+            ) : (
+              <Text style={textStyleCombined}>{title}</Text>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
+      );
     }
-  }, [onPress, disabled, loading]);
 
-  if (variant === 'primary') {
     return (
       <TouchableOpacity
-        onPress={handlePress}
         disabled={disabled || loading}
-        style={[buttonStyle, { overflow: 'hidden' }]}
+        style={buttonStyle}
+        onPress={handlePress}
         {...accessibilityProps}
       >
-        <LinearGradient
-          colors={disabled ? [Colors.body, Colors.body] : Colors.primaryGradient}
-          style={styles.gradient}
-        >
-          {loading ? (
-            <ActivityIndicator color={Colors.white} size="small" />
-          ) : (
-            <Text style={textStyleCombined}>{title}</Text>
-          )}
-        </LinearGradient>
+        {loading ? (
+          <ActivityIndicator
+            color={variant === 'outline' ? Colors.primary : Colors.white}
+            size="small"
+          />
+        ) : (
+          <Text style={textStyleCombined}>{title}</Text>
+        )}
       </TouchableOpacity>
     );
   }
-
-  return (
-    <TouchableOpacity
-      onPress={handlePress}
-      disabled={disabled || loading}
-      style={buttonStyle}
-      {...accessibilityProps}
-    >
-      {loading ? (
-        <ActivityIndicator 
-          color={variant === 'outline' ? Colors.primary : Colors.white} 
-          size="small" 
-        />
-      ) : (
-        <Text style={textStyleCombined}>{title}</Text>
-      )}
-    </TouchableOpacity>
-  );
-});
+);
 
 const styles = StyleSheet.create({
   button: {
+    alignItems: 'center',
     borderRadius: BorderRadius.md,
-    alignItems: 'center',
     justifyContent: 'center',
-  },
-  gradient: {
-    flex: 1,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  outline: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: Colors.primary,
   },
   disabled: {
     opacity: 0.5,
   },
-  small: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    minHeight: 36,
+  disabledText: {
+    color: Colors.body,
   },
-  medium: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    minHeight: 48,
+  gradient: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    width: '100%',
   },
   large: {
+    minHeight: 56,
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.lg,
-    minHeight: 56,
-  },
-  text: {
-    fontFamily: Typography.fontFamily.semiBold,
-    textAlign: 'center',
-  },
-  smallText: {
-    fontSize: Typography.fontSize.bodySmall,
-  },
-  mediumText: {
-    fontSize: Typography.fontSize.body,
   },
   largeText: {
     fontSize: Typography.fontSize.h3,
   },
+  medium: {
+    minHeight: 48,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  mediumText: {
+    fontSize: Typography.fontSize.body,
+  },
+  outline: {
+    backgroundColor: 'transparent',
+    borderColor: Colors.primary,
+    borderWidth: 2,
+  },
   outlineText: {
     color: Colors.primary,
   },
-  disabledText: {
-    color: Colors.body,
+  small: {
+    minHeight: 36,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  smallText: {
+    fontSize: Typography.fontSize.bodySmall,
+  },
+  text: {
+    fontFamily: Typography.fontFamily.semiBold,
+    textAlign: 'center',
   },
 });

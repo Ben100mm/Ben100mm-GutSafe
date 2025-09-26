@@ -6,6 +6,7 @@
  */
 
 import { Animated, Easing, Dimensions, Platform } from 'react-native';
+
 import { HapticFeedback } from './haptics';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -48,7 +49,9 @@ export class AnimationPresets {
     });
   }
 
-  static slideInFromRight(config: AnimationConfig = {}): Animated.CompositeAnimation {
+  static slideInFromRight(
+    config: AnimationConfig = {}
+  ): Animated.CompositeAnimation {
     return Animated.timing(new Animated.Value(screenWidth), {
       toValue: 0,
       duration: config.duration || 300,
@@ -58,7 +61,9 @@ export class AnimationPresets {
     });
   }
 
-  static slideInFromLeft(config: AnimationConfig = {}): Animated.CompositeAnimation {
+  static slideInFromLeft(
+    config: AnimationConfig = {}
+  ): Animated.CompositeAnimation {
     return Animated.timing(new Animated.Value(-screenWidth), {
       toValue: 0,
       duration: config.duration || 300,
@@ -68,7 +73,9 @@ export class AnimationPresets {
     });
   }
 
-  static slideInFromBottom(config: AnimationConfig = {}): Animated.CompositeAnimation {
+  static slideInFromBottom(
+    config: AnimationConfig = {}
+  ): Animated.CompositeAnimation {
     return Animated.timing(new Animated.Value(screenHeight), {
       toValue: 0,
       duration: config.duration || 300,
@@ -78,7 +85,9 @@ export class AnimationPresets {
     });
   }
 
-  static slideInFromTop(config: AnimationConfig = {}): Animated.CompositeAnimation {
+  static slideInFromTop(
+    config: AnimationConfig = {}
+  ): Animated.CompositeAnimation {
     return Animated.timing(new Animated.Value(-screenHeight), {
       toValue: 0,
       duration: config.duration || 300,
@@ -162,14 +171,18 @@ export class AnimationUtils {
   /**
    * Create a sequence of animations
    */
-  static createSequence(animations: Animated.CompositeAnimation[]): Animated.CompositeAnimation {
+  static createSequence(
+    animations: Animated.CompositeAnimation[]
+  ): Animated.CompositeAnimation {
     return Animated.sequence(animations);
   }
 
   /**
    * Create a parallel animation
    */
-  static createParallel(animations: Animated.CompositeAnimation[]): Animated.CompositeAnimation {
+  static createParallel(
+    animations: Animated.CompositeAnimation[]
+  ): Animated.CompositeAnimation {
     return Animated.parallel(animations);
   }
 
@@ -213,20 +226,46 @@ export class AnimationUtils {
   /**
    * Create a shake animation
    */
-  static createShake(animatedValue: Animated.Value, intensity: number = 10): Animated.CompositeAnimation {
+  static createShake(
+    animatedValue: Animated.Value,
+    intensity: number = 10
+  ): Animated.CompositeAnimation {
     return Animated.sequence([
-      Animated.timing(animatedValue, { toValue: intensity, duration: 50, useNativeDriver: true }),
-      Animated.timing(animatedValue, { toValue: -intensity, duration: 50, useNativeDriver: true }),
-      Animated.timing(animatedValue, { toValue: intensity, duration: 50, useNativeDriver: true }),
-      Animated.timing(animatedValue, { toValue: -intensity, duration: 50, useNativeDriver: true }),
-      Animated.timing(animatedValue, { toValue: 0, duration: 50, useNativeDriver: true }),
+      Animated.timing(animatedValue, {
+        toValue: intensity,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(animatedValue, {
+        toValue: -intensity,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(animatedValue, {
+        toValue: intensity,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(animatedValue, {
+        toValue: -intensity,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(animatedValue, {
+        toValue: 0,
+        duration: 50,
+        useNativeDriver: true,
+      }),
     ]);
   }
 
   /**
    * Create a bounce animation
    */
-  static createBounce(animatedValue: Animated.Value, intensity: number = 0.3): Animated.CompositeAnimation {
+  static createBounce(
+    animatedValue: Animated.Value,
+    intensity: number = 0.3
+  ): Animated.CompositeAnimation {
     return Animated.sequence([
       Animated.timing(animatedValue, {
         toValue: 1 + intensity,
@@ -272,10 +311,18 @@ export class TransformUtils {
   /**
    * Create 3D rotation transform
    */
-  static createRotation3D(animatedValue: Animated.Value, axis: 'x' | 'y' | 'z' = 'y'): any {
+  static createRotation3D(
+    animatedValue: Animated.Value,
+    axis: 'x' | 'y' | 'z' = 'y'
+  ): any {
     const inputRange = [0, 1];
-    const outputRange = axis === 'x' ? ['0deg', '360deg'] : axis === 'y' ? ['0deg', '360deg'] : ['0deg', '360deg'];
-    
+    const outputRange =
+      axis === 'x'
+        ? ['0deg', '360deg']
+        : axis === 'y'
+          ? ['0deg', '360deg']
+          : ['0deg', '360deg'];
+
     return {
       [`rotate${axis.toUpperCase()}`]: animatedValue.interpolate({
         inputRange,
@@ -336,10 +383,14 @@ export class TransformUtils {
   /**
    * Create flip animation transform
    */
-  static createFlipTransform(animatedValue: Animated.Value, axis: 'x' | 'y' = 'y'): any {
+  static createFlipTransform(
+    animatedValue: Animated.Value,
+    axis: 'x' | 'y' = 'y'
+  ): any {
     const inputRange = [0, 0.5, 1];
-    const outputRange = axis === 'x' ? ['0deg', '90deg', '0deg'] : ['0deg', '90deg', '0deg'];
-    
+    const outputRange =
+      axis === 'x' ? ['0deg', '90deg', '0deg'] : ['0deg', '90deg', '0deg'];
+
     return {
       [`rotate${axis.toUpperCase()}`]: animatedValue.interpolate({
         inputRange,
@@ -356,7 +407,7 @@ export class HapticAnimations {
    */
   static animateWithHaptic(
     animation: Animated.CompositeAnimation,
-    hapticType: string,
+    _hapticType: string,
     delay: number = 0
   ): Animated.CompositeAnimation {
     return Animated.sequence([
@@ -378,7 +429,7 @@ export class HapticAnimations {
     hapticType: string = 'light'
   ): Animated.CompositeAnimation {
     HapticFeedback.trigger(hapticType);
-    
+
     return Animated.sequence([
       Animated.timing(scaleValue, {
         toValue: 0.95,
@@ -403,7 +454,7 @@ export class HapticAnimations {
     hapticType: string = 'success'
   ): Animated.CompositeAnimation {
     HapticFeedback.trigger(hapticType);
-    
+
     return AnimationUtils.createBounce(scaleValue, 0.2);
   }
 
@@ -415,7 +466,7 @@ export class HapticAnimations {
     hapticType: string = 'error'
   ): Animated.CompositeAnimation {
     HapticFeedback.trigger(hapticType);
-    
+
     return AnimationUtils.createShake(shakeValue, 8);
   }
 }

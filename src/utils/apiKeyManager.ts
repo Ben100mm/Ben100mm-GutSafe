@@ -30,8 +30,7 @@ export interface ApiKeyValidation {
 // API Key manager class
 export class ApiKeyManager {
   private static instance: ApiKeyManager;
-  private apiKeys: Map<string, ApiKeyConfig> = new Map();
-  private encryptedKeys: Map<string, string> = new Map();
+  private readonly apiKeys: Map<string, ApiKeyConfig> = new Map();
 
   private constructor() {
     this.initializeApiKeys();
@@ -50,90 +49,90 @@ export class ApiKeyManager {
       {
         name: 'USDA_API_KEY',
         key: 'REACT_APP_USDA_API_KEY',
-        environment: process.env.NODE_ENV as any || 'development',
+        environment: (process.env['NODE_ENV'] as any) || 'development',
         required: false,
         encrypted: false,
       },
       {
         name: 'SPOONACULAR_API_KEY',
         key: 'REACT_APP_SPOONACULAR_API_KEY',
-        environment: process.env.NODE_ENV as any || 'development',
+        environment: (process.env['NODE_ENV'] as any) || 'development',
         required: false,
         encrypted: false,
       },
       {
         name: 'GOOGLE_VISION_API_KEY',
         key: 'REACT_APP_GOOGLE_VISION_API_KEY',
-        environment: process.env.NODE_ENV as any || 'development',
+        environment: (process.env['NODE_ENV'] as any) || 'development',
         required: false,
         encrypted: false,
       },
       {
         name: 'OPENFOODFACTS_API_KEY',
         key: 'REACT_APP_OPENFOODFACTS_API_KEY',
-        environment: process.env.NODE_ENV as any || 'development',
+        environment: (process.env['NODE_ENV'] as any) || 'development',
         required: false,
         encrypted: false,
       },
       {
         name: 'AI_API_KEY',
         key: 'REACT_APP_AI_API_KEY',
-        environment: process.env.NODE_ENV as any || 'development',
+        environment: (process.env['NODE_ENV'] as any) || 'development',
         required: false,
         encrypted: true,
       },
       {
         name: 'ML_API_KEY',
         key: 'REACT_APP_ML_API_KEY',
-        environment: process.env.NODE_ENV as any || 'development',
+        environment: (process.env['NODE_ENV'] as any) || 'development',
         required: false,
         encrypted: true,
       },
       {
         name: 'ANALYTICS_API_KEY',
         key: 'REACT_APP_ANALYTICS_API_KEY',
-        environment: process.env.NODE_ENV as any || 'development',
+        environment: (process.env['NODE_ENV'] as any) || 'development',
         required: false,
         encrypted: false,
       },
       {
         name: 'MONITORING_API_KEY',
         key: 'REACT_APP_MONITORING_API_KEY',
-        environment: process.env.NODE_ENV as any || 'development',
+        environment: (process.env['NODE_ENV'] as any) || 'development',
         required: false,
         encrypted: true,
       },
       {
         name: 'ENCRYPTION_KEY',
         key: 'REACT_APP_ENCRYPTION_KEY',
-        environment: process.env.NODE_ENV as any || 'development',
+        environment: (process.env['NODE_ENV'] as any) || 'development',
         required: true,
         encrypted: false,
       },
       {
         name: 'JWT_SECRET',
         key: 'REACT_APP_JWT_SECRET',
-        environment: process.env.NODE_ENV as any || 'development',
+        environment: (process.env['NODE_ENV'] as any) || 'development',
         required: true,
         encrypted: false,
       },
       {
         name: 'SESSION_SECRET',
         key: 'REACT_APP_SESSION_SECRET',
-        environment: process.env.NODE_ENV as any || 'development',
+        environment: (process.env['NODE_ENV'] as any) || 'development',
         required: true,
         encrypted: false,
       },
     ];
 
     // Initialize API keys
-    keyDefinitions.forEach(config => {
+    keyDefinitions.forEach((config) => {
       this.apiKeys.set(config.name, config);
     });
 
     logger.info('API Key Manager initialized', 'ApiKeyManager', {
       totalKeys: this.apiKeys.size,
-      environment: process.env.NODE_ENV,
+      environment: process.env['NODE_ENV'],
     });
   }
 
@@ -148,7 +147,10 @@ export class ApiKeyManager {
 
       // Check if key is expired
       if (config.expiresAt && config.expiresAt < new Date()) {
-        logger.warn('API key expired', 'ApiKeyManager', { keyName, expiresAt: config.expiresAt });
+        logger.warn('API key expired', 'ApiKeyManager', {
+          keyName,
+          expiresAt: config.expiresAt,
+        });
         return null;
       }
 
@@ -156,10 +158,16 @@ export class ApiKeyManager {
       const envKey = process.env[config.key];
       if (!envKey) {
         if (config.required) {
-          logger.error('Required API key missing', 'ApiKeyManager', { keyName, envKey: config.key });
+          logger.error('Required API key missing', 'ApiKeyManager', {
+            keyName,
+            envKey: config.key,
+          });
           throw new Error(`Required API key ${keyName} is missing`);
         }
-        logger.warn('Optional API key missing', 'ApiKeyManager', { keyName, envKey: config.key });
+        logger.warn('Optional API key missing', 'ApiKeyManager', {
+          keyName,
+          envKey: config.key,
+        });
         return null;
       }
 
@@ -169,14 +177,20 @@ export class ApiKeyManager {
           const decryptedKey = await securityUtils.decryptData(envKey);
           return decryptedKey;
         } catch (error) {
-          logger.error('Failed to decrypt API key', 'ApiKeyManager', { keyName, error });
+          logger.error('Failed to decrypt API key', 'ApiKeyManager', {
+            keyName,
+            error,
+          });
           return null;
         }
       }
 
       return envKey;
     } catch (error) {
-      logger.error('Error getting API key', 'ApiKeyManager', { keyName, error });
+      logger.error('Error getting API key', 'ApiKeyManager', {
+        keyName,
+        error,
+      });
       return null;
     }
   }
@@ -190,13 +204,13 @@ export class ApiKeyManager {
       return {
         isValid: false,
         key: keyName,
-        environment: process.env.NODE_ENV || 'unknown',
+        environment: process.env['NODE_ENV'] || 'unknown',
         errors: ['API key configuration not found'],
       };
     }
 
     const envKey = process.env[config.key];
-    
+
     if (!envKey) {
       if (config.required) {
         errors.push('Required API key is missing');
@@ -223,7 +237,10 @@ export class ApiKeyManager {
   }
 
   // Validate key format based on type
-  private validateKeyFormat(keyName: string, key: string): { isValid: boolean; errors: string[] } {
+  private validateKeyFormat(
+    keyName: string,
+    key: string
+  ): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
     switch (keyName) {
@@ -280,8 +297,8 @@ export class ApiKeyManager {
   // Get all API key statuses
   getAllApiKeyStatuses(): ApiKeyValidation[] {
     const statuses: ApiKeyValidation[] = [];
-    
-    this.apiKeys.forEach((config, keyName) => {
+
+    this.apiKeys.forEach((_config, keyName) => {
       statuses.push(this.validateApiKey(keyName));
     });
 
@@ -291,7 +308,7 @@ export class ApiKeyManager {
   // Check if all required API keys are present
   checkRequiredKeys(): { allPresent: boolean; missing: string[] } {
     const missing: string[] = [];
-    
+
     this.apiKeys.forEach((config, keyName) => {
       if (config.required) {
         const envKey = process.env[config.key];
@@ -312,14 +329,19 @@ export class ApiKeyManager {
     try {
       const config = this.apiKeys.get(keyName);
       if (!config) {
-        logger.warn('Cannot rotate unknown API key', 'ApiKeyManager', { keyName });
+        logger.warn('Cannot rotate unknown API key', 'ApiKeyManager', {
+          keyName,
+        });
         return false;
       }
 
       // Validate new key
       const validation = this.validateKeyFormat(keyName, newKey);
       if (!validation.isValid) {
-        logger.error('Invalid new API key format', 'ApiKeyManager', { keyName, errors: validation.errors });
+        logger.error('Invalid new API key format', 'ApiKeyManager', {
+          keyName,
+          errors: validation.errors,
+        });
         return false;
       }
 
@@ -329,23 +351,33 @@ export class ApiKeyManager {
         try {
           processedKey = await securityUtils.encryptData(newKey);
         } catch (error) {
-          logger.error('Failed to encrypt new API key', 'ApiKeyManager', { keyName, error });
+          logger.error('Failed to encrypt new API key', 'ApiKeyManager', {
+            keyName,
+            error,
+          });
           return false;
         }
       }
 
       // Update environment variable (in development only)
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env['NODE_ENV'] === 'development') {
         process.env[config.key] = processedKey;
         config.lastRotated = new Date();
         logger.info('API key rotated', 'ApiKeyManager', { keyName });
         return true;
       } else {
-        logger.warn('API key rotation not allowed in production', 'ApiKeyManager', { keyName });
+        logger.warn(
+          'API key rotation not allowed in production',
+          'ApiKeyManager',
+          { keyName }
+        );
         return false;
       }
     } catch (error) {
-      logger.error('Error rotating API key', 'ApiKeyManager', { keyName, error });
+      logger.error('Error rotating API key', 'ApiKeyManager', {
+        keyName,
+        error,
+      });
       return false;
     }
   }
@@ -356,9 +388,19 @@ export class ApiKeyManager {
   }
 
   // List all API keys (without values)
-  listApiKeys(): Array<{ name: string; required: boolean; encrypted: boolean; present: boolean }> {
-    const keys: Array<{ name: string; required: boolean; encrypted: boolean; present: boolean }> = [];
-    
+  listApiKeys(): Array<{
+    name: string;
+    required: boolean;
+    encrypted: boolean;
+    present: boolean;
+  }> {
+    const keys: Array<{
+      name: string;
+      required: boolean;
+      encrypted: boolean;
+      present: boolean;
+    }> = [];
+
     this.apiKeys.forEach((config, keyName) => {
       keys.push({
         name: keyName,
@@ -384,22 +426,26 @@ export class ApiKeyManager {
     // Check required keys
     const requiredCheck = this.checkRequiredKeys();
     if (!requiredCheck.allPresent) {
-      issues.push(`Missing required API keys: ${requiredCheck.missing.join(', ')}`);
+      issues.push(
+        `Missing required API keys: ${requiredCheck.missing.join(', ')}`
+      );
       score -= 30;
     }
 
     // Check key strength
     const statuses = this.getAllApiKeyStatuses();
-    const weakKeys = statuses.filter(status => !status.isValid);
+    const weakKeys = statuses.filter((status) => !status.isValid);
     if (weakKeys.length > 0) {
-      issues.push(`Weak or invalid API keys: ${weakKeys.map(k => k.key).join(', ')}`);
+      issues.push(
+        `Weak or invalid API keys: ${weakKeys.map((k) => k.key).join(', ')}`
+      );
       score -= 20;
     }
 
     // Check for hardcoded keys in development
-    if (process.env.NODE_ENV === 'development') {
-      const hardcodedKeys = statuses.filter(status => 
-        status.key.includes('dev_') || status.key.includes('test_')
+    if (process.env['NODE_ENV'] === 'development') {
+      const hardcodedKeys = statuses.filter(
+        (status) => status.key.includes('dev_') || status.key.includes('test_')
       );
       if (hardcodedKeys.length > 0) {
         issues.push('Hardcoded API keys detected in development');

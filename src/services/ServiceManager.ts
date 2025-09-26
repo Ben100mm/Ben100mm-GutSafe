@@ -6,12 +6,13 @@
  */
 
 import { logger } from '../utils/logger';
+
 import AuthService from './AuthService';
+import ErrorReportingService from './ErrorReportingService';
 import FoodService from './FoodService';
 import HealthService from './HealthService';
-import StorageService from './StorageService';
 import NetworkService from './NetworkService';
-import ErrorReportingService from './ErrorReportingService';
+import StorageService from './StorageService';
 
 /**
  * ServiceManager - Simple service management without dependency injection
@@ -19,7 +20,7 @@ import ErrorReportingService from './ErrorReportingService';
  */
 class ServiceManager {
   private static instance: ServiceManager;
-  private services: Map<string, any> = new Map();
+  private readonly services: Map<string, any> = new Map();
   private initialized: boolean = false;
 
   private constructor() {}
@@ -44,9 +45,8 @@ class ServiceManager {
       logger.info('Initializing services', 'ServiceManager');
 
       // Initialize error reporting service first
-      const errorReportingService = ErrorReportingService.getInstance();
-      await errorReportingService.initialize();
-      this.services.set('errorReporting', errorReportingService);
+      await ErrorReportingService.initialize();
+      this.services.set('errorReporting', ErrorReportingService);
 
       // Initialize services in dependency order
       const storageService = StorageService.getInstance();
@@ -127,7 +127,7 @@ class ServiceManager {
 
       // Cleanup services in reverse order
       const serviceNames = Array.from(this.services.keys()).reverse();
-      
+
       for (const serviceName of serviceNames) {
         const service = this.services.get(serviceName);
         if (service && typeof service.cleanup === 'function') {
@@ -135,14 +135,18 @@ class ServiceManager {
             await service.cleanup();
             logger.info(`Service cleaned up: ${serviceName}`, 'ServiceManager');
           } catch (error) {
-            logger.error(`Failed to cleanup service: ${serviceName}`, 'ServiceManager', error);
+            logger.error(
+              `Failed to cleanup service: ${serviceName}`,
+              'ServiceManager',
+              error
+            );
           }
         }
       }
 
       this.services.clear();
       this.initialized = false;
-      
+
       logger.info('All services cleaned up', 'ServiceManager');
     } catch (error) {
       logger.error('Failed to cleanup services', 'ServiceManager', error);
@@ -161,11 +165,16 @@ class ServiceManager {
 }
 
 // Convenience functions for direct service access
-export const getAuthService = () => ServiceManager.getInstance().getService<AuthService>('auth');
-export const getFoodService = () => ServiceManager.getInstance().getService<FoodService>('food');
-export const getHealthService = () => ServiceManager.getInstance().getService<HealthService>('health');
-export const getStorageService = () => ServiceManager.getInstance().getService<StorageService>('storage');
-export const getNetworkService = () => ServiceManager.getInstance().getService<NetworkService>('network');
+export const getAuthService = () =>
+  ServiceManager.getInstance().getService<AuthService>('auth');
+export const getFoodService = () =>
+  ServiceManager.getInstance().getService<FoodService>('food');
+export const getHealthService = () =>
+  ServiceManager.getInstance().getService<HealthService>('health');
+export const getStorageService = () =>
+  ServiceManager.getInstance().getService<StorageService>('storage');
+export const getNetworkService = () =>
+  ServiceManager.getInstance().getService<NetworkService>('network');
 
 // Initialize services function
 export const initializeServices = async () => {

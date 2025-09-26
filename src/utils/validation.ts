@@ -6,7 +6,9 @@
  */
 
 import { z } from 'zod';
-import { AppError, ValidationError } from '../types/comprehensive';
+
+import type { AppError } from '../types/comprehensive';
+import { ValidationError } from '../types/comprehensive';
 
 // ===== VALIDATION SCHEMAS =====
 
@@ -147,19 +149,46 @@ export const foodSearchResultSchema = z.object({
 // Health Service Schemas
 export const gutSymptomSchema = z.object({
   id: uuidSchema,
-  type: z.enum(['bloating', 'cramping', 'diarrhea', 'constipation', 'gas', 'nausea', 'reflux', 'fatigue', 'headache', 'skin_irritation', 'other']),
+  type: z.enum([
+    'bloating',
+    'cramping',
+    'diarrhea',
+    'constipation',
+    'gas',
+    'nausea',
+    'reflux',
+    'fatigue',
+    'headache',
+    'skin_irritation',
+    'other',
+  ]),
   severity: z.number().min(1).max(10),
   description: stringSchema.optional(),
   duration: numberSchema,
   timestamp: dateSchema,
   potentialTriggers: z.array(stringSchema).optional(),
-  location: z.enum(['upper_abdomen', 'lower_abdomen', 'full_abdomen', 'chest', 'general']).optional(),
+  location: z
+    .enum([
+      'upper_abdomen',
+      'lower_abdomen',
+      'full_abdomen',
+      'chest',
+      'general',
+    ])
+    .optional(),
 });
 
 export const medicationSupplementSchema = z.object({
   id: uuidSchema,
   name: stringSchema,
-  type: z.enum(['medication', 'supplement', 'probiotic', 'enzyme', 'antacid', 'other']),
+  type: z.enum([
+    'medication',
+    'supplement',
+    'probiotic',
+    'enzyme',
+    'antacid',
+    'other',
+  ]),
   dosage: stringSchema,
   frequency: z.enum(['daily', 'twice_daily', 'as_needed', 'weekly', 'monthly']),
   startDate: dateSchema,
@@ -167,7 +196,17 @@ export const medicationSupplementSchema = z.object({
   isActive: booleanSchema,
   notes: stringSchema.optional(),
   gutRelated: booleanSchema,
-  category: z.enum(['digestive_aid', 'anti_inflammatory', 'probiotic', 'enzyme_support', 'acid_control', 'immune_support', 'other']).optional(),
+  category: z
+    .enum([
+      'digestive_aid',
+      'anti_inflammatory',
+      'probiotic',
+      'enzyme_support',
+      'acid_control',
+      'immune_support',
+      'other',
+    ])
+    .optional(),
 });
 
 export const symptomLogSchema = z.object({
@@ -208,7 +247,12 @@ export const scheduledNotificationSchema = z.object({
   title: stringSchema,
   body: stringSchema,
   scheduledFor: dateSchema,
-  type: z.enum(['meal_reminder', 'scan_reminder', 'weekly_report', 'safe_food_alert']),
+  type: z.enum([
+    'meal_reminder',
+    'scan_reminder',
+    'weekly_report',
+    'safe_food_alert',
+  ]),
   data: z.record(z.unknown()).optional(),
 });
 
@@ -237,7 +281,9 @@ export class ValidationError extends Error {
     public expected: string,
     public details?: Record<string, unknown>
   ) {
-    super(`Validation failed for field '${field}': expected ${expected}, got ${typeof value}`);
+    super(
+      `Validation failed for field '${field}': expected ${expected}, got ${typeof value}`
+    );
     this.name = 'ValidationError';
   }
 }
@@ -259,11 +305,17 @@ export function validate<T>(schema: z.ZodSchema<T>, data: unknown): T {
   }
 }
 
-export function validateAsync<T>(schema: z.ZodSchema<T>, data: unknown): Promise<T> {
+export function validateAsync<T>(
+  schema: z.ZodSchema<T>,
+  data: unknown
+): Promise<T> {
   return schema.parseAsync(data);
 }
 
-export function safeValidate<T>(schema: z.ZodSchema<T>, data: unknown): { success: true; data: T } | { success: false; error: ValidationError } {
+export function safeValidate<T>(
+  schema: z.ZodSchema<T>,
+  data: unknown
+): { success: true; data: T } | { success: false; error: ValidationError } {
   try {
     const result = schema.parse(data);
     return { success: true, data: result };
@@ -277,7 +329,7 @@ export function safeValidate<T>(schema: z.ZodSchema<T>, data: unknown): { succes
           firstError.input,
           firstError.message,
           { zodError: error.errors }
-        )
+        ),
       };
     }
     throw error;
@@ -286,73 +338,87 @@ export function safeValidate<T>(schema: z.ZodSchema<T>, data: unknown): { succes
 
 // ===== TYPE GUARDS =====
 
-export function isValidUserSettings(data: unknown): data is import('../types/comprehensive').UserSettings {
+export function isValidUserSettings(
+  data: unknown
+): data is import('../types/comprehensive').UserSettings {
   return safeValidate(userSettingsSchema, data).success;
 }
 
-export function isValidFoodItem(data: unknown): data is import('../types/comprehensive').FoodItem {
+export function isValidFoodItem(
+  data: unknown
+): data is import('../types/comprehensive').FoodItem {
   return safeValidate(foodItemSchema, data).success;
 }
 
-export function isValidSymptomLog(data: unknown): data is import('../types/comprehensive').SymptomLog {
+export function isValidSymptomLog(
+  data: unknown
+): data is import('../types/comprehensive').SymptomLog {
   return safeValidate(symptomLogSchema, data).success;
 }
 
-export function isValidMedicationLog(data: unknown): data is import('../types/comprehensive').MedicationLog {
+export function isValidMedicationLog(
+  data: unknown
+): data is import('../types/comprehensive').MedicationLog {
   return safeValidate(medicationLogSchema, data).success;
 }
 
-export function isValidNotificationSettings(data: unknown): data is import('../types/comprehensive').NotificationSettings {
+export function isValidNotificationSettings(
+  data: unknown
+): data is import('../types/comprehensive').NotificationSettings {
   return safeValidate(notificationSettingsSchema, data).success;
 }
 
 // ===== RUNTIME VALIDATION DECORATORS =====
 
 export function validateInput<T>(schema: z.ZodSchema<T>) {
-  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+  return function (
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
     const originalMethod = descriptor.value;
-    
+
     descriptor.value = function (...args: any[]) {
       // Validate the first argument (assuming it's the input)
       if (args.length > 0) {
         try {
           args[0] = validate(schema, args[0]);
         } catch (error) {
-          throw new ValidationError(
-            'input',
-            args[0],
-            'valid input data',
-            { method: propertyKey, error }
-          );
+          throw new ValidationError('input', args[0], 'valid input data', {
+            method: propertyKey,
+            error,
+          });
         }
       }
-      
+
       return originalMethod.apply(this, args);
     };
-    
+
     return descriptor;
   };
 }
 
 export function validateOutput<T>(schema: z.ZodSchema<T>) {
-  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+  return function (
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
     const originalMethod = descriptor.value;
-    
+
     descriptor.value = async function (...args: any[]) {
       const result = await originalMethod.apply(this, args);
-      
+
       try {
         return validate(schema, result);
       } catch (error) {
-        throw new ValidationError(
-          'output',
-          result,
-          'valid output data',
-          { method: propertyKey, error }
-        );
+        throw new ValidationError('output', result, 'valid output data', {
+          method: propertyKey,
+          error,
+        });
       }
     };
-    
+
     return descriptor;
   };
 }
@@ -373,17 +439,18 @@ export function validateArray<T>(schema: z.ZodSchema<T>, data: unknown[]): T[] {
     try {
       return validate(schema, item);
     } catch (error) {
-      throw new ValidationError(
-        `[${index}]`,
-        item,
-        'valid array item',
-        { arrayIndex: index, error }
-      );
+      throw new ValidationError(`[${index}]`, item, 'valid array item', {
+        arrayIndex: index,
+        error,
+      });
     }
   });
 }
 
-export function validateOptional<T>(schema: z.ZodSchema<T>, data: unknown): T | undefined {
+export function validateOptional<T>(
+  schema: z.ZodSchema<T>,
+  data: unknown
+): T | undefined {
   if (data === undefined || data === null) {
     return undefined;
   }
@@ -406,7 +473,7 @@ export function handleValidationError(error: unknown): AppError {
       timestamp: new Date(),
     };
   }
-  
+
   if (error instanceof Error) {
     return {
       code: 'UNKNOWN_ERROR',
@@ -415,7 +482,7 @@ export function handleValidationError(error: unknown): AppError {
       timestamp: new Date(),
     };
   }
-  
+
   return {
     code: 'UNKNOWN_ERROR',
     message: 'An unknown error occurred',

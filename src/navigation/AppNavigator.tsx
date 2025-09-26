@@ -5,18 +5,17 @@
  * @private
  */
 
-import { useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useEffect } from 'react';
 import { useColorScheme, Platform } from 'react-native';
-import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
-import { Spacing } from '../constants/spacing';
-import { HapticFeedback } from '../utils/haptics';
-import AccessibilityService from '../utils/accessibility';
 
-// Lazy loaded screens
+import { LazyWrapper } from '../components/LazyWrapper';
+import { TabIcon } from '../components/TabIcon';
+import { Colors } from '../constants/colors';
+import { Spacing } from '../constants/spacing';
+import { Typography } from '../constants/typography';
 import {
   LazyDashboardScreen,
   LazyScanScreen,
@@ -29,10 +28,12 @@ import {
   LazyGutProfileScreen,
   LazyOnboardingScreen,
 } from '../screens/lazy';
+import AccessibilityService from '../utils/accessibility';
+import { HapticFeedback } from '../utils/haptics';
+
+// Lazy loaded screens
 
 // Tab Icons
-import { TabIcon } from '../components/TabIcon';
-import { LazyWrapper } from '../components/LazyWrapper';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -114,6 +115,14 @@ const MainTabs = () => {
 
   return (
     <Tab.Navigator
+      screenListeners={{
+        tabPress: (e: any) => {
+          const routeName = e.target?.split('-')[0];
+          if (routeName) {
+            handleTabPress(routeName);
+          }
+        },
+      }}
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
@@ -152,20 +161,12 @@ const MainTabs = () => {
           paddingVertical: Spacing.xs,
         },
       }}
-      screenListeners={{
-        tabPress: (e: any) => {
-          const routeName = e.target?.split('-')[0];
-          if (routeName) {
-            handleTabPress(routeName);
-          }
-        },
-      }}
     >
       <Tab.Screen
         name="Summary"
         options={{
           tabBarIcon: ({ focused, color }) => (
-            <TabIcon name="heart" focused={focused} color={color} />
+            <TabIcon color={color} focused={focused} name="heart" />
           ),
         }}
       >
@@ -176,11 +177,11 @@ const MainTabs = () => {
         )}
       </Tab.Screen>
       <Tab.Screen
-        name="Scan"
         component={ScanStack}
+        name="Scan"
         options={{
           tabBarIcon: ({ focused, color }) => (
-            <TabIcon name="camera" focused={focused} color={color} />
+            <TabIcon color={color} focused={focused} name="camera" />
           ),
         }}
       />
@@ -188,7 +189,7 @@ const MainTabs = () => {
         name="Browse"
         options={{
           tabBarIcon: ({ focused, color }) => (
-            <TabIcon name="grid" focused={focused} color={color} />
+            <TabIcon color={color} focused={focused} name="grid" />
           ),
         }}
       >
@@ -202,7 +203,7 @@ const MainTabs = () => {
         name="Analytics"
         options={{
           tabBarIcon: ({ focused, color }) => (
-            <TabIcon name="trend" focused={focused} color={color} />
+            <TabIcon color={color} focused={focused} name="trend" />
           ),
         }}
       >

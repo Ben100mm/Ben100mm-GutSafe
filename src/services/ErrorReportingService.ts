@@ -5,8 +5,9 @@
  * @private
  */
 
-import { AppError } from '../types/comprehensive';
-import { ErrorSeverity, ErrorCategory, ErrorContext } from '../utils/errorHandler';
+import type { AppError } from '../types/comprehensive';
+import type { ErrorContext } from '../utils/errorHandler';
+import { ErrorSeverity, ErrorCategory } from '../utils/errorHandler';
 import { logger } from '../utils/logger';
 import { retryUtils } from '../utils/retryUtils';
 
@@ -57,7 +58,7 @@ class ErrorReportingService {
   private config: ErrorReportingConfig;
   private reportQueue: ErrorReport[] = [];
   private flushTimer: NodeJS.Timeout | null = null;
-  private stats: ErrorReportingStats;
+  private readonly stats: ErrorReportingStats;
   private isInitialized: boolean = false;
 
   private constructor() {
@@ -113,16 +114,24 @@ class ErrorReportingService {
 
       if (this.config.enabled) {
         this.startFlushTimer();
-        logger.info('Error reporting service initialized', 'ErrorReportingService', {
-          enabled: this.config.enabled,
-          batchSize: this.config.batchSize,
-          flushInterval: this.config.flushInterval,
-        });
+        logger.info(
+          'Error reporting service initialized',
+          'ErrorReportingService',
+          {
+            enabled: this.config.enabled,
+            batchSize: this.config.batchSize,
+            flushInterval: this.config.flushInterval,
+          }
+        );
       }
 
       this.isInitialized = true;
     } catch (error) {
-      logger.error('Failed to initialize error reporting service', 'ErrorReportingService', error);
+      logger.error(
+        'Failed to initialize error reporting service',
+        'ErrorReportingService',
+        error
+      );
       throw error;
     }
   }
@@ -175,7 +184,11 @@ class ErrorReportingService {
         await this.flushReports();
       }
     } catch (error) {
-      logger.error('Failed to queue error report', 'ErrorReportingService', error);
+      logger.error(
+        'Failed to queue error report',
+        'ErrorReportingService',
+        error
+      );
     }
   }
 
@@ -195,10 +208,14 @@ class ErrorReportingService {
       this.stats.lastFlush = new Date();
       this.stats.pendingReports = 0;
 
-      logger.info('Error reports flushed successfully', 'ErrorReportingService', {
-        reportCount: reports.length,
-        lastFlush: this.stats.lastFlush,
-      });
+      logger.info(
+        'Error reports flushed successfully',
+        'ErrorReportingService',
+        {
+          reportCount: reports.length,
+          lastFlush: this.stats.lastFlush,
+        }
+      );
     } catch (error) {
       // Re-queue reports on failure
       this.reportQueue.unshift(...reports);
@@ -217,15 +234,19 @@ class ErrorReportingService {
   private async sendReports(reports: ErrorReport[]): Promise<void> {
     if (!this.config.endpoint) {
       // In development or when no endpoint is configured, just log
-      logger.debug('Error reports would be sent to external service', 'ErrorReportingService', {
-        reportCount: reports.length,
-        reports: reports.map(r => ({
-          id: r.id,
-          severity: r.severity,
-          category: r.category,
-          errorCode: r.error.code,
-        })),
-      });
+      logger.debug(
+        'Error reports would be sent to external service',
+        'ErrorReportingService',
+        {
+          reportCount: reports.length,
+          reports: reports.map((r) => ({
+            id: r.id,
+            severity: r.severity,
+            category: r.category,
+            errorCode: r.error.code,
+          })),
+        }
+      );
       return;
     }
 
@@ -235,7 +256,7 @@ class ErrorReportingService {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.config.apiKey}`,
+            Authorization: `Bearer ${this.config.apiKey}`,
             'User-Agent': 'GutSafe-App/1.0.0',
           },
           body: JSON.stringify({
@@ -265,7 +286,9 @@ class ErrorReportingService {
     );
 
     if (!result.success) {
-      throw new Error(`Failed to send error reports: ${(result as any).error.message}`);
+      throw new Error(
+        `Failed to send error reports: ${(result as any).error.message}`
+      );
     }
 
     this.stats.lastReported = new Date();
@@ -293,9 +316,13 @@ class ErrorReportingService {
       this.stopFlushTimer();
     }
 
-    logger.info('Error reporting configuration updated', 'ErrorReportingService', {
-      config: this.config,
-    });
+    logger.info(
+      'Error reporting configuration updated',
+      'ErrorReportingService',
+      {
+        config: this.config,
+      }
+    );
   }
 
   /**
@@ -310,7 +337,9 @@ class ErrorReportingService {
       this.stopFlushTimer();
     }
 
-    logger.info('Error reporting enabled/disabled', 'ErrorReportingService', { enabled });
+    logger.info('Error reporting enabled/disabled', 'ErrorReportingService', {
+      enabled,
+    });
   }
 
   /**
@@ -331,7 +360,7 @@ class ErrorReportingService {
     }
 
     this.flushTimer = setInterval(() => {
-      this.flushReports().catch(error => {
+      this.flushReports().catch((error) => {
         logger.error('Error in flush timer', 'ErrorReportingService', error);
       });
     }, this.config.flushInterval);
@@ -356,7 +385,8 @@ class ErrorReportingService {
     this.stats.errorsByCategory[report.category]++;
 
     const service = report.context.service || 'unknown';
-    this.stats.errorsByService[service] = (this.stats.errorsByService[service] || 0) + 1;
+    this.stats.errorsByService[service] =
+      (this.stats.errorsByService[service] || 0) + 1;
     this.stats.pendingReports = this.reportQueue.length;
   }
 
@@ -372,8 +402,12 @@ class ErrorReportingService {
    */
   cleanup(): void {
     this.stopFlushTimer();
-    this.flushReports().catch(error => {
-      logger.error('Error during cleanup flush', 'ErrorReportingService', error);
+    this.flushReports().catch((error) => {
+      logger.error(
+        'Error during cleanup flush',
+        'ErrorReportingService',
+        error
+      );
     });
     logger.info('Error reporting service cleaned up', 'ErrorReportingService');
   }

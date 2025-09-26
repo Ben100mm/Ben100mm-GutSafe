@@ -6,7 +6,12 @@
  */
 
 import React from 'react';
-import { render, fireEvent, waitFor, screen } from '@testing-library/react-native';
+import {
+  render,
+  fireEvent,
+  waitFor,
+  screen,
+} from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { ScanScreen } from '../../screens/ScanScreen';
 import { ScanDetailScreen } from '../../screens/ScanDetailScreen';
@@ -40,7 +45,9 @@ jest.mock('@react-navigation/native', () => ({
 // Mock camera
 jest.mock('expo-camera', () => ({
   Camera: {
-    requestCameraPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
+    requestCameraPermissionsAsync: jest.fn(() =>
+      Promise.resolve({ status: 'granted' })
+    ),
   },
 }));
 
@@ -50,7 +57,7 @@ describe('Scan Flow Integration Tests', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockFoodDatabaseService = {
       initialize: jest.fn(),
       searchFoods: jest.fn(),
@@ -77,8 +84,12 @@ describe('Scan Flow Integration Tests', () => {
       clearAllCache: jest.fn(),
     } as any;
 
-    (FoodDatabaseService.getInstance as jest.Mock).mockReturnValue(mockFoodDatabaseService);
-    (OfflineService.getInstance as jest.Mock).mockReturnValue(mockOfflineService);
+    (FoodDatabaseService.getInstance as jest.Mock).mockReturnValue(
+      mockFoodDatabaseService
+    );
+    (OfflineService.getInstance as jest.Mock).mockReturnValue(
+      mockOfflineService
+    );
   });
 
   const createMockFoodItem = (): FoodItem => ({
@@ -93,7 +104,7 @@ describe('Scan Flow Integration Tests', () => {
     glutenFree: false,
     lactoseFree: false,
     histamineLevel: 'low',
-    dataSource: 'Test Database'
+    dataSource: 'Test Database',
   });
 
   const createMockAnalysis = (): ScanAnalysis => ({
@@ -103,28 +114,24 @@ describe('Scan Flow Integration Tests', () => {
         ingredient: 'milk',
         reason: 'Contains lactose which may trigger symptoms',
         severity: 'moderate',
-        condition: 'lactose'
-      }
+        condition: 'lactose',
+      },
     ],
     conditionWarnings: [
       {
         ingredient: 'milk',
         severity: 'moderate',
-        condition: 'lactose'
-      }
+        condition: 'lactose',
+      },
     ],
     safeAlternatives: ['lactose-free milk', 'almond milk'],
     explanation: 'This food contains lactose which may cause digestive issues.',
     dataSource: 'Test Database',
-    lastUpdated: new Date()
+    lastUpdated: new Date(),
   });
 
   const renderWithNavigation = (component: React.ReactElement) => {
-    return render(
-      <NavigationContainer>
-        {component}
-      </NavigationContainer>
-    );
+    return render(<NavigationContainer>{component}</NavigationContainer>);
   };
 
   describe('Complete Scan Flow', () => {
@@ -133,7 +140,9 @@ describe('Scan Flow Integration Tests', () => {
       const mockAnalysis = createMockAnalysis();
 
       mockFoodDatabaseService.getFoodByBarcode.mockResolvedValue(mockFoodItem);
-      mockFoodDatabaseService.analyzeFoodForGutHealth.mockResolvedValue(mockAnalysis);
+      mockFoodDatabaseService.analyzeFoodForGutHealth.mockResolvedValue(
+        mockAnalysis
+      );
 
       const { getByTestId, getByText } = renderWithNavigation(<ScanScreen />);
 
@@ -152,11 +161,16 @@ describe('Scan Flow Integration Tests', () => {
       });
 
       // Verify navigation to detail screen
-      expect(mockNavigate).toHaveBeenCalledWith('ScanDetail', expect.any(Object));
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'ScanDetail',
+        expect.any(Object)
+      );
     });
 
     it('should handle scan errors gracefully', async () => {
-      mockFoodDatabaseService.getFoodByBarcode.mockRejectedValue(new Error('Network error'));
+      mockFoodDatabaseService.getFoodByBarcode.mockRejectedValue(
+        new Error('Network error')
+      );
 
       const { getByTestId } = renderWithNavigation(<ScanScreen />);
 
@@ -212,7 +226,7 @@ describe('Scan Flow Integration Tests', () => {
       });
 
       // Verify safe alternatives are displayed
-      mockAnalysis.safeAlternatives.forEach(alternative => {
+      mockAnalysis.safeAlternatives.forEach((alternative) => {
         expect(getByText(alternative)).toBeTruthy();
       });
     });
@@ -226,8 +240,8 @@ describe('Scan Flow Integration Tests', () => {
           foodItem: createMockFoodItem(),
           analysis: createMockAnalysis(),
           timestamp: new Date(),
-          userFeedback: 'accurate'
-        }
+          userFeedback: 'accurate',
+        },
       ];
 
       const { getByText } = renderWithNavigation(<ScanHistoryScreen />);
@@ -241,7 +255,9 @@ describe('Scan Flow Integration Tests', () => {
     });
 
     it('should filter scan history by safety level', async () => {
-      const { getByText, getByTestId } = renderWithNavigation(<ScanHistoryScreen />);
+      const { getByText, getByTestId } = renderWithNavigation(
+        <ScanHistoryScreen />
+      );
 
       await waitFor(() => {
         expect(getByText('Scan History')).toBeTruthy();
@@ -256,19 +272,25 @@ describe('Scan Flow Integration Tests', () => {
     });
 
     it('should search scan history', async () => {
-      const { getByTestId, getByPlaceholderText } = renderWithNavigation(<ScanHistoryScreen />);
+      const { getByTestId, getByPlaceholderText } = renderWithNavigation(
+        <ScanHistoryScreen />
+      );
 
       await waitFor(() => {
         expect(getByText('Scan History')).toBeTruthy();
       });
 
       // Test search functionality
-      const searchInput = getByPlaceholderText('Search foods, ingredients, brands...');
+      const searchInput = getByPlaceholderText(
+        'Search foods, ingredients, brands...'
+      );
       fireEvent.changeText(searchInput, 'test food');
 
       // Verify search is performed
       await waitFor(() => {
-        expect(mockFoodDatabaseService.searchFoods).toHaveBeenCalledWith('test food');
+        expect(mockFoodDatabaseService.searchFoods).toHaveBeenCalledWith(
+          'test food'
+        );
       });
     });
   });
@@ -312,7 +334,9 @@ describe('Scan Flow Integration Tests', () => {
 
   describe('Error Handling', () => {
     it('should handle network errors gracefully', async () => {
-      mockFoodDatabaseService.getFoodByBarcode.mockRejectedValue(new Error('Network error'));
+      mockFoodDatabaseService.getFoodByBarcode.mockRejectedValue(
+        new Error('Network error')
+      );
 
       const { getByTestId } = renderWithNavigation(<ScanScreen />);
 
@@ -351,7 +375,7 @@ describe('Scan Flow Integration Tests', () => {
   describe('Performance', () => {
     it('should load scan screen within acceptable time', async () => {
       const startTime = Date.now();
-      
+
       renderWithNavigation(<ScanScreen />);
 
       await waitFor(() => {
@@ -370,7 +394,7 @@ describe('Scan Flow Integration Tests', () => {
       });
 
       const scanButton = getByTestId('scan-button');
-      
+
       // Simulate rapid scans
       fireEvent.press(scanButton);
       fireEvent.press(scanButton);
@@ -378,7 +402,9 @@ describe('Scan Flow Integration Tests', () => {
 
       // Should handle gracefully without errors
       await waitFor(() => {
-        expect(mockFoodDatabaseService.getFoodByBarcode).toHaveBeenCalledTimes(3);
+        expect(mockFoodDatabaseService.getFoodByBarcode).toHaveBeenCalledTimes(
+          3
+        );
       });
     });
   });

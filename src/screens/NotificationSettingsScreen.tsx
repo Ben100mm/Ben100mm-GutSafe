@@ -5,6 +5,7 @@
  * @private
  */
 
+import { useNavigation } from '@react-navigation/native';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -17,10 +18,10 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
+import { Typography } from '../constants/typography';
 import NotificationService from '../services/NotificationService';
 
 export const NotificationSettingsScreen: React.FC = () => {
@@ -63,7 +64,8 @@ export const NotificationSettingsScreen: React.FC = () => {
 
   const loadStats = useCallback(async () => {
     try {
-      const notificationStats = await notificationService.getNotificationStats();
+      const notificationStats =
+        await notificationService.getNotificationStats();
       setStats(notificationStats);
     } catch (error) {
       console.error('Failed to load notification stats:', error);
@@ -83,7 +85,10 @@ export const NotificationSettingsScreen: React.FC = () => {
       await loadStats(); // Refresh stats
     } catch (error) {
       console.error('Failed to update setting:', error);
-      Alert.alert('Error', 'Failed to update notification setting. Please try again.');
+      Alert.alert(
+        'Error',
+        'Failed to update notification setting. Please try again.'
+      );
     }
   };
 
@@ -151,12 +156,12 @@ export const NotificationSettingsScreen: React.FC = () => {
     );
   };
 
-  const SettingRow = ({ 
-    title, 
-    subtitle, 
-    value, 
-    onValueChange, 
-    disabled = false 
+  const SettingRow = ({
+    title,
+    subtitle,
+    value,
+    onValueChange,
+    disabled = false,
   }: {
     title: string;
     subtitle: string;
@@ -166,34 +171,41 @@ export const NotificationSettingsScreen: React.FC = () => {
   }) => (
     <View style={[styles.settingRow, { backgroundColor: colors.surface }]}>
       <View style={styles.settingInfo}>
-        <Text style={[styles.settingTitle, { color: colors.text }]}>{title}</Text>
+        <Text style={[styles.settingTitle, { color: colors.text }]}>
+          {title}
+        </Text>
         <Text style={[styles.settingSubtitle, { color: colors.textSecondary }]}>
           {subtitle}
         </Text>
       </View>
       <Switch
+        disabled={disabled || !isEnabled}
+        thumbColor={value ? Colors.white : colors.textSecondary}
+        trackColor={{ false: colors.border, true: colors.accent }}
         value={value}
         onValueChange={onValueChange}
-        disabled={disabled || !isEnabled}
-        trackColor={{ false: colors.border, true: colors.accent }}
-        thumbColor={value ? Colors.white : colors.textSecondary}
       />
     </View>
   );
 
-  const TimePicker = ({ 
-    label, 
-    value, 
-    onValueChange 
+  const TimePicker = ({
+    label,
+    value,
+    onValueChange,
   }: {
     label: string;
     value: string;
     onValueChange: (value: string) => void;
   }) => (
     <View style={styles.timePickerContainer}>
-      <Text style={[styles.timePickerLabel, { color: colors.text }]}>{label}</Text>
+      <Text style={[styles.timePickerLabel, { color: colors.text }]}>
+        {label}
+      </Text>
       <TouchableOpacity
-        style={[styles.timePicker, { backgroundColor: colors.surface, borderColor: colors.border }]}
+        style={[
+          styles.timePicker,
+          { backgroundColor: colors.surface, borderColor: colors.border },
+        ]}
         onPress={() => {
           // In a real app, you would show a time picker modal
           Alert.prompt(
@@ -207,7 +219,10 @@ export const NotificationSettingsScreen: React.FC = () => {
                   if (time && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(time)) {
                     onValueChange(time);
                   } else {
-                    Alert.alert('Invalid Time', 'Please enter time in HH:MM format.');
+                    Alert.alert(
+                      'Invalid Time',
+                      'Please enter time in HH:MM format.'
+                    );
                   }
                 },
               },
@@ -217,45 +232,59 @@ export const NotificationSettingsScreen: React.FC = () => {
           );
         }}
       >
-        <Text style={[styles.timePickerText, { color: colors.text }]}>{value}</Text>
+        <Text style={[styles.timePickerText, { color: colors.text }]}>
+          {value}
+        </Text>
       </TouchableOpacity>
     </View>
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={[styles.backButtonText, { color: colors.accent }]}>‹ Back</Text>
+          <Text style={[styles.backButtonText, { color: colors.accent }]}>
+            ‹ Back
+          </Text>
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Notifications</Text>
+        <Text style={[styles.title, { color: colors.text }]}>
+          Notifications
+        </Text>
         <View style={styles.headerActions}>
           <TouchableOpacity
+            disabled={!isEnabled}
             style={styles.testButton}
             onPress={testNotification}
-            disabled={!isEnabled}
           >
-            <Text style={[styles.testButtonText, { color: colors.accent }]}>Test</Text>
+            <Text style={[styles.testButtonText, { color: colors.accent }]}>
+              Test
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={styles.scrollView}
+      >
         {/* Permission Status */}
         <View style={[styles.statusCard, { backgroundColor: colors.surface }]}>
           <View style={styles.statusInfo}>
             <Text style={[styles.statusTitle, { color: colors.text }]}>
               {isEnabled ? 'Notifications Enabled' : 'Notifications Disabled'}
             </Text>
-            <Text style={[styles.statusSubtitle, { color: colors.textSecondary }]}>
-              {isEnabled 
+            <Text
+              style={[styles.statusSubtitle, { color: colors.textSecondary }]}
+            >
+              {isEnabled
                 ? 'You will receive meal reminders and other notifications.'
-                : 'Enable notifications to receive meal reminders and updates.'
-              }
+                : 'Enable notifications to receive meal reminders and updates.'}
             </Text>
           </View>
           {!isEnabled && (
@@ -272,78 +301,105 @@ export const NotificationSettingsScreen: React.FC = () => {
 
         {/* Notification Statistics */}
         <View style={[styles.statsCard, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.statsTitle, { color: colors.text }]}>Scheduled Notifications</Text>
+          <Text style={[styles.statsTitle, { color: colors.text }]}>
+            Scheduled Notifications
+          </Text>
           <View style={styles.statsGrid}>
             <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: colors.accent }]}>{stats.totalScheduled}</Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total</Text>
+              <Text style={[styles.statValue, { color: colors.accent }]}>
+                {stats.totalScheduled}
+              </Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                Total
+              </Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: colors.accent }]}>{stats.mealReminders}</Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Meals</Text>
+              <Text style={[styles.statValue, { color: colors.accent }]}>
+                {stats.mealReminders}
+              </Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                Meals
+              </Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: colors.accent }]}>{stats.newSafeFoods}</Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>New Foods</Text>
+              <Text style={[styles.statValue, { color: colors.accent }]}>
+                {stats.newSafeFoods}
+              </Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                New Foods
+              </Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: colors.accent }]}>{stats.weeklyReports}</Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Reports</Text>
+              <Text style={[styles.statValue, { color: colors.accent }]}>
+                {stats.weeklyReports}
+              </Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                Reports
+              </Text>
             </View>
           </View>
         </View>
 
         {/* Notification Settings */}
         <View style={styles.settingsSection}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Notification Types</Text>
-          
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Notification Types
+          </Text>
+
           <SettingRow
-            title="Meal Reminders"
+            disabled={!isEnabled}
             subtitle="Remind me to scan my food at meal times"
+            title="Meal Reminders"
             value={settings.mealReminders}
             onValueChange={(value) => updateSetting('mealReminders', value)}
-            disabled={!isEnabled}
           />
-          
+
           <SettingRow
-            title="New Safe Foods"
+            disabled={!isEnabled}
             subtitle="Notify me when new safe foods are discovered"
+            title="New Safe Foods"
             value={settings.newSafeFoods}
             onValueChange={(value) => updateSetting('newSafeFoods', value)}
-            disabled={!isEnabled}
           />
-          
+
           <SettingRow
-            title="Scan Reminders"
+            disabled={!isEnabled}
             subtitle="Remind me to scan food if I haven't in a while"
+            title="Scan Reminders"
             value={settings.scanReminders}
             onValueChange={(value) => updateSetting('scanReminders', value)}
-            disabled={!isEnabled}
           />
-          
+
           <SettingRow
-            title="Weekly Reports"
+            disabled={!isEnabled}
             subtitle="Send weekly gut health summary reports"
+            title="Weekly Reports"
             value={settings.weeklyReports}
             onValueChange={(value) => updateSetting('weeklyReports', value)}
-            disabled={!isEnabled}
           />
         </View>
 
         {/* Quiet Hours */}
         <View style={styles.settingsSection}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Quiet Hours</Text>
-          
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Quiet Hours
+          </Text>
+
           <SettingRow
-            title="Enable Quiet Hours"
+            disabled={!isEnabled}
             subtitle="Disable notifications during specified hours"
+            title="Enable Quiet Hours"
             value={settings.quietHours.enabled}
             onValueChange={(value) => updateQuietHours('enabled', value)}
-            disabled={!isEnabled}
           />
-          
+
           {settings.quietHours.enabled && (
-            <View style={[styles.quietHoursContainer, { backgroundColor: colors.surface }]}>
+            <View
+              style={[
+                styles.quietHoursContainer,
+                { backgroundColor: colors.surface },
+              ]}
+            >
               <TimePicker
                 label="Start Time"
                 value={settings.quietHours.start}
@@ -361,7 +417,10 @@ export const NotificationSettingsScreen: React.FC = () => {
         {/* Actions */}
         <View style={styles.actionsSection}>
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            style={[
+              styles.actionButton,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
             onPress={clearAllNotifications}
           >
             <Text style={[styles.actionButtonText, { color: colors.text }]}>
@@ -375,164 +434,164 @@ export const NotificationSettingsScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  actionButton: {
     alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    padding: Spacing.lg,
+  },
+  actionButtonText: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+  },
+  actionsSection: {
+    marginBottom: Spacing.xl,
   },
   backButton: {
     padding: Spacing.xs,
   },
   backButtonText: {
-    fontSize: Typography.fontSize.body,
     fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
   },
-  title: {
-    fontSize: Typography.fontSize.h2,
-    fontFamily: Typography.fontFamily.bold,
+  container: {
     flex: 1,
-    textAlign: 'center',
+  },
+  enableButton: {
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+  },
+  enableButtonText: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+  },
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
   },
   headerActions: {
     flexDirection: 'row',
     gap: Spacing.sm,
   },
-  testButton: {
-    padding: Spacing.xs,
-  },
-  testButtonText: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.semiBold,
+  quietHoursContainer: {
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.sm,
+    padding: Spacing.lg,
   },
   scrollView: {
     flex: 1,
     paddingHorizontal: Spacing.lg,
   },
-  statusCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.md,
-    marginBottom: Spacing.lg,
-  },
-  statusInfo: {
-    flex: 1,
-  },
-  statusTitle: {
-    fontSize: Typography.fontSize.h4,
-    fontFamily: Typography.fontFamily.bold,
-    marginBottom: Spacing.xs,
-  },
-  statusSubtitle: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.regular,
-    lineHeight: Typography.lineHeight.body,
-  },
-  enableButton: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-  },
-  enableButtonText: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.semiBold,
-  },
-  statsCard: {
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.md,
-    marginBottom: Spacing.lg,
-  },
-  statsTitle: {
-    fontSize: Typography.fontSize.h4,
-    fontFamily: Typography.fontFamily.bold,
-    marginBottom: Spacing.md,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: Typography.fontSize.h2,
-    fontFamily: Typography.fontFamily.bold,
-    marginBottom: Spacing.xs,
-  },
-  statLabel: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
-  },
-  settingsSection: {
-    marginBottom: Spacing.lg,
-  },
   sectionTitle: {
-    fontSize: Typography.fontSize.h4,
     fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h4,
     marginBottom: Spacing.md,
-  },
-  settingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.md,
-    marginBottom: Spacing.sm,
   },
   settingInfo: {
     flex: 1,
     marginRight: Spacing.md,
   },
-  settingTitle: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.semiBold,
-    marginBottom: Spacing.xs,
+  settingRow: {
+    alignItems: 'center',
+    borderRadius: BorderRadius.md,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
+    padding: Spacing.lg,
   },
   settingSubtitle: {
-    fontSize: Typography.fontSize.bodySmall,
     fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.bodySmall,
     lineHeight: Typography.lineHeight.bodySmall,
   },
-  quietHoursContainer: {
-    padding: Spacing.lg,
+  settingTitle: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+    marginBottom: Spacing.xs,
+  },
+  settingsSection: {
+    marginBottom: Spacing.lg,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statLabel: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.caption,
+  },
+  statValue: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h2,
+    marginBottom: Spacing.xs,
+  },
+  statsCard: {
     borderRadius: BorderRadius.md,
-    marginTop: Spacing.sm,
+    marginBottom: Spacing.lg,
+    padding: Spacing.lg,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  statsTitle: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h4,
+    marginBottom: Spacing.md,
+  },
+  statusCard: {
+    alignItems: 'center',
+    borderRadius: BorderRadius.md,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.lg,
+    padding: Spacing.lg,
+  },
+  statusInfo: {
+    flex: 1,
+  },
+  statusSubtitle: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
+    lineHeight: Typography.lineHeight.body,
+  },
+  statusTitle: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h4,
+    marginBottom: Spacing.xs,
+  },
+  testButton: {
+    padding: Spacing.xs,
+  },
+  testButtonText: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+  },
+  timePicker: {
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
   timePickerContainer: {
     marginBottom: Spacing.md,
   },
   timePickerLabel: {
-    fontSize: Typography.fontSize.body,
     fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.body,
     marginBottom: Spacing.sm,
   },
-  timePicker: {
-    borderWidth: 1,
-    borderRadius: BorderRadius.sm,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-  },
   timePickerText: {
-    fontSize: Typography.fontSize.body,
     fontFamily: Typography.fontFamily.regular,
-  },
-  actionsSection: {
-    marginBottom: Spacing.xl,
-  },
-  actionButton: {
-    borderWidth: 1,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.lg,
-    alignItems: 'center',
-  },
-  actionButtonText: {
     fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.semiBold,
+  },
+  title: {
+    flex: 1,
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h2,
+    textAlign: 'center',
   },
 });

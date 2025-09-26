@@ -5,8 +5,10 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'Roboto', sans-serif;
-  background: #FFFFFF !important;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'Roboto',
+    sans-serif;
+  background: #ffffff !important;
   color: #000000 !important;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
@@ -24,7 +26,7 @@ body {
 /* Remove dark mode for testing */
 @media (prefers-color-scheme: dark) {
   body {
-    background: #FFFFFF !important;
+    background: #ffffff !important;
     color: #000000 !important;
   }
 }

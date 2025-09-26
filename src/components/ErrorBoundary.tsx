@@ -5,14 +5,23 @@
  * @private
  */
 
-import { Component, ReactNode } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import type { ReactNode } from 'react';
+import { Component } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+} from 'react-native';
+
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
-import { logger } from '../utils/logger';
+import { Typography } from '../constants/typography';
+import type { AppError } from '../types/comprehensive';
 import { errorHandler, ErrorSeverity } from '../utils/errorHandler';
-import { AppError } from '../types/comprehensive';
+import { logger } from '../utils/logger';
 
 interface Props {
   children: ReactNode;
@@ -32,23 +41,23 @@ interface State {
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  private maxRetries = 3;
-  private retryDelay = 1000; // 1 second
+  private readonly maxRetries = 3;
+  private readonly retryDelay = 1000; // 1 second
 
   constructor(props: Props) {
     super(props);
-    this.state = { 
-      hasError: false, 
-      retryCount: 0 
+    this.state = {
+      hasError: false,
+      retryCount: 0,
     };
   }
 
   static getDerivedStateFromError(error: Error): State {
-    return { 
-      hasError: true, 
+    return {
+      hasError: true,
       error,
       retryCount: 0,
-      lastErrorTime: Date.now()
+      lastErrorTime: Date.now(),
     };
   }
 
@@ -62,7 +71,7 @@ export class ErrorBoundary extends Component<Props, State> {
         componentStack: errorInfo.componentStack,
         context: this.props.context,
         retryCount: this.state.retryCount,
-      }
+      },
     };
 
     // Handle error with centralized error handler
@@ -103,15 +112,15 @@ export class ErrorBoundary extends Component<Props, State> {
 
   handleRetry = async () => {
     const { retryCount, lastErrorTime } = this.state;
-    
+
     // Check if we've exceeded max retries
     if (retryCount >= this.maxRetries) {
       Alert.alert(
         'Maximum Retries Reached',
-        'We\'ve tried multiple times but the error persists. Please restart the app or contact support.',
+        "We've tried multiple times but the error persists. Please restart the app or contact support.",
         [
           { text: 'OK', style: 'default' },
-          { text: 'Contact Support', onPress: this.handleContactSupport }
+          { text: 'Contact Support', onPress: this.handleContactSupport },
         ]
       );
       return;
@@ -128,7 +137,7 @@ export class ErrorBoundary extends Component<Props, State> {
     }
 
     // Increment retry count and reset error state
-    this.setState(prevState => ({
+    this.setState((prevState) => ({
       hasError: false,
       retryCount: prevState.retryCount + 1,
     }));
@@ -172,26 +181,32 @@ export class ErrorBoundary extends Component<Props, State> {
 
       const { error, retryCount } = this.state;
       const canRetry = retryCount < this.maxRetries;
-      const userFriendlyError = error ? errorHandler.getUserFriendlyError({
-        code: 'REACT_ERROR_BOUNDARY',
-        message: error.message,
-        timestamp: new Date(),
-        ...(error.stack && { stack: error.stack }),
-      }) : null;
+      const userFriendlyError = error
+        ? errorHandler.getUserFriendlyError({
+            code: 'REACT_ERROR_BOUNDARY',
+            message: error.message,
+            timestamp: new Date(),
+            ...(error.stack && { stack: error.stack }),
+          })
+        : null;
 
       return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          style={styles.container}
+        >
           <View style={styles.content}>
             <View style={styles.iconContainer}>
               <Text style={styles.icon}>⚠️</Text>
             </View>
-            
+
             <Text style={styles.title}>
               {userFriendlyError?.title || 'Something went wrong'}
             </Text>
-            
+
             <Text style={styles.message}>
-              {userFriendlyError?.message || 'We\'re sorry, but something unexpected happened. Please try again.'}
+              {userFriendlyError?.message ||
+                "We're sorry, but something unexpected happened. Please try again."}
             </Text>
 
             {retryCount > 0 && (
@@ -202,17 +217,23 @@ export class ErrorBoundary extends Component<Props, State> {
 
             {userFriendlyError && (
               <View style={styles.severityContainer}>
-                <View style={[
-                  styles.severityBadge,
-                  { backgroundColor: this.getSeverityColor(userFriendlyError.severity) }
-                ]}>
+                <View
+                  style={[
+                    styles.severityBadge,
+                    {
+                      backgroundColor: this.getSeverityColor(
+                        userFriendlyError.severity
+                      ),
+                    },
+                  ]}
+                >
                   <Text style={styles.severityText}>
                     {userFriendlyError.severity} - {userFriendlyError.category}
                   </Text>
                 </View>
               </View>
             )}
-            
+
             {this.props.showDetails && error && (
               <View style={styles.errorDetails}>
                 <Text style={styles.errorTitle}>Error Details:</Text>
@@ -227,18 +248,27 @@ export class ErrorBoundary extends Component<Props, State> {
 
             <View style={styles.buttonContainer}>
               {canRetry && (
-                <TouchableOpacity style={styles.retryButton} onPress={this.handleRetry}>
+                <TouchableOpacity
+                  style={styles.retryButton}
+                  onPress={this.handleRetry}
+                >
                   <Text style={styles.retryButtonText}>
                     {userFriendlyError?.action || 'Try Again'}
                   </Text>
                 </TouchableOpacity>
               )}
-              
-              <TouchableOpacity style={styles.resetButton} onPress={this.handleReset}>
+
+              <TouchableOpacity
+                style={styles.resetButton}
+                onPress={this.handleReset}
+              >
                 <Text style={styles.resetButtonText}>Reset</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.supportButton} onPress={this.handleContactSupport}>
+
+              <TouchableOpacity
+                style={styles.supportButton}
+                onPress={this.handleContactSupport}
+              >
                 <Text style={styles.supportButtonText}>Contact Support</Text>
               </TouchableOpacity>
             </View>
@@ -267,23 +297,21 @@ export class ErrorBoundary extends Component<Props, State> {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.light.background,
+  buttonContainer: {
+    gap: Spacing.md,
+    width: '100%',
   },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Spacing.lg,
+  container: {
+    backgroundColor: Colors.light.background,
+    flex: 1,
   },
   content: {
+    alignItems: 'center',
     backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.lg,
-    padding: Spacing.xl,
-    alignItems: 'center',
+    elevation: 4,
     maxWidth: 400,
-    width: '100%',
+    padding: Spacing.xl,
     shadowColor: Colors.light.shadow,
     shadowOffset: {
       width: 0,
@@ -291,131 +319,133 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 4,
-  },
-  iconContainer: {
-    marginBottom: Spacing.lg,
-  },
-  icon: {
-    fontSize: 48,
-  },
-  title: {
-    fontSize: Typography.fontSize.h2,
-    fontFamily: Typography.fontFamily.semiBold,
-    lineHeight: Typography.lineHeight.h2,
-    color: Colors.light.text,
-    textAlign: 'center',
-    marginBottom: Spacing.md,
-  },
-  message: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.regular,
-    lineHeight: Typography.lineHeight.body,
-    color: Colors.light.textSecondary,
-    textAlign: 'center',
-    marginBottom: Spacing.lg,
-  },
-  retryInfo: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.medium,
-    color: Colors.light.textSecondary,
-    textAlign: 'center',
-    marginBottom: Spacing.md,
-  },
-  severityContainer: {
-    marginBottom: Spacing.lg,
-  },
-  severityBadge: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.sm,
-  },
-  severityText: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.medium,
-    color: Colors.white,
-    textAlign: 'center',
+    width: '100%',
   },
   errorDetails: {
     backgroundColor: Colors.light.background,
     borderRadius: BorderRadius.md,
-    padding: Spacing.md,
     marginBottom: Spacing.lg,
+    padding: Spacing.md,
     width: '100%',
-  },
-  errorTitle: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.medium,
-    lineHeight: Typography.lineHeight.caption,
-    color: Colors.avoid,
-    marginBottom: Spacing.sm,
   },
   errorText: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: 'monospace',
-    lineHeight: Typography.lineHeight.caption,
     color: Colors.light.text,
+    fontFamily: 'monospace',
+    fontSize: Typography.fontSize.caption,
+    lineHeight: Typography.lineHeight.caption,
     marginBottom: Spacing.sm,
   },
-  stackContainer: {
-    maxHeight: 200,
-    backgroundColor: Colors.light.background,
-    borderRadius: BorderRadius.sm,
-    padding: Spacing.sm,
-  },
-  stackTrace: {
-    fontSize: 10,
-    fontFamily: 'monospace',
-    color: Colors.light.textSecondary,
-  },
-  buttonContainer: {
-    width: '100%',
-    gap: Spacing.md,
-  },
-  retryButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-    minWidth: 120,
-  },
-  retryButtonText: {
-    fontSize: Typography.fontSize.button,
+  errorTitle: {
+    color: Colors.avoid,
     fontFamily: Typography.fontFamily.medium,
-    lineHeight: Typography.lineHeight.button,
-    color: Colors.white,
+    fontSize: Typography.fontSize.caption,
+    lineHeight: Typography.lineHeight.caption,
+    marginBottom: Spacing.sm,
+  },
+  icon: {
+    fontSize: 48,
+  },
+  iconContainer: {
+    marginBottom: Spacing.lg,
+  },
+  message: {
+    color: Colors.light.textSecondary,
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
+    lineHeight: Typography.lineHeight.body,
+    marginBottom: Spacing.lg,
     textAlign: 'center',
   },
   resetButton: {
     backgroundColor: Colors.light.surface,
-    borderWidth: 1,
     borderColor: Colors.light.border,
     borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    minWidth: 120,
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
-    minWidth: 120,
   },
   resetButtonText: {
-    fontSize: Typography.fontSize.button,
-    fontFamily: Typography.fontFamily.medium,
-    lineHeight: Typography.lineHeight.button,
     color: Colors.light.text,
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.button,
+    lineHeight: Typography.lineHeight.button,
     textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+    minWidth: 120,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+  },
+  retryButtonText: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.button,
+    lineHeight: Typography.lineHeight.button,
+    textAlign: 'center',
+  },
+  retryInfo: {
+    color: Colors.light.textSecondary,
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.caption,
+    marginBottom: Spacing.md,
+    textAlign: 'center',
+  },
+  scrollContent: {
+    alignItems: 'center',
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: Spacing.lg,
+  },
+  severityBadge: {
+    borderRadius: BorderRadius.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  severityContainer: {
+    marginBottom: Spacing.lg,
+  },
+  severityText: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.caption,
+    textAlign: 'center',
+  },
+  stackContainer: {
+    backgroundColor: Colors.light.background,
+    borderRadius: BorderRadius.sm,
+    maxHeight: 200,
+    padding: Spacing.sm,
+  },
+  stackTrace: {
+    color: Colors.light.textSecondary,
+    fontFamily: 'monospace',
+    fontSize: 10,
   },
   supportButton: {
     backgroundColor: 'transparent',
-    borderWidth: 1,
     borderColor: Colors.primary,
     borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    minWidth: 120,
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
-    minWidth: 120,
   },
   supportButtonText: {
-    fontSize: Typography.fontSize.button,
-    fontFamily: Typography.fontFamily.medium,
-    lineHeight: Typography.lineHeight.button,
     color: Colors.primary,
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.button,
+    lineHeight: Typography.lineHeight.button,
+    textAlign: 'center',
+  },
+  title: {
+    color: Colors.light.text,
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.h2,
+    lineHeight: Typography.lineHeight.h2,
+    marginBottom: Spacing.md,
     textAlign: 'center',
   },
 });

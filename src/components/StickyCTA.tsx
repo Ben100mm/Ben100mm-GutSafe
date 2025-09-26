@@ -15,9 +15,10 @@ import {
   Platform,
   // Dimensions,
 } from 'react-native';
+
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
+import { Typography } from '../constants/typography';
 import { HapticFeedback } from '../utils/haptics';
 
 // const { width } = Dimensions.get('window');
@@ -89,7 +90,9 @@ export const StickyCTA: React.FC<StickyCTAProps> = ({
   }, [enablePulse, pulseAnim, slideAnim]);
 
   const handlePress = () => {
-    if (disabled) return;
+    if (disabled) {
+      return;
+    }
 
     HapticFeedback.buttonPress();
 
@@ -264,6 +267,11 @@ export const StickyCTA: React.FC<StickyCTAProps> = ({
       ]}
     >
       <TouchableOpacity
+        accessibilityLabel={accessibilityLabel || text}
+        accessibilityRole="button"
+        accessibilityState={{ disabled }}
+        activeOpacity={0.8}
+        disabled={disabled}
         style={[
           styles.button,
           getVariantStyles(),
@@ -274,11 +282,6 @@ export const StickyCTA: React.FC<StickyCTAProps> = ({
           },
         ]}
         onPress={handlePress}
-        disabled={disabled}
-        activeOpacity={0.8}
-        accessibilityRole="button"
-        accessibilityLabel={accessibilityLabel || text}
-        accessibilityState={{ disabled }}
       >
         <Text
           style={[
@@ -297,26 +300,9 @@ export const StickyCTA: React.FC<StickyCTAProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    zIndex: 1000,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
-    ...Platform.select({
-      web: {
-        boxShadow: '0 -2px 12px rgba(0, 0, 0, 0.15)',
-      },
-      default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-        elevation: 8,
-      },
-    }),
-  },
   button: {
-    borderRadius: BorderRadius.full,
     alignItems: 'center',
+    borderRadius: BorderRadius.full,
     justifyContent: 'center',
     ...Platform.select({
       web: {
@@ -325,6 +311,23 @@ const styles = StyleSheet.create({
       default: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 8,
+      },
+    }),
+  },
+  container: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.lg,
+    zIndex: 1000,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 -2px 12px rgba(0, 0, 0, 0.15)',
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -2 },
         shadowOpacity: 0.15,
         shadowRadius: 12,
         elevation: 8,

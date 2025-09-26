@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useState } from 'react';
+
 import { AppProvider, useApp } from './context/AppContext';
 import { initializeServices, cleanupServices } from './services/ServiceManager';
 import { logger } from './utils/logger';
@@ -19,11 +20,11 @@ function AppContent() {
     const initializeApp = async () => {
       try {
         dispatch({ type: 'SET_LOADING', payload: true });
-        
+
         // Initialize services
         await initializeServices();
         setServicesInitialized(true);
-        
+
         dispatch({ type: 'SET_LOADING', payload: false });
         logger.info('App initialized successfully', 'App');
       } catch (error) {
@@ -37,7 +38,7 @@ function AppContent() {
 
     // Cleanup on unmount
     return () => {
-      cleanupServices().catch(error => {
+      cleanupServices().catch((error) => {
         logger.error('Failed to cleanup services', 'App', error);
       });
     };
@@ -45,14 +46,16 @@ function AppContent() {
 
   if (state.isLoading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        backgroundColor: '#f0f0f0',
-        fontFamily: 'Arial, sans-serif'
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          backgroundColor: '#f0f0f0',
+          fontFamily: 'Arial, sans-serif',
+        }}
+      >
         <div style={{ textAlign: 'center' }}>
           <h2 style={{ color: '#0F5257' }}>GutSafe</h2>
           <p>Initializing services...</p>
@@ -63,27 +66,29 @@ function AppContent() {
 
   if (state.error) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        backgroundColor: '#f0f0f0',
-        fontFamily: 'Arial, sans-serif'
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          backgroundColor: '#f0f0f0',
+          fontFamily: 'Arial, sans-serif',
+        }}
+      >
         <div style={{ textAlign: 'center', color: '#d32f2f' }}>
           <h2 style={{ color: '#0F5257' }}>GutSafe</h2>
           <p>Error: {state.error}</p>
-          <button 
-            onClick={() => window.location.reload()}
+          <button
             style={{
               padding: '10px 20px',
               backgroundColor: '#0F5257',
               color: 'white',
               border: 'none',
               borderRadius: '4px',
-              cursor: 'pointer'
+              cursor: 'pointer',
             }}
+            onClick={() => window.location.reload()}
           >
             Retry
           </button>
@@ -93,19 +98,24 @@ function AppContent() {
   }
 
   return (
-    <div style={{ 
-      padding: '20px', 
-      backgroundColor: '#f0f0f0', 
-      minHeight: '100vh',
-      fontFamily: 'Arial, sans-serif'
-    }}>
+    <div
+      style={{
+        padding: '20px',
+        backgroundColor: '#f0f0f0',
+        minHeight: '100vh',
+        fontFamily: 'Arial, sans-serif',
+      }}
+    >
       <h1 style={{ color: '#0F5257' }}>GutSafe App</h1>
       <p>✅ Services initialized: {servicesInitialized ? 'Yes' : 'No'}</p>
       <p>📊 Scan History: {state.scanHistory.length} scans</p>
       <p>👤 Gut Profile: {state.gutProfile ? 'Loaded' : 'Not set'}</p>
-      <p>🌐 Network: {state.networkStatus.isOnline ? 'Online' : 'Offline'} ({state.networkStatus.quality}% quality)</p>
+      <p>
+        🌐 Network: {state.networkStatus.isOnline ? 'Online' : 'Offline'} (
+        {state.networkStatus.quality}% quality)
+      </p>
       <p>⚙️ Settings: {state.userSettings ? 'Loaded' : 'Not set'}</p>
-      
+
       <div style={{ marginTop: '20px' }}>
         <h3>Simplified Architecture</h3>
         <ul>

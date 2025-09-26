@@ -5,7 +5,9 @@
  * @private
  */
 
-import { AccessibilityInfo, Platform, AccessibilityRole } from 'react-native';
+import type { AccessibilityRole } from 'react-native';
+import { AccessibilityInfo, Platform } from 'react-native';
+
 import { logger } from './logger';
 
 export interface AccessibilityConfig {
@@ -24,7 +26,9 @@ export interface AccessibilityConfig {
     name: string;
     label?: string;
   }>;
-  onAccessibilityAction?: (event: { nativeEvent: { actionName: string } }) => void;
+  onAccessibilityAction?: (event: {
+    nativeEvent: { actionName: string };
+  }) => void;
   accessibilityValue?: {
     min?: number;
     max?: number;
@@ -47,25 +51,50 @@ export class AccessibilityService {
   static async initialize(): Promise<void> {
     if (Platform.OS === 'web') {
       // Web-specific initialization - simplified to avoid errors
-      logger.info('Accessibility service initialized for web', 'AccessibilityService');
+      logger.info(
+        'Accessibility service initialized for web',
+        'AccessibilityService'
+      );
       return;
     }
 
     try {
-      this.isScreenReaderEnabled = await AccessibilityInfo.isScreenReaderEnabled();
-      this.isReduceMotionEnabled = await AccessibilityInfo.isReduceMotionEnabled();
+      this.isScreenReaderEnabled =
+        await AccessibilityInfo.isScreenReaderEnabled();
+      this.isReduceMotionEnabled =
+        await AccessibilityInfo.isReduceMotionEnabled();
       this.isBoldTextEnabled = await AccessibilityInfo.isBoldTextEnabled();
       this.isGrayscaleEnabled = await AccessibilityInfo.isGrayscaleEnabled();
-      this.isInvertColorsEnabled = await AccessibilityInfo.isInvertColorsEnabled();
+      this.isInvertColorsEnabled =
+        await AccessibilityInfo.isInvertColorsEnabled();
 
       // Listen for changes
-      AccessibilityInfo.addEventListener('screenReaderChanged', this.handleScreenReaderChanged);
-      AccessibilityInfo.addEventListener('reduceMotionChanged', this.handleReduceMotionChanged);
-      AccessibilityInfo.addEventListener('boldTextChanged', this.handleBoldTextChanged);
-      AccessibilityInfo.addEventListener('grayscaleChanged', this.handleGrayscaleChanged);
-      AccessibilityInfo.addEventListener('invertColorsChanged', this.handleInvertColorsChanged);
+      AccessibilityInfo.addEventListener(
+        'screenReaderChanged',
+        this.handleScreenReaderChanged
+      );
+      AccessibilityInfo.addEventListener(
+        'reduceMotionChanged',
+        this.handleReduceMotionChanged
+      );
+      AccessibilityInfo.addEventListener(
+        'boldTextChanged',
+        this.handleBoldTextChanged
+      );
+      AccessibilityInfo.addEventListener(
+        'grayscaleChanged',
+        this.handleGrayscaleChanged
+      );
+      AccessibilityInfo.addEventListener(
+        'invertColorsChanged',
+        this.handleInvertColorsChanged
+      );
     } catch (error) {
-      logger.warn('Failed to initialize accessibility service', 'AccessibilityService', error);
+      logger.warn(
+        'Failed to initialize accessibility service',
+        'AccessibilityService',
+        error
+      );
     }
   }
 
@@ -177,7 +206,7 @@ export class AccessibilityService {
   ): AccessibilityConfig {
     const percentage = Math.round((current / max) * 100);
     const valueText = unit ? `${current} ${unit}` : `${current}`;
-    
+
     return {
       accessible: true,
       accessibilityRole: 'progressbar',
@@ -218,12 +247,12 @@ export class AccessibilityService {
   ): AccessibilityConfig {
     const accessibilityLabel = required ? `${label} (required)` : label;
     const accessibilityHint = error ? `${hint || ''} ${error}` : hint;
-    
+
     return {
       accessible: true,
       accessibilityRole: 'text',
       accessibilityLabel,
-      ...(accessibilityHint && { accessibilityHint: accessibilityHint }),
+      ...(accessibilityHint && { accessibilityHint }),
       accessibilityState: {
         disabled: !!error,
       },
@@ -259,7 +288,9 @@ export class AccessibilityService {
       accessible: true,
       accessibilityRole: 'button' as const,
       accessibilityLabel: label,
-      accessibilityHint: hint ? `${hint}, item ${position} of ${total}` : `item ${position} of ${total}`,
+      accessibilityHint: hint
+        ? `${hint}, item ${position} of ${total}`
+        : `item ${position} of ${total}`,
       testID: `list-item-${position}`,
     };
   }
@@ -312,7 +343,7 @@ export class AccessibilityService {
     value: number,
     min: number,
     max: number,
-    step?: number
+    _step?: number
   ): AccessibilityConfig {
     return {
       accessible: true,
@@ -333,7 +364,7 @@ export class AccessibilityService {
    */
   static createHeaderConfig(
     title: string,
-    level: 1 | 2 | 3 | 4 | 5 | 6 = 1
+    _level: 1 | 2 | 3 | 4 | 5 | 6 = 1
   ): AccessibilityConfig {
     return {
       accessible: true,
@@ -402,7 +433,10 @@ export class AccessibilityService {
   /**
    * Check if color combination meets WCAG AA contrast requirements
    */
-  static checkColorContrast(foreground: string, background: string): {
+  static checkColorContrast(
+    foreground: string,
+    background: string
+  ): {
     ratio: number;
     meetsAA: boolean;
     meetsAAA: boolean;
@@ -413,11 +447,11 @@ export class AccessibilityService {
       const r = parseInt(hex.substr(0, 2), 16) / 255;
       const g = parseInt(hex.substr(2, 2), 16) / 255;
       const b = parseInt(hex.substr(4, 2), 16) / 255;
-      
-      const [rs, gs, bs] = [r, g, b].map(c => 
+
+      const [rs, gs, bs] = [r, g, b].map((c) =>
         c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
       );
-      
+
       return 0.2126 * (rs || 0) + 0.7152 * (gs || 0) + 0.0722 * (bs || 0);
     };
 
@@ -437,7 +471,10 @@ export class AccessibilityService {
   /**
    * Get accessible font size based on user preferences
    */
-  static getAccessibleFontSize(baseSize: number, isLargeText: boolean = false): number {
+  static getAccessibleFontSize(
+    baseSize: number,
+    isLargeText: boolean = false
+  ): number {
     if (isLargeText || this.isBoldTextActive()) {
       return Math.max(baseSize * 1.2, 16); // Minimum 16px for accessibility
     }
@@ -456,7 +493,9 @@ export class AccessibilityService {
       accessible: true,
       accessibilityRole: 'alert',
       accessibilityLabel: title,
-      accessibilityHint: isVisible ? 'Modal dialog is open' : 'Modal dialog is closed',
+      accessibilityHint: isVisible
+        ? 'Modal dialog is open'
+        : 'Modal dialog is closed',
       accessibilityState: {
         expanded: isVisible,
       },
@@ -471,7 +510,7 @@ export class AccessibilityService {
           if (event.nativeEvent.actionName === 'close') {
             onClose();
           }
-        }
+        },
       }),
       testID: `modal-${title.toLowerCase().replace(/\s+/g, '-')}`,
     };
@@ -485,15 +524,18 @@ export class AccessibilityService {
     placeholder?: string,
     resultsCount?: number
   ): AccessibilityConfig {
-    const hint = resultsCount !== undefined 
-      ? `Search ${label}. ${resultsCount} results found.`
-      : `Search ${label}`;
-    
+    const hint =
+      resultsCount !== undefined
+        ? `Search ${label}. ${resultsCount} results found.`
+        : `Search ${label}`;
+
     return {
       accessible: true,
       accessibilityRole: 'search',
       accessibilityLabel: label,
-      ...(hint || placeholder ? { accessibilityHint: hint || placeholder || '' } : {}),
+      ...(hint || placeholder
+        ? { accessibilityHint: hint || placeholder || '' }
+        : {}),
       testID: `search-${label.toLowerCase().replace(/\s+/g, '-')}`,
     };
   }
@@ -526,14 +568,14 @@ export class AccessibilityService {
    */
   static createFormFieldConfig(
     label: string,
-    type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url',
+    _type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url',
     required: boolean = false,
     error?: string,
     hint?: string
   ): AccessibilityConfig {
     const accessibilityLabel = required ? `${label} (required)` : label;
     // const accessibilityHint = error ? `${hint || ''} Error: ${error}` : hint;
-    
+
     return {
       accessible: true,
       accessibilityRole: 'text',
@@ -553,10 +595,11 @@ export class AccessibilityService {
     label: string,
     progress?: number
   ): AccessibilityConfig {
-    const hint = progress !== undefined 
-      ? `Loading ${label}, ${progress}% complete`
-      : `Loading ${label}`;
-    
+    const hint =
+      progress !== undefined
+        ? `Loading ${label}, ${progress}% complete`
+        : `Loading ${label}`;
+
     return {
       accessible: true,
       accessibilityRole: 'progressbar',
@@ -565,14 +608,16 @@ export class AccessibilityService {
       accessibilityState: {
         busy: true,
       },
-      ...(progress !== undefined ? {
-        accessibilityValue: {
-          min: 0,
-          max: 100,
-          now: progress,
-          text: `${progress}% complete`,
-        }
-      } : {}),
+      ...(progress !== undefined
+        ? {
+            accessibilityValue: {
+              min: 0,
+              max: 100,
+              now: progress,
+              text: `${progress}% complete`,
+            },
+          }
+        : {}),
       testID: `loading-${label.toLowerCase().replace(/\s+/g, '-')}`,
     };
   }
@@ -585,7 +630,7 @@ export class AccessibilityService {
     field?: string
   ): AccessibilityConfig {
     const label = field ? `Error in ${field}: ${message}` : `Error: ${message}`;
-    
+
     return {
       accessible: true,
       accessibilityRole: 'alert',
@@ -601,8 +646,10 @@ export class AccessibilityService {
     message: string,
     field?: string
   ): AccessibilityConfig {
-    const label = field ? `Success in ${field}: ${message}` : `Success: ${message}`;
-    
+    const label = field
+      ? `Success in ${field}: ${message}`
+      : `Success: ${message}`;
+
     return {
       accessible: true,
       accessibilityRole: 'text',
@@ -636,7 +683,7 @@ export class AccessibilityService {
   ): AccessibilityConfig {
     const breadcrumbText = items.join(', ');
     const currentItem = items[currentIndex];
-    
+
     return {
       accessible: true,
       accessibilityRole: 'button',
@@ -652,11 +699,11 @@ export class AccessibilityService {
   static createPaginationConfig(
     currentPage: number,
     totalPages: number,
-    onPageChange?: (page: number) => void
+    _onPageChange?: (page: number) => void
   ): AccessibilityConfig {
     const label = `Page ${currentPage} of ${totalPages}`;
     const hint = totalPages > 1 ? 'Navigate between pages' : 'Single page';
-    
+
     return {
       accessible: true,
       accessibilityRole: 'button',
@@ -707,7 +754,7 @@ export class AccessibilityService {
   ): AccessibilityConfig {
     const role = isHeader ? 'text' : 'text';
     const label = isHeader ? `${content} (header)` : content;
-    
+
     return {
       accessible: true,
       accessibilityRole: role,
@@ -718,23 +765,23 @@ export class AccessibilityService {
   }
 
   // Event handlers
-  private static handleScreenReaderChanged = (isEnabled: boolean) => {
+  private static readonly handleScreenReaderChanged = (isEnabled: boolean) => {
     this.isScreenReaderEnabled = isEnabled;
   };
 
-  private static handleReduceMotionChanged = (isEnabled: boolean) => {
+  private static readonly handleReduceMotionChanged = (isEnabled: boolean) => {
     this.isReduceMotionEnabled = isEnabled;
   };
 
-  private static handleBoldTextChanged = (isEnabled: boolean) => {
+  private static readonly handleBoldTextChanged = (isEnabled: boolean) => {
     this.isBoldTextEnabled = isEnabled;
   };
 
-  private static handleGrayscaleChanged = (isEnabled: boolean) => {
+  private static readonly handleGrayscaleChanged = (isEnabled: boolean) => {
     this.isGrayscaleEnabled = isEnabled;
   };
 
-  private static handleInvertColorsChanged = (isEnabled: boolean) => {
+  private static readonly handleInvertColorsChanged = (isEnabled: boolean) => {
     this.isInvertColorsEnabled = isEnabled;
   };
 }

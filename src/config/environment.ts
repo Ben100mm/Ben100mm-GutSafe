@@ -1,7 +1,7 @@
 /**
  * Environment Configuration
  * Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
- * 
+ *
  * Centralized environment configuration with validation and type safety.
  */
 
@@ -10,64 +10,122 @@ import { z } from 'zod';
 // Environment schema for validation
 const EnvironmentSchema = z.object({
   // Application
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  NODE_ENV: z
+    .enum(['development', 'production', 'test'])
+    .default('development'),
   PORT: z.string().transform(Number).default(9001),
-  
+
   // API Configuration
   REACT_APP_API_BASE_URL: z.string().url(),
   REACT_APP_API_KEY: z.string().min(1),
   REACT_APP_API_SECRET: z.string().min(1),
-  
+
   // Database
   REACT_APP_DATABASE_URL: z.string().optional(),
   REACT_APP_DB_ENCRYPTION_KEY: z.string().min(32),
-  
+
   // Authentication & Security
   REACT_APP_JWT_SECRET: z.string().min(32),
   REACT_APP_SESSION_KEY: z.string().min(32),
-  REACT_APP_BIOMETRIC_ENABLED: z.string().transform(val => val === 'true').default(false),
+  REACT_APP_BIOMETRIC_ENABLED: z
+    .string()
+    .transform((val) => val === 'true')
+    .default(false),
   REACT_APP_BIOMETRIC_TIMEOUT: z.string().transform(Number).default(300000),
-  
+
   // Feature Flags
-  REACT_APP_ENABLE_OFFLINE_MODE: z.string().transform(val => val === 'true').default(true),
-  REACT_APP_ENABLE_CLOUD_SYNC: z.string().transform(val => val === 'true').default(false),
-  REACT_APP_ENABLE_ANALYTICS: z.string().transform(val => val === 'true').default(false),
-  REACT_APP_ENABLE_CRASH_REPORTING: z.string().transform(val => val === 'true').default(false),
-  REACT_APP_ENABLE_DEBUG_MODE: z.string().transform(val => val === 'true').default(false),
-  
+  REACT_APP_ENABLE_OFFLINE_MODE: z
+    .string()
+    .transform((val) => val === 'true')
+    .default(true),
+  REACT_APP_ENABLE_CLOUD_SYNC: z
+    .string()
+    .transform((val) => val === 'true')
+    .default(false),
+  REACT_APP_ENABLE_ANALYTICS: z
+    .string()
+    .transform((val) => val === 'true')
+    .default(false),
+  REACT_APP_ENABLE_CRASH_REPORTING: z
+    .string()
+    .transform((val) => val === 'true')
+    .default(false),
+  REACT_APP_ENABLE_DEBUG_MODE: z
+    .string()
+    .transform((val) => val === 'true')
+    .default(false),
+
   // Development
-  REACT_APP_DEBUG_MODE: z.string().transform(val => val === 'true').default(false),
-  REACT_APP_LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
-  REACT_APP_ENABLE_LOGGING: z.string().transform(val => val === 'true').default(true),
-  
+  REACT_APP_DEBUG_MODE: z
+    .string()
+    .transform((val) => val === 'true')
+    .default(false),
+  REACT_APP_LOG_LEVEL: z
+    .enum(['error', 'warn', 'info', 'debug'])
+    .default('info'),
+  REACT_APP_ENABLE_LOGGING: z
+    .string()
+    .transform((val) => val === 'true')
+    .default(true),
+
   // Security
   REACT_APP_ENCRYPTION_ALGORITHM: z.string().default('AES-256-GCM'),
-  REACT_APP_KEY_DERIVATION_ITERATIONS: z.string().transform(Number).default(100000),
+  REACT_APP_KEY_DERIVATION_ITERATIONS: z
+    .string()
+    .transform(Number)
+    .default(100000),
   REACT_APP_SESSION_TIMEOUT: z.string().transform(Number).default(3600000),
-  REACT_APP_REFRESH_TOKEN_TIMEOUT: z.string().transform(Number).default(604800000),
+  REACT_APP_REFRESH_TOKEN_TIMEOUT: z
+    .string()
+    .transform(Number)
+    .default(604800000),
   REACT_APP_RATE_LIMIT_REQUESTS: z.string().transform(Number).default(100),
   REACT_APP_RATE_LIMIT_WINDOW: z.string().transform(Number).default(60000),
-  
+
   // Privacy
   REACT_APP_DATA_RETENTION_DAYS: z.string().transform(Number).default(365),
-  REACT_APP_ANONYMOUS_ANALYTICS: z.string().transform(val => val === 'true').default(true),
-  REACT_APP_COLLECT_USAGE_DATA: z.string().transform(val => val === 'true').default(false),
-  REACT_APP_COLLECT_CRASH_DATA: z.string().transform(val => val === 'true').default(false),
-  REACT_APP_COLLECT_PERFORMANCE_DATA: z.string().transform(val => val === 'true').default(false),
-  
+  REACT_APP_ANONYMOUS_ANALYTICS: z
+    .string()
+    .transform((val) => val === 'true')
+    .default(true),
+  REACT_APP_COLLECT_USAGE_DATA: z
+    .string()
+    .transform((val) => val === 'true')
+    .default(false),
+  REACT_APP_COLLECT_CRASH_DATA: z
+    .string()
+    .transform((val) => val === 'true')
+    .default(false),
+  REACT_APP_COLLECT_PERFORMANCE_DATA: z
+    .string()
+    .transform((val) => val === 'true')
+    .default(false),
+
   // Compliance
-  REACT_APP_GDPR_COMPLIANCE: z.string().transform(val => val === 'true').default(true),
-  REACT_APP_DATA_PROCESSING_CONSENT_REQUIRED: z.string().transform(val => val === 'true').default(true),
-  REACT_APP_HIPAA_COMPLIANCE: z.string().transform(val => val === 'true').default(false),
-  REACT_APP_PHI_ENCRYPTION_REQUIRED: z.string().transform(val => val === 'true').default(false),
-  
+  REACT_APP_GDPR_COMPLIANCE: z
+    .string()
+    .transform((val) => val === 'true')
+    .default(true),
+  REACT_APP_DATA_PROCESSING_CONSENT_REQUIRED: z
+    .string()
+    .transform((val) => val === 'true')
+    .default(true),
+  REACT_APP_HIPAA_COMPLIANCE: z
+    .string()
+    .transform((val) => val === 'true')
+    .default(false),
+  REACT_APP_PHI_ENCRYPTION_REQUIRED: z
+    .string()
+    .transform((val) => val === 'true')
+    .default(false),
+
   // Legal
   REACT_APP_TERMS_VERSION: z.string().default('1.0.0'),
   REACT_APP_PRIVACY_VERSION: z.string().default('1.0.0'),
   REACT_APP_LEGAL_EMAIL: z.string().email().optional(),
   REACT_APP_PRIVACY_EMAIL: z.string().email().optional(),
   REACT_APP_SUPPORT_EMAIL: z.string().email().optional(),
-  
+
   // Optional services
   REACT_APP_ANALYTICS_ID: z.string().optional(),
   REACT_APP_CRASH_REPORTING_URL: z.string().url().optional(),
@@ -78,10 +136,19 @@ const EnvironmentSchema = z.object({
   REACT_APP_ML_API_KEY: z.string().optional(),
   REACT_APP_MONITORING_URL: z.string().url().optional(),
   REACT_APP_MONITORING_KEY: z.string().optional(),
-  REACT_APP_MONITORING_ENABLED: z.string().transform(val => val === 'true').default(false),
+  REACT_APP_MONITORING_ENABLED: z
+    .string()
+    .transform((val) => val === 'true')
+    .default(false),
   REACT_APP_PERFORMANCE_SAMPLE_RATE: z.string().transform(Number).default(0.1),
-  REACT_APP_PERFORMANCE_MONITORING: z.string().transform(val => val === 'true').default(false),
-  REACT_APP_PUSH_NOTIFICATIONS_ENABLED: z.string().transform(val => val === 'true').default(true),
+  REACT_APP_PERFORMANCE_MONITORING: z
+    .string()
+    .transform((val) => val === 'true')
+    .default(false),
+  REACT_APP_PUSH_NOTIFICATIONS_ENABLED: z
+    .string()
+    .transform((val) => val === 'true')
+    .default(true),
 });
 
 // Environment type
@@ -116,7 +183,7 @@ export const config = {
     port: env.PORT,
     debug: env.REACT_APP_DEBUG_MODE,
   },
-  
+
   // API
   api: {
     baseUrl: env.REACT_APP_API_BASE_URL,
@@ -124,13 +191,13 @@ export const config = {
     secret: env.REACT_APP_API_SECRET,
     timeout: 30000,
   },
-  
+
   // Database
   database: {
     url: env.REACT_APP_DATABASE_URL,
     encryptionKey: env.REACT_APP_DB_ENCRYPTION_KEY,
   },
-  
+
   // Security
   security: {
     jwtSecret: env.REACT_APP_JWT_SECRET,
@@ -144,7 +211,7 @@ export const config = {
       window: env.REACT_APP_RATE_LIMIT_WINDOW,
     },
   },
-  
+
   // Features
   features: {
     offlineMode: env.REACT_APP_ENABLE_OFFLINE_MODE,
@@ -154,13 +221,13 @@ export const config = {
     biometric: env.REACT_APP_BIOMETRIC_ENABLED,
     biometricTimeout: env.REACT_APP_BIOMETRIC_TIMEOUT,
   },
-  
+
   // Logging
   logging: {
     level: env.REACT_APP_LOG_LEVEL,
     enabled: env.REACT_APP_ENABLE_LOGGING,
   },
-  
+
   // Privacy
   privacy: {
     dataRetentionDays: env.REACT_APP_DATA_RETENTION_DAYS,
@@ -169,15 +236,16 @@ export const config = {
     collectCrashData: env.REACT_APP_COLLECT_CRASH_DATA,
     collectPerformanceData: env.REACT_APP_COLLECT_PERFORMANCE_DATA,
   },
-  
+
   // Compliance
   compliance: {
     gdpr: env.REACT_APP_GDPR_COMPLIANCE,
-    dataProcessingConsentRequired: env.REACT_APP_DATA_PROCESSING_CONSENT_REQUIRED,
+    dataProcessingConsentRequired:
+      env.REACT_APP_DATA_PROCESSING_CONSENT_REQUIRED,
     hipaa: env.REACT_APP_HIPAA_COMPLIANCE,
     phiEncryptionRequired: env.REACT_APP_PHI_ENCRYPTION_REQUIRED,
   },
-  
+
   // Legal
   legal: {
     termsVersion: env.REACT_APP_TERMS_VERSION,
@@ -186,7 +254,7 @@ export const config = {
     privacyEmail: env.REACT_APP_PRIVACY_EMAIL,
     supportEmail: env.REACT_APP_SUPPORT_EMAIL,
   },
-  
+
   // Services
   services: {
     analytics: {
@@ -224,7 +292,7 @@ export const config = {
 // Environment-specific overrides
 export const getEnvironmentConfig = (environment: string) => {
   const baseConfig = config;
-  
+
   switch (environment) {
     case 'development':
       return {
@@ -247,7 +315,7 @@ export const getEnvironmentConfig = (environment: string) => {
           dataRetentionDays: 30,
         },
       };
-      
+
     case 'test':
       return {
         ...baseConfig,
@@ -265,7 +333,7 @@ export const getEnvironmentConfig = (environment: string) => {
           crashReporting: false,
         },
       };
-      
+
     case 'production':
       return {
         ...baseConfig,
@@ -278,7 +346,7 @@ export const getEnvironmentConfig = (environment: string) => {
           level: 'info' as const,
         },
       };
-      
+
     default:
       return baseConfig;
   }

@@ -16,24 +16,29 @@ import {
   RefreshControl,
   Animated,
 } from 'react-native';
-import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
-import { Spacing } from '../constants/spacing';
-import { MultipleProgressRings } from '../components/ProgressRing';
-import { TrendChart, MultiTrendChart, PeriodSelector } from '../components/TrendChart';
+
 import { FoodTrendAnalysis } from '../components/FoodTrendAnalysis';
+import { MultipleProgressRings } from '../components/ProgressRing';
+import {
+  TrendChart,
+  MultiTrendChart,
+  PeriodSelector,
+} from '../components/TrendChart';
+import { Colors } from '../constants/colors';
+import { Spacing } from '../constants/spacing';
+import { Typography } from '../constants/typography';
 // import { Animated3DCard } from '../components/Animated3DCard';
-import { HapticFeedback } from '../utils/haptics';
-// import { AnimationPresets, AnimationUtils } from '../utils/animations';
-import AccessibilityService from '../utils/accessibility';
-import { 
-  GutHealthMetrics, 
-  FoodTrendData, 
+import type {
+  GutHealthMetrics,
+  FoodTrendData,
   ProgressRing as ProgressRingType,
   TrendAnalysis,
   ChartDataPoint,
-  ShareableContent
+  ShareableContent,
 } from '../types';
+import AccessibilityService from '../utils/accessibility';
+import { HapticFeedback } from '../utils/haptics';
+// import { AnimationPresets, AnimationUtils } from '../utils/animations';
 import { SharingService } from '../utils/sharing';
 
 // Mock data - in a real app, this would come from your data store
@@ -105,7 +110,9 @@ const AnalyticsScreen: React.FC = () => {
   const isDark = colorScheme === 'dark';
   const colors = isDark ? Colors.dark : Colors.light;
 
-  const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
+  const [selectedPeriod, setSelectedPeriod] = useState<
+    'week' | 'month' | 'quarter' | 'year'
+  >('month');
   const [refreshing, setRefreshing] = useState(false);
   const [mockData] = useState(generateMockData());
 
@@ -117,7 +124,7 @@ const AnalyticsScreen: React.FC = () => {
   useEffect(() => {
     // Initialize accessibility
     AccessibilityService.initialize();
-    
+
     // Entrance animations
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -153,7 +160,9 @@ const AnalyticsScreen: React.FC = () => {
       title: 'My Gut Health Analytics',
       description: `Check out my gut health progress! Score: ${Math.round(mockData.last30Days[mockData.last30Days.length - 1]?.overallScore || 0)}/100`,
       data: {
-        score: Math.round(mockData.last30Days[mockData.last30Days.length - 1]?.overallScore || 0),
+        score: Math.round(
+          mockData.last30Days[mockData.last30Days.length - 1]?.overallScore || 0
+        ),
         improvement: gutHealthTrend.changePercentage,
         period: selectedPeriod,
       },
@@ -164,15 +173,15 @@ const AnalyticsScreen: React.FC = () => {
 
   // Process data for charts
   const progressRings: ProgressRingType[] = useMemo(() => {
-    const latest = mockData.last30Days[mockData.last30Days.length - 1] || { 
-      overallScore: 0, 
-      safeFoodsCount: 0, 
-      symptomFrequency: 0, 
+    const latest = mockData.last30Days[mockData.last30Days.length - 1] || {
+      overallScore: 0,
+      safeFoodsCount: 0,
+      symptomFrequency: 0,
       scanAccuracy: 0,
       energyLevel: 5,
       sleepQuality: 5,
       stressLevel: 5,
-      hydrationLevel: 5
+      hydrationLevel: 5,
     };
     return [
       {
@@ -203,24 +212,30 @@ const AnalyticsScreen: React.FC = () => {
   }, [mockData.last30Days]);
 
   const gutHealthTrend: TrendAnalysis = useMemo(() => {
-    const dataPoints: ChartDataPoint[] = mockData.last30Days.map((day, index) => ({
-      x: index + 1,
-      y: day.overallScore,
-      label: day.date.toLocaleDateString(),
-    }));
+    const dataPoints: ChartDataPoint[] = mockData.last30Days.map(
+      (day, index) => ({
+        x: index + 1,
+        y: day.overallScore,
+        label: day.date.toLocaleDateString(),
+      })
+    );
 
     const firstScore = dataPoints[0]?.y || 0;
     const lastScore = dataPoints[dataPoints.length - 1]?.y || 0;
-    const changePercentage = firstScore > 0 ? ((lastScore - firstScore) / firstScore) * 100 : 0;
+    const changePercentage =
+      firstScore > 0 ? ((lastScore - firstScore) / firstScore) * 100 : 0;
 
     return {
       period: selectedPeriod,
-      trend: changePercentage > 5 ? 'up' : changePercentage < -5 ? 'down' : 'stable',
+      trend:
+        changePercentage > 5 ? 'up' : changePercentage < -5 ? 'down' : 'stable',
       changePercentage,
       dataPoints,
       insights: [
         `Your gut health score has ${changePercentage > 0 ? 'improved' : 'declined'} by ${Math.abs(changePercentage).toFixed(1)}% this period`,
-        changePercentage > 0 ? 'Keep up the great work with your dietary choices!' : 'Consider reviewing foods that may be causing issues',
+        changePercentage > 0
+          ? 'Keep up the great work with your dietary choices!'
+          : 'Consider reviewing foods that may be causing issues',
       ],
       recommendations: [
         'Continue tracking your food intake daily',
@@ -231,24 +246,30 @@ const AnalyticsScreen: React.FC = () => {
   }, [mockData.last30Days, selectedPeriod]);
 
   const symptomsTrend: TrendAnalysis = useMemo(() => {
-    const dataPoints: ChartDataPoint[] = mockData.last30Days.map((day, index) => ({
-      x: index + 1,
-      y: day.symptomsReported,
-      label: day.date.toLocaleDateString(),
-    }));
+    const dataPoints: ChartDataPoint[] = mockData.last30Days.map(
+      (day, index) => ({
+        x: index + 1,
+        y: day.symptomsReported,
+        label: day.date.toLocaleDateString(),
+      })
+    );
 
     const firstScore = dataPoints[0]?.y || 0;
     const lastScore = dataPoints[dataPoints.length - 1]?.y || 0;
-    const changePercentage = firstScore > 0 ? ((lastScore - firstScore) / firstScore) * 100 : 0;
+    const changePercentage =
+      firstScore > 0 ? ((lastScore - firstScore) / firstScore) * 100 : 0;
 
     return {
       period: selectedPeriod,
-      trend: changePercentage < -5 ? 'up' : changePercentage > 5 ? 'down' : 'stable',
+      trend:
+        changePercentage < -5 ? 'up' : changePercentage > 5 ? 'down' : 'stable',
       changePercentage: -changePercentage, // Invert for symptoms (lower is better)
       dataPoints,
       insights: [
         `Symptoms have ${changePercentage < 0 ? 'decreased' : 'increased'} by ${Math.abs(changePercentage).toFixed(1)}% this period`,
-        changePercentage < 0 ? 'Great job managing your symptoms!' : 'Consider identifying trigger foods',
+        changePercentage < 0
+          ? 'Great job managing your symptoms!'
+          : 'Consider identifying trigger foods',
       ],
       recommendations: [
         'Track symptoms alongside food intake',
@@ -273,17 +294,22 @@ const AnalyticsScreen: React.FC = () => {
             Track your gut health progress
           </Text>
         </View>
-        <TouchableOpacity onPress={handleShareAnalytics} style={styles.shareButton}>
-          <Text style={[styles.shareButtonText, { color: colors.accent }]}>Share</Text>
+        <TouchableOpacity
+          style={styles.shareButton}
+          onPress={handleShareAnalytics}
+        >
+          <Text style={[styles.shareButtonText, { color: colors.accent }]}>
+            Share
+          </Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
+        showsVerticalScrollIndicator={false}
+        style={styles.scrollView}
       >
         {/* Progress Rings */}
         <View style={[styles.section, { backgroundColor: colors.surface }]}>
@@ -291,10 +317,10 @@ const AnalyticsScreen: React.FC = () => {
             Today's Progress
           </Text>
           <MultipleProgressRings
+            layout="horizontal"
             rings={progressRings}
             size={100}
             strokeWidth={8}
-            layout="horizontal"
           />
         </View>
 
@@ -306,20 +332,20 @@ const AnalyticsScreen: React.FC = () => {
 
         {/* Trend Charts */}
         <TrendChart
-          data={gutHealthTrend}
-          title="Gut Health Trend"
-          subtitle="Your overall gut health score over time"
           color={Colors.primary}
+          data={gutHealthTrend}
+          subtitle="Your overall gut health score over time"
+          title="Gut Health Trend"
         />
 
         <MultiTrendChart charts={multiCharts} height={180} />
 
         {/* Food Trend Analysis */}
         <FoodTrendAnalysis
+          showChart
+          showInsights
           data={mockData.foodTrends}
           maxItems={8}
-          showChart={true}
-          showInsights={true}
         />
 
         {/* Weekly Insights */}
@@ -328,27 +354,65 @@ const AnalyticsScreen: React.FC = () => {
             Weekly Insights
           </Text>
           <View style={styles.insightsGrid}>
-            <View style={[styles.insightCard, { backgroundColor: colors.background }]}>
-              <Text style={[styles.insightNumber, { color: Colors.safe }]}>+12%</Text>
-              <Text style={[styles.insightLabel, { color: colors.textSecondary }]}>
+            <View
+              style={[
+                styles.insightCard,
+                { backgroundColor: colors.background },
+              ]}
+            >
+              <Text style={[styles.insightNumber, { color: Colors.safe }]}>
+                +12%
+              </Text>
+              <Text
+                style={[styles.insightLabel, { color: colors.textSecondary }]}
+              >
                 Improvement
               </Text>
             </View>
-            <View style={[styles.insightCard, { backgroundColor: colors.background }]}>
-              <Text style={[styles.insightNumber, { color: Colors.primary }]}>7</Text>
-              <Text style={[styles.insightLabel, { color: colors.textSecondary }]}>
+            <View
+              style={[
+                styles.insightCard,
+                { backgroundColor: colors.background },
+              ]}
+            >
+              <Text style={[styles.insightNumber, { color: Colors.primary }]}>
+                7
+              </Text>
+              <Text
+                style={[styles.insightLabel, { color: colors.textSecondary }]}
+              >
                 Day Streak
               </Text>
             </View>
-            <View style={[styles.insightCard, { backgroundColor: colors.background }]}>
-              <Text style={[styles.insightNumber, { color: Colors.caution }]}>3</Text>
-              <Text style={[styles.insightLabel, { color: colors.textSecondary }]}>
+            <View
+              style={[
+                styles.insightCard,
+                { backgroundColor: colors.background },
+              ]}
+            >
+              <Text style={[styles.insightNumber, { color: Colors.caution }]}>
+                3
+              </Text>
+              <Text
+                style={[styles.insightLabel, { color: colors.textSecondary }]}
+              >
                 New Triggers
               </Text>
             </View>
-            <View style={[styles.insightCard, { backgroundColor: colors.background }]}>
-              <Text style={[styles.insightNumber, { color: Colors.primaryLight }]}>85%</Text>
-              <Text style={[styles.insightLabel, { color: colors.textSecondary }]}>
+            <View
+              style={[
+                styles.insightCard,
+                { backgroundColor: colors.background },
+              ]}
+            >
+              <Text
+                style={[styles.insightNumber, { color: Colors.primaryLight }]}
+              >
+                85%
+              </Text>
+              <Text
+                style={[styles.insightLabel, { color: colors.textSecondary }]}
+              >
                 Accuracy
               </Text>
             </View>
@@ -362,7 +426,9 @@ const AnalyticsScreen: React.FC = () => {
           </Text>
           {gutHealthTrend.recommendations.map((recommendation, index) => (
             <View key={index} style={styles.recommendationItem}>
-              <Text style={[styles.recommendationBullet, { color: Colors.primary }]}>
+              <Text
+                style={[styles.recommendationBullet, { color: Colors.primary }]}
+              >
                 •
               </Text>
               <Text style={[styles.recommendationText, { color: colors.text }]}>
@@ -380,18 +446,76 @@ const AnalyticsScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  bottomSpacing: {
+    height: 100,
+  },
   container: {
     flex: 1,
   },
   header: {
+    alignItems: 'center',
+    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+    borderBottomWidth: 0.5,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 44,
-    paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.lg,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+    paddingHorizontal: Spacing.lg,
+    paddingTop: 44,
+  },
+  insightCard: {
+    alignItems: 'center',
+    borderRadius: 12,
+    marginBottom: Spacing.sm,
+    padding: Spacing.md,
+    width: '48%',
+  },
+  insightLabel: {
+    fontSize: Typography.fontSize.caption,
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  insightNumber: {
+    fontSize: Typography.fontSize.title1,
+    fontWeight: Typography.fontWeight.bold,
+  },
+  insightsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  recommendationBullet: {
+    fontSize: 16,
+    marginRight: Spacing.sm,
+    marginTop: 2,
+  },
+  recommendationItem: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    marginBottom: Spacing.sm,
+  },
+  recommendationText: {
+    flex: 1,
+    fontSize: Typography.fontSize.body,
+    lineHeight: 20,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  section: {
+    borderRadius: 16,
+    elevation: 3,
+    marginHorizontal: Spacing.lg,
+    marginVertical: Spacing.sm,
+    padding: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  sectionTitle: {
+    fontSize: Typography.fontSize.title3,
+    fontWeight: Typography.fontWeight.bold,
+    marginBottom: Spacing.md,
   },
   shareButton: {
     paddingHorizontal: Spacing.md,
@@ -401,72 +525,14 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
   },
-  title: {
-    fontSize: 34,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
   subtitle: {
     fontSize: Typography.fontSize.body,
     marginTop: 4,
   },
-  scrollView: {
-    flex: 1,
-  },
-  section: {
-    marginHorizontal: Spacing.lg,
-    marginVertical: Spacing.sm,
-    borderRadius: 16,
-    padding: Spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  sectionTitle: {
-    fontSize: Typography.fontSize.title3,
-    fontWeight: Typography.fontWeight.bold,
-    marginBottom: Spacing.md,
-  },
-  insightsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  insightCard: {
-    width: '48%',
-    padding: Spacing.md,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  insightNumber: {
-    fontSize: Typography.fontSize.title1,
-    fontWeight: Typography.fontWeight.bold,
-  },
-  insightLabel: {
-    fontSize: Typography.fontSize.caption,
-    marginTop: 4,
-    textAlign: 'center',
-  },
-  recommendationItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.sm,
-  },
-  recommendationBullet: {
-    fontSize: 16,
-    marginRight: Spacing.sm,
-    marginTop: 2,
-  },
-  recommendationText: {
-    flex: 1,
-    fontSize: Typography.fontSize.body,
-    lineHeight: 20,
-  },
-  bottomSpacing: {
-    height: 100,
+  title: {
+    fontSize: 34,
+    fontWeight: '800',
+    letterSpacing: -0.5,
   },
 });
 

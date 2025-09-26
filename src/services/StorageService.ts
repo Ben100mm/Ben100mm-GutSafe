@@ -5,11 +5,11 @@
  * @private
  */
 
-import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { logger } from '../utils/logger';
+import { Platform } from 'react-native';
+
 import { healthDataEncryption } from '../utils/encryption';
-import { ScanHistory, FoodItem, GutProfile, SafeFood, SymptomLog, MedicationLog } from '../types';
+import { logger } from '../utils/logger';
 
 // Storage service interface
 interface StorageServiceInterface {
@@ -29,7 +29,10 @@ class WebStorageService implements StorageServiceInterface {
     try {
       return localStorage.getItem(key);
     } catch (error) {
-      logger.error('Web storage getItem failed', 'StorageService', { key, error });
+      logger.error('Web storage getItem failed', 'StorageService', {
+        key,
+        error,
+      });
       return null;
     }
   }
@@ -38,7 +41,10 @@ class WebStorageService implements StorageServiceInterface {
     try {
       localStorage.setItem(key, value);
     } catch (error) {
-      logger.error('Web storage setItem failed', 'StorageService', { key, error });
+      logger.error('Web storage setItem failed', 'StorageService', {
+        key,
+        error,
+      });
       throw error;
     }
   }
@@ -47,7 +53,10 @@ class WebStorageService implements StorageServiceInterface {
     try {
       localStorage.removeItem(key);
     } catch (error) {
-      logger.error('Web storage removeItem failed', 'StorageService', { key, error });
+      logger.error('Web storage removeItem failed', 'StorageService', {
+        key,
+        error,
+      });
       throw error;
     }
   }
@@ -65,16 +74,21 @@ class WebStorageService implements StorageServiceInterface {
     try {
       return Object.keys(localStorage);
     } catch (error) {
-      logger.error('Web storage getAllKeys failed', 'StorageService', { error });
+      logger.error('Web storage getAllKeys failed', 'StorageService', {
+        error,
+      });
       return [];
     }
   }
 
   async multiGet(keys: string[]): Promise<[string, string | null][]> {
     try {
-      return keys.map(key => [key, localStorage.getItem(key)]);
+      return keys.map((key) => [key, localStorage.getItem(key)]);
     } catch (error) {
-      logger.error('Web storage multiGet failed', 'StorageService', { keys, error });
+      logger.error('Web storage multiGet failed', 'StorageService', {
+        keys,
+        error,
+      });
       return [];
     }
   }
@@ -85,18 +99,24 @@ class WebStorageService implements StorageServiceInterface {
         localStorage.setItem(key, value);
       });
     } catch (error) {
-      logger.error('Web storage multiSet failed', 'StorageService', { keyValuePairs, error });
+      logger.error('Web storage multiSet failed', 'StorageService', {
+        keyValuePairs,
+        error,
+      });
       throw error;
     }
   }
 
   async multiRemove(keys: string[]): Promise<void> {
     try {
-      keys.forEach(key => {
+      keys.forEach((key) => {
         localStorage.removeItem(key);
       });
     } catch (error) {
-      logger.error('Web storage multiRemove failed', 'StorageService', { keys, error });
+      logger.error('Web storage multiRemove failed', 'StorageService', {
+        keys,
+        error,
+      });
       throw error;
     }
   }
@@ -108,7 +128,10 @@ class ReactNativeStorageService implements StorageServiceInterface {
     try {
       return await AsyncStorage.getItem(key);
     } catch (error) {
-      logger.error('React Native storage getItem failed', 'StorageService', { key, error });
+      logger.error('React Native storage getItem failed', 'StorageService', {
+        key,
+        error,
+      });
       return null;
     }
   }
@@ -117,7 +140,10 @@ class ReactNativeStorageService implements StorageServiceInterface {
     try {
       await AsyncStorage.setItem(key, value);
     } catch (error) {
-      logger.error('React Native storage setItem failed', 'StorageService', { key, error });
+      logger.error('React Native storage setItem failed', 'StorageService', {
+        key,
+        error,
+      });
       throw error;
     }
   }
@@ -126,7 +152,10 @@ class ReactNativeStorageService implements StorageServiceInterface {
     try {
       await AsyncStorage.removeItem(key);
     } catch (error) {
-      logger.error('React Native storage removeItem failed', 'StorageService', { key, error });
+      logger.error('React Native storage removeItem failed', 'StorageService', {
+        key,
+        error,
+      });
       throw error;
     }
   }
@@ -135,25 +164,32 @@ class ReactNativeStorageService implements StorageServiceInterface {
     try {
       await AsyncStorage.clear();
     } catch (error) {
-      logger.error('React Native storage clear failed', 'StorageService', { error });
+      logger.error('React Native storage clear failed', 'StorageService', {
+        error,
+      });
       throw error;
     }
   }
 
   async getAllKeys(): Promise<string[]> {
     try {
-      return await AsyncStorage.getAllKeys();
+      return [...(await AsyncStorage.getAllKeys())];
     } catch (error) {
-      logger.error('React Native storage getAllKeys failed', 'StorageService', { error });
+      logger.error('React Native storage getAllKeys failed', 'StorageService', {
+        error,
+      });
       return [];
     }
   }
 
   async multiGet(keys: string[]): Promise<[string, string | null][]> {
     try {
-      return await AsyncStorage.multiGet(keys);
+      return [...(await AsyncStorage.multiGet(keys))];
     } catch (error) {
-      logger.error('React Native storage multiGet failed', 'StorageService', { keys, error });
+      logger.error('React Native storage multiGet failed', 'StorageService', {
+        keys,
+        error,
+      });
       return [];
     }
   }
@@ -162,7 +198,10 @@ class ReactNativeStorageService implements StorageServiceInterface {
     try {
       await AsyncStorage.multiSet(keyValuePairs);
     } catch (error) {
-      logger.error('React Native storage multiSet failed', 'StorageService', { keyValuePairs, error });
+      logger.error('React Native storage multiSet failed', 'StorageService', {
+        keyValuePairs,
+        error,
+      });
       throw error;
     }
   }
@@ -171,7 +210,11 @@ class ReactNativeStorageService implements StorageServiceInterface {
     try {
       await AsyncStorage.multiRemove(keys);
     } catch (error) {
-      logger.error('React Native storage multiRemove failed', 'StorageService', { keys, error });
+      logger.error(
+        'React Native storage multiRemove failed',
+        'StorageService',
+        { keys, error }
+      );
       throw error;
     }
   }
@@ -210,17 +253,18 @@ interface CacheMetadata {
  */
 class StorageService {
   private static instance: StorageService;
-  private storage: StorageServiceInterface;
-  private cache: Map<string, any> = new Map();
-  private cacheExpiry = 7 * 24 * 60 * 60 * 1000; // 7 days
-  private maxCacheSize = 1000;
+  private readonly storage: StorageServiceInterface;
+  private readonly cache: Map<string, any> = new Map();
+  private readonly cacheExpiry = 7 * 24 * 60 * 60 * 1000; // 7 days
+  private readonly maxCacheSize = 1000;
   private syncQueue: Array<{ key: string; data: any; timestamp: number }> = [];
 
   private constructor() {
     // Choose storage implementation based on platform
-    this.storage = Platform.OS === 'web' 
-      ? new WebStorageService() 
-      : new ReactNativeStorageService();
+    this.storage =
+      Platform.OS === 'web'
+        ? new WebStorageService()
+        : new ReactNativeStorageService();
   }
 
   public static getInstance(): StorageService {
@@ -239,7 +283,11 @@ class StorageService {
       await this.cleanExpiredCache();
       logger.info('StorageService initialized', 'StorageService');
     } catch (error) {
-      logger.error('Failed to initialize StorageService', 'StorageService', error);
+      logger.error(
+        'Failed to initialize StorageService',
+        'StorageService',
+        error
+      );
       throw error;
     }
   }
@@ -251,15 +299,28 @@ class StorageService {
     try {
       // Check cache first
       const cached = this.getCachedData(key);
-      if (cached) return cached;
+      if (cached) {
+        return cached;
+      }
 
       // Get from storage
       const value = await this.storage.getItem(key);
-      if (!value) return null;
+      if (!value) {
+        return null;
+      }
 
       // Decrypt if needed
-      const decryptedValue = encrypted ? await healthDataEncryption.decrypt(value) : value;
-      const parsedValue = JSON.parse(decryptedValue);
+      let parsedValue;
+      if (encrypted) {
+        const encryptedData = JSON.parse(value);
+        const decryptedValue = await healthDataEncryption.decrypt(
+          encryptedData.encrypted,
+          encryptedData.iv
+        );
+        parsedValue = JSON.parse(decryptedValue);
+      } else {
+        parsedValue = JSON.parse(value);
+      }
 
       // Cache the result
       this.setCachedData(key, parsedValue);
@@ -274,13 +335,17 @@ class StorageService {
   /**
    * Set item in storage
    */
-  async setItem<T>(key: string, value: T, encrypted: boolean = false): Promise<void> {
+  async setItem<T>(
+    key: string,
+    value: T,
+    encrypted: boolean = false
+  ): Promise<void> {
     try {
       const serializedValue = JSON.stringify(value);
-      
+
       // Encrypt if needed
-      const finalValue = encrypted 
-        ? await healthDataEncryption.encrypt(serializedValue)
+      const finalValue = encrypted
+        ? JSON.stringify(await healthDataEncryption.encrypt(serializedValue))
         : serializedValue;
 
       // Save to storage
@@ -307,7 +372,7 @@ class StorageService {
       await this.storage.removeItem(key);
       this.cache.delete(key);
       await this.updateCacheMetadata(key, 0, true);
-      
+
       logger.info('Item removed', 'StorageService', { key });
     } catch (error) {
       logger.error('Failed to remove item', 'StorageService', { key, error });
@@ -323,7 +388,7 @@ class StorageService {
       await this.storage.clear();
       this.cache.clear();
       this.syncQueue = [];
-      
+
       logger.info('Storage cleared', 'StorageService');
     } catch (error) {
       logger.error('Failed to clear storage', 'StorageService', error);
@@ -334,13 +399,16 @@ class StorageService {
   /**
    * Get multiple items
    */
-  async multiGet<T>(keys: string[], encrypted: boolean = false): Promise<Record<string, T | null>> {
+  async multiGet<T>(
+    keys: string[],
+    encrypted: boolean = false
+  ): Promise<Record<string, T | null>> {
     try {
       const results: Record<string, T | null> = {};
-      
+
       // Check cache first
       const uncachedKeys: string[] = [];
-      keys.forEach(key => {
+      keys.forEach((key) => {
         const cached = this.getCachedData(key);
         if (cached) {
           results[key] = cached;
@@ -349,33 +417,54 @@ class StorageService {
         }
       });
 
-      if (uncachedKeys.length === 0) return results;
+      if (uncachedKeys.length === 0) {
+        return results;
+      }
 
       // Get uncached items from storage
       const storageResults = await this.storage.multiGet(uncachedKeys);
-      
+
       for (let i = 0; i < uncachedKeys.length; i++) {
         const key = uncachedKeys[i];
-        const value = storageResults[i][1];
-        
-        if (value) {
+        const value = storageResults[i]?.[1];
+
+        if (key && value) {
           try {
-            const decryptedValue = encrypted ? await healthDataEncryption.decrypt(value) : value;
-            const parsedValue = JSON.parse(decryptedValue);
+            let parsedValue;
+            if (encrypted) {
+              const encryptedData = JSON.parse(value);
+              const decryptedValue = await healthDataEncryption.decrypt(
+                encryptedData.encrypted,
+                encryptedData.iv
+              );
+              parsedValue = JSON.parse(decryptedValue);
+            } else {
+              parsedValue = JSON.parse(value);
+            }
             results[key] = parsedValue;
             this.setCachedData(key, parsedValue);
           } catch (parseError) {
-            logger.error('Failed to parse stored value', 'StorageService', { key, parseError });
-            results[key] = null;
+            logger.error('Failed to parse stored value', 'StorageService', {
+              key,
+              parseError,
+            });
+            if (key) {
+              results[key] = null;
+            }
           }
         } else {
-          results[key] = null;
+          if (key) {
+            results[key] = null;
+          }
         }
       }
 
       return results;
     } catch (error) {
-      logger.error('Failed to multi-get items', 'StorageService', { keys, error });
+      logger.error('Failed to multi-get items', 'StorageService', {
+        keys,
+        error,
+      });
       return {};
     }
   }
@@ -383,33 +472,39 @@ class StorageService {
   /**
    * Set multiple items
    */
-  async multiSet<T>(items: Record<string, T>, encrypted: boolean = false): Promise<void> {
+  async multiSet<T>(
+    items: Record<string, T>,
+    encrypted: boolean = false
+  ): Promise<void> {
     try {
       const keyValuePairs: [string, string][] = [];
-      
+
       for (const [key, value] of Object.entries(items)) {
         const serializedValue = JSON.stringify(value);
-        const finalValue = encrypted 
-          ? await healthDataEncryption.encrypt(serializedValue)
+        const finalValue = encrypted
+          ? JSON.stringify(await healthDataEncryption.encrypt(serializedValue))
           : serializedValue;
-        
+
         keyValuePairs.push([key, finalValue]);
         this.setCachedData(key, value);
       }
 
       await this.storage.multiSet(keyValuePairs);
-      
+
       // Update cache metadata
       for (const [key, value] of Object.entries(items)) {
         await this.updateCacheMetadata(key, JSON.stringify(value).length);
       }
 
-      logger.info('Multiple items stored', 'StorageService', { 
-        count: keyValuePairs.length, 
-        encrypted 
+      logger.info('Multiple items stored', 'StorageService', {
+        count: keyValuePairs.length,
+        encrypted,
       });
     } catch (error) {
-      logger.error('Failed to multi-set items', 'StorageService', { items, error });
+      logger.error('Failed to multi-set items', 'StorageService', {
+        items,
+        error,
+      });
       throw error;
     }
   }
@@ -420,8 +515,8 @@ class StorageService {
   async multiRemove(keys: string[]): Promise<void> {
     try {
       await this.storage.multiRemove(keys);
-      
-      keys.forEach(key => {
+
+      keys.forEach((key) => {
         this.cache.delete(key);
       });
 
@@ -432,7 +527,10 @@ class StorageService {
 
       logger.info('Multiple items removed', 'StorageService', { keys });
     } catch (error) {
-      logger.error('Failed to multi-remove items', 'StorageService', { keys, error });
+      logger.error('Failed to multi-remove items', 'StorageService', {
+        keys,
+        error,
+      });
       throw error;
     }
   }
@@ -456,14 +554,14 @@ class StorageService {
     try {
       const keys = await this.getAllKeys();
       let totalSize = 0;
-      
+
       for (const key of keys) {
         const value = await this.storage.getItem(key);
         if (value) {
           totalSize += value.length;
         }
       }
-      
+
       return totalSize;
     } catch (error) {
       logger.error('Failed to get storage size', 'StorageService', error);
@@ -481,12 +579,15 @@ class StorageService {
         data,
         timestamp: Date.now(),
       });
-      
+
       await this.setItem(STORAGE_KEYS.SYNC_QUEUE, this.syncQueue);
-      
+
       logger.info('Added to sync queue', 'StorageService', { key });
     } catch (error) {
-      logger.error('Failed to add to sync queue', 'StorageService', { key, error });
+      logger.error('Failed to add to sync queue', 'StorageService', {
+        key,
+        error,
+      });
     }
   }
 
@@ -495,11 +596,13 @@ class StorageService {
    */
   async processSyncQueue(): Promise<void> {
     try {
-      if (this.syncQueue.length === 0) return;
+      if (this.syncQueue.length === 0) {
+        return;
+      }
 
       // This would sync with server in a real implementation
-      logger.info('Processing sync queue', 'StorageService', { 
-        count: this.syncQueue.length 
+      logger.info('Processing sync queue', 'StorageService', {
+        count: this.syncQueue.length,
       });
 
       // Clear processed items
@@ -557,7 +660,9 @@ class StorageService {
    */
   private async loadCacheMetadata(): Promise<void> {
     try {
-      const metadata = await this.getItem<CacheMetadata>(STORAGE_KEYS.CACHE_METADATA);
+      const metadata = await this.getItem<CacheMetadata>(
+        STORAGE_KEYS.CACHE_METADATA
+      );
       if (metadata) {
         // Restore cache from metadata
         for (const item of metadata.items) {
@@ -578,9 +683,15 @@ class StorageService {
     }
   }
 
-  private async updateCacheMetadata(key: string, size: number, remove: boolean = false): Promise<void> {
+  private async updateCacheMetadata(
+    key: string,
+    size: number,
+    remove: boolean = false
+  ): Promise<void> {
     try {
-      const metadata = await this.getItem<CacheMetadata>(STORAGE_KEYS.CACHE_METADATA) || {
+      const metadata = (await this.getItem<CacheMetadata>(
+        STORAGE_KEYS.CACHE_METADATA
+      )) || {
         version: '1.0.0',
         lastUpdated: Date.now(),
         size: 0,
@@ -588,9 +699,11 @@ class StorageService {
       };
 
       if (remove) {
-        metadata.items = metadata.items.filter(item => item.key !== key);
+        metadata.items = metadata.items.filter((item) => item.key !== key);
       } else {
-        const existingIndex = metadata.items.findIndex(item => item.key === key);
+        const existingIndex = metadata.items.findIndex(
+          (item) => item.key === key
+        );
         const item = {
           key,
           size,
@@ -610,7 +723,10 @@ class StorageService {
 
       await this.setItem(STORAGE_KEYS.CACHE_METADATA, metadata);
     } catch (error) {
-      logger.error('Failed to update cache metadata', 'StorageService', { key, error });
+      logger.error('Failed to update cache metadata', 'StorageService', {
+        key,
+        error,
+      });
     }
   }
 
@@ -628,11 +744,11 @@ class StorageService {
         }
       }
 
-      expiredKeys.forEach(key => this.cache.delete(key));
+      expiredKeys.forEach((key) => this.cache.delete(key));
 
       if (expiredKeys.length > 0) {
-        logger.info('Cleaned expired cache entries', 'StorageService', { 
-          count: expiredKeys.length 
+        logger.info('Cleaned expired cache entries', 'StorageService', {
+          count: expiredKeys.length,
         });
       }
     } catch (error) {

@@ -5,6 +5,7 @@
  * @private
  */
 
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import {
   View,
@@ -16,12 +17,12 @@ import {
   useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
-import { Spacing } from '../constants/spacing';
+
 import { HealthCard } from '../components/HealthCard';
 import { HealthSection } from '../components/HealthSection';
+import { Colors } from '../constants/colors';
+import { Spacing } from '../constants/spacing';
+import { Typography } from '../constants/typography';
 
 export const SummaryScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -30,52 +31,60 @@ export const SummaryScreen: React.FC = () => {
   const colors = isDark ? Colors.dark : Colors.light;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>Summary</Text>
         <TouchableOpacity style={styles.profileButton}>
-          <View style={[styles.profileImage, { backgroundColor: colors.accent }]}>
+          <View
+            style={[styles.profileImage, { backgroundColor: colors.accent }]}
+          >
             <Text style={styles.profileInitial}>B</Text>
           </View>
         </TouchableOpacity>
       </View>
 
-      <ScrollView 
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        style={styles.scrollView}
       >
         {/* Pinned Section */}
         <HealthSection
-          title="Pinned"
           rightButton="Edit"
+          title="Pinned"
           onRightPress={() => console.log('Edit pressed')}
         >
           <HealthCard
-            title="Recent Scans"
-            value="12"
-            unit="today"
-            icon="scan"
             color={colors.accent}
+            icon="scan"
+            title="Recent Scans"
+            unit="today"
+            value="12"
             onPress={() => (navigation as any).navigate('ScanHistory')}
           />
           <HealthCard
-            title="Safe Foods"
-            value="8"
-            unit="favorites"
-            icon="heart"
             color={Colors.safe}
+            icon="heart"
+            title="Safe Foods"
+            unit="favorites"
+            value="8"
             onPress={() => console.log('Safe foods pressed')}
           />
         </HealthSection>
 
         {/* Show All Health Data */}
-        <TouchableOpacity style={[styles.showAllCard, { backgroundColor: colors.surface }]}>
+        <TouchableOpacity
+          style={[styles.showAllCard, { backgroundColor: colors.surface }]}
+        >
           <View style={styles.showAllContent}>
-            <View style={[styles.showAllIcon, { backgroundColor: colors.accent }]}>
+            <View
+              style={[styles.showAllIcon, { backgroundColor: colors.accent }]}
+            >
               <Text style={styles.showAllIconText}>G</Text>
             </View>
             <Text style={[styles.showAllText, { color: colors.text }]}>
@@ -88,22 +97,22 @@ export const SummaryScreen: React.FC = () => {
         {/* Trends Section */}
         <HealthSection title="Trends">
           <HealthCard
-            title="Gut Health Score"
-            value="85"
-            unit="this week"
-            icon="trend"
+            showChart
             color={Colors.safe}
             description="Your gut health has improved over the last 4 weeks"
-            showChart={true}
+            icon="trend"
+            title="Gut Health Score"
+            unit="this week"
+            value="85"
             onPress={() => console.log('Gut health score pressed')}
           />
           <HealthCard
-            title="Safe Choices"
-            value="24"
-            unit="this week"
-            icon="check"
             color={Colors.safe}
             description="You've made 24 safe food choices this week"
+            icon="check"
+            title="Safe Choices"
+            unit="this week"
+            value="24"
             onPress={() => console.log('Safe choices pressed')}
           />
         </HealthSection>
@@ -111,28 +120,40 @@ export const SummaryScreen: React.FC = () => {
         {/* Highlights Section */}
         <HealthSection title="Highlights">
           <HealthCard
-            title="Streak"
-            value="7"
-            unit="days"
-            icon="fire"
             color={Colors.caution}
             description="7 days without gut issues"
+            icon="fire"
+            title="Streak"
+            unit="days"
+            value="7"
             onPress={() => console.log('Streak pressed')}
           />
         </HealthSection>
 
         {/* Get More from GutSafe */}
         <HealthSection title="Get More from GutSafe">
-          <TouchableOpacity style={[styles.premiumCard, { backgroundColor: colors.surface }]}>
+          <TouchableOpacity
+            style={[styles.premiumCard, { backgroundColor: colors.surface }]}
+          >
             <View style={styles.premiumContent}>
-              <View style={[styles.premiumIcon, { backgroundColor: Colors.primary }]}>
+              <View
+                style={[
+                  styles.premiumIcon,
+                  { backgroundColor: Colors.primary },
+                ]}
+              >
                 <Text style={styles.premiumIconText}>★</Text>
               </View>
               <View style={styles.premiumText}>
                 <Text style={[styles.premiumTitle, { color: colors.text }]}>
                   GutSafe Premium
                 </Text>
-                <Text style={[styles.premiumSubtitle, { color: colors.textSecondary }]}>
+                <Text
+                  style={[
+                    styles.premiumSubtitle,
+                    { color: colors.textSecondary },
+                  ]}
+                >
                   Advanced analytics, meal planning, and more
                 </Text>
               </View>
@@ -143,16 +164,25 @@ export const SummaryScreen: React.FC = () => {
 
         {/* Articles Section */}
         <HealthSection title="Articles">
-          <TouchableOpacity style={[styles.articleCard, { backgroundColor: colors.surface }]}>
+          <TouchableOpacity
+            style={[styles.articleCard, { backgroundColor: colors.surface }]}
+          >
             <View style={styles.articleContent}>
-              <View style={[styles.articleIcon, { backgroundColor: colors.accent }]}>
+              <View
+                style={[styles.articleIcon, { backgroundColor: colors.accent }]}
+              >
                 <Text style={styles.articleIconText}>📚</Text>
               </View>
               <View style={styles.articleText}>
                 <Text style={[styles.articleTitle, { color: colors.text }]}>
                   Understanding FODMAPs
                 </Text>
-                <Text style={[styles.articleSubtitle, { color: colors.textSecondary }]}>
+                <Text
+                  style={[
+                    styles.articleSubtitle,
+                    { color: colors.textSecondary },
+                  ]}
+                >
                   Learn about high and low FODMAP foods
                 </Text>
               </View>
@@ -166,140 +196,140 @@ export const SummaryScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
-  title: {
-    fontSize: Typography.fontSize.h1,
-    fontFamily: Typography.fontFamily.bold,
-  },
-  profileButton: {
-    padding: Spacing.xs,
-  },
-  profileImage: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  profileInitial: {
-    color: Colors.white,
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.bold,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: Spacing.xxl,
-  },
-  showAllCard: {
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
-    borderRadius: 12,
-    padding: Spacing.md,
-  },
-  showAllContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  showAllIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: Spacing.md,
-  },
-  showAllIconText: {
-    color: Colors.white,
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.bold,
-  },
-  showAllText: {
-    flex: 1,
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.medium,
-  },
-  chevron: {
-    fontSize: 20,
-    color: Colors.body,
-    fontWeight: '300',
-  },
-  premiumCard: {
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
-    borderRadius: 12,
-    padding: Spacing.md,
-  },
-  premiumContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  premiumIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: Spacing.md,
-  },
-  premiumIconText: {
-    color: Colors.white,
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.bold,
-  },
-  premiumText: {
-    flex: 1,
-  },
-  premiumTitle: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.semiBold,
-    marginBottom: Spacing.xs,
-  },
-  premiumSubtitle: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.regular,
-  },
   articleCard: {
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
     borderRadius: 12,
+    marginBottom: Spacing.md,
+    marginHorizontal: Spacing.lg,
     padding: Spacing.md,
   },
   articleContent: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
   },
   articleIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
     alignItems: 'center',
+    borderRadius: 12,
+    height: 24,
     justifyContent: 'center',
     marginRight: Spacing.md,
+    width: 24,
   },
   articleIconText: {
+    fontSize: Typography.fontSize.bodySmall,
+  },
+  articleSubtitle: {
+    fontFamily: Typography.fontFamily.regular,
     fontSize: Typography.fontSize.bodySmall,
   },
   articleText: {
     flex: 1,
   },
   articleTitle: {
-    fontSize: Typography.fontSize.body,
     fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
     marginBottom: Spacing.xs,
   },
-  articleSubtitle: {
+  chevron: {
+    color: Colors.body,
+    fontSize: 20,
+    fontWeight: '300',
+  },
+  container: {
+    flex: 1,
+  },
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  premiumCard: {
+    borderRadius: 12,
+    marginBottom: Spacing.md,
+    marginHorizontal: Spacing.lg,
+    padding: Spacing.md,
+  },
+  premiumContent: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  premiumIcon: {
+    alignItems: 'center',
+    borderRadius: 12,
+    height: 24,
+    justifyContent: 'center',
+    marginRight: Spacing.md,
+    width: 24,
+  },
+  premiumIconText: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.bold,
     fontSize: Typography.fontSize.bodySmall,
+  },
+  premiumSubtitle: {
     fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.bodySmall,
+  },
+  premiumText: {
+    flex: 1,
+  },
+  premiumTitle: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+    marginBottom: Spacing.xs,
+  },
+  profileButton: {
+    padding: Spacing.xs,
+  },
+  profileImage: {
+    alignItems: 'center',
+    borderRadius: 16,
+    height: 32,
+    justifyContent: 'center',
+    width: 32,
+  },
+  profileInitial: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.body,
+  },
+  scrollContent: {
+    paddingBottom: Spacing.xxl,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  showAllCard: {
+    borderRadius: 12,
+    marginBottom: Spacing.lg,
+    marginHorizontal: Spacing.lg,
+    padding: Spacing.md,
+  },
+  showAllContent: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  showAllIcon: {
+    alignItems: 'center',
+    borderRadius: 12,
+    height: 24,
+    justifyContent: 'center',
+    marginRight: Spacing.md,
+    width: 24,
+  },
+  showAllIconText: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.bodySmall,
+  },
+  showAllText: {
+    flex: 1,
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.body,
+  },
+  title: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h1,
   },
 });

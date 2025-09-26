@@ -6,7 +6,8 @@
  */
 
 import { Share, Alert, Linking } from 'react-native';
-import { ShareableContent, ScanHistory, SafeFood } from '../types';
+
+import type { ShareableContent, ScanHistory, SafeFood } from '../types';
 
 export class SharingService {
   static async shareScanResult(scanHistory: ScanHistory) {
@@ -45,9 +46,12 @@ export class SharingService {
     return this.shareContent(shareContent);
   }
 
-  static async shareToSocialMedia(content: ShareableContent, platform: 'instagram' | 'twitter' | 'facebook') {
+  static async shareToSocialMedia(
+    content: ShareableContent,
+    platform: 'instagram' | 'twitter' | 'facebook'
+  ) {
     const shareText = this.generateSocialMediaText(content);
-    
+
     switch (platform) {
       case 'instagram':
         return this.shareToInstagram(shareText, content);
@@ -69,7 +73,7 @@ export class SharingService {
       };
 
       const result = await Share.share(shareOptions);
-      
+
       if (result.action === Share.sharedAction) {
         console.log('Content shared successfully');
         return { success: true, action: result.action };
@@ -90,25 +94,25 @@ export class SharingService {
   private static generateScanDescription(scanHistory: ScanHistory): string {
     const { analysis } = scanHistory;
     const resultEmoji = this.getResultEmoji(analysis.overallSafety);
-    
+
     let description = `${resultEmoji} ${analysis.overallSafety.toUpperCase()}\n`;
     description += `Source: ${analysis.dataSource}\n\n`;
-    
+
     if (analysis.flaggedIngredients.length > 0) {
       description += `⚠️ Flagged ingredients:\n`;
-      analysis.flaggedIngredients.forEach(ingredient => {
+      analysis.flaggedIngredients.forEach((ingredient) => {
         description += `• ${ingredient.ingredient} (${ingredient.severity})\n`;
       });
       description += '\n';
     }
-    
+
     if (analysis.safeAlternatives.length > 0) {
       description += `✅ Safe alternatives:\n`;
-      analysis.safeAlternatives.slice(0, 3).forEach(alternative => {
+      analysis.safeAlternatives.slice(0, 3).forEach((alternative) => {
         description += `• ${alternative}\n`;
       });
     }
-    
+
     return description;
   }
 
@@ -118,7 +122,7 @@ export class SharingService {
     description += `Used ${safeFood.usageCount} times\n`;
     description += `Last used: ${this.formatDate(safeFood.lastUsed)}\n`;
     description += `Source: ${foodItem.dataSource}\n\n`;
-    
+
     if (foodItem.fodmapLevel) {
       description += `FODMAP Level: ${foodItem.fodmapLevel}\n`;
     }
@@ -131,17 +135,17 @@ export class SharingService {
     if (foodItem.lactoseFree) {
       description += `Lactose Free: Yes\n`;
     }
-    
+
     if (safeFood.notes) {
       description += `\nNotes: ${safeFood.notes}`;
     }
-    
+
     return description;
   }
 
   private static generateSocialMediaText(content: ShareableContent): string {
     const hashtags = '#GutSafe #GutHealth #FoodSafety #HealthyEating';
-    
+
     switch (content.type) {
       case 'scan_result':
         return `Just scanned ${content.data.foodItem.name} with GutSafe! ${content.description}\n\n${hashtags}`;
@@ -154,14 +158,17 @@ export class SharingService {
     }
   }
 
-  private static async shareToInstagram(text: string, content: ShareableContent) {
+  private static async shareToInstagram(
+    text: string,
+    content: ShareableContent
+  ) {
     // Instagram doesn't support direct text sharing, so we'll use the general share
     // In a real app, you might want to use Instagram's API or Stories API
     const shareOptions = {
       message: text,
       url: content.shareUrl,
     };
-    
+
     try {
       await Share.share(shareOptions);
     } catch (error) {
@@ -172,7 +179,7 @@ export class SharingService {
 
   private static async shareToTwitter(text: string, content: ShareableContent) {
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
-    
+
     try {
       const supported = await Linking.canOpenURL(twitterUrl);
       if (supported) {
@@ -190,9 +197,12 @@ export class SharingService {
     }
   }
 
-  private static async shareToFacebook(text: string, content: ShareableContent) {
+  private static async shareToFacebook(
+    text: string,
+    content: ShareableContent
+  ) {
     const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(content.shareUrl || '')}&quote=${encodeURIComponent(text)}`;
-    
+
     try {
       const supported = await Linking.canOpenURL(facebookUrl);
       if (supported) {
@@ -212,37 +222,60 @@ export class SharingService {
 
   private static getResultEmoji(result: string): string {
     switch (result) {
-      case 'safe': return '✅';
-      case 'caution': return '⚠️';
-      case 'avoid': return '❌';
-      default: return '📱';
+      case 'safe':
+        return '✅';
+      case 'caution':
+        return '⚠️';
+      case 'avoid':
+        return '❌';
+      default:
+        return '📱';
     }
   }
 
   private static formatDate(date?: Date): string {
-    if (!date) return 'Never';
-    
+    if (!date) {
+      return 'Never';
+    }
+
     const now = new Date();
     const diffTime = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+
+    if (diffDays === 0) {
+      return 'Today';
+    }
+    if (diffDays === 1) {
+      return 'Yesterday';
+    }
+    if (diffDays < 7) {
+      return `${diffDays} days ago`;
+    }
+    if (diffDays < 30) {
+      return `${Math.floor(diffDays / 7)} weeks ago`;
+    }
     return `${Math.floor(diffDays / 30)} months ago`;
   }
 
   static async shareWithOptions(content: ShareableContent) {
     Alert.alert(
       'Share Options',
-      'Choose how you\'d like to share this content:',
+      "Choose how you'd like to share this content:",
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'General Share', onPress: () => this.shareContent(content) },
-        { text: 'Twitter', onPress: () => this.shareToSocialMedia(content, 'twitter') },
-        { text: 'Facebook', onPress: () => this.shareToSocialMedia(content, 'facebook') },
-        { text: 'Instagram', onPress: () => this.shareToSocialMedia(content, 'instagram') },
+        {
+          text: 'Twitter',
+          onPress: () => this.shareToSocialMedia(content, 'twitter'),
+        },
+        {
+          text: 'Facebook',
+          onPress: () => this.shareToSocialMedia(content, 'facebook'),
+        },
+        {
+          text: 'Instagram',
+          onPress: () => this.shareToSocialMedia(content, 'instagram'),
+        },
       ]
     );
   }

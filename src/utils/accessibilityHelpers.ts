@@ -6,6 +6,7 @@
  */
 
 import { Platform } from 'react-native';
+
 import { logger } from './logger';
 
 // Accessibility helper functions
@@ -46,24 +47,38 @@ export const createAccessibilityProps = (config: {
 
   // State
   if (config.state) {
-    const state = config.state;
+    const { state } = config;
     if (state.disabled !== undefined) {
-      props.accessibilityState = { ...props.accessibilityState, disabled: state.disabled };
+      props.accessibilityState = {
+        ...props.accessibilityState,
+        disabled: state.disabled,
+      };
     }
     if (state.selected !== undefined) {
-      props.accessibilityState = { ...props.accessibilityState, selected: state.selected };
+      props.accessibilityState = {
+        ...props.accessibilityState,
+        selected: state.selected,
+      };
     }
     if (state.checked !== undefined) {
-      props.accessibilityState = { ...props.accessibilityState, checked: state.checked };
+      props.accessibilityState = {
+        ...props.accessibilityState,
+        checked: state.checked,
+      };
     }
     if (state.expanded !== undefined) {
-      props.accessibilityState = { ...props.accessibilityState, expanded: state.expanded };
+      props.accessibilityState = {
+        ...props.accessibilityState,
+        expanded: state.expanded,
+      };
     }
   }
 
   // Actions
   if (config.actions && config.actions.length > 0) {
-    props.accessibilityActions = config.actions.map(action => ({ name: action }));
+    props.accessibilityActions = config.actions.map((action) => ({
+      name: action,
+    }));
   }
 
   // Value
@@ -84,7 +99,9 @@ export const getButtonAccessibilityProps = (config: {
   return createAccessibilityProps({
     role: 'button',
     label: config.loading ? `${config.title}, loading` : config.title,
-    hint: config.disabled ? 'Button is disabled' : `Tap to ${config.title.toLowerCase()}`,
+    hint: config.disabled
+      ? 'Button is disabled'
+      : `Tap to ${config.title.toLowerCase()}`,
     state: {
       disabled: Boolean(config.disabled || config.loading),
     },
@@ -119,7 +136,10 @@ export const getInputAccessibilityProps = (config: {
   return createAccessibilityProps({
     role: 'text',
     label: config.label,
-    hint: config.error || config.placeholder || `Enter ${config.label.toLowerCase()}`,
+    hint:
+      config.error ||
+      config.placeholder ||
+      `Enter ${config.label.toLowerCase()}`,
     state: {
       disabled: false,
     },
@@ -149,7 +169,9 @@ export const getListItemAccessibilityProps = (config: {
   return createAccessibilityProps({
     role: config.onPress ? 'button' : 'none',
     label: `${config.title}${config.subtitle ? `, ${config.subtitle}` : ''}`,
-    hint: config.onPress ? `Item ${config.index + 1} of ${config.total}, tap to select` : `Item ${config.index + 1} of ${config.total}`,
+    hint: config.onPress
+      ? `Item ${config.index + 1} of ${config.total}, tap to select`
+      : `Item ${config.index + 1} of ${config.total}`,
   });
 };
 
@@ -182,12 +204,17 @@ export const getStatusAccessibilityProps = (config: {
   return createAccessibilityProps({
     role: 'text',
     label: `${statusLabels[config.status]}: ${config.title}`,
-    hint: config.description || `This item is marked as ${statusLabels[config.status].toLowerCase()}`,
+    hint:
+      config.description ||
+      `This item is marked as ${statusLabels[config.status].toLowerCase()}`,
   });
 };
 
 // Announce changes to screen readers
-export const announceToScreenReader = (message: string, priority: 'polite' | 'assertive' = 'polite') => {
+export const announceToScreenReader = (
+  message: string,
+  priority: 'polite' | 'assertive' = 'polite'
+) => {
   if (Platform.OS === 'web') {
     const announcement = document.createElement('div');
     announcement.setAttribute('aria-live', priority);
@@ -198,21 +225,24 @@ export const announceToScreenReader = (message: string, priority: 'polite' | 'as
     announcement.style.height = '1px';
     announcement.style.overflow = 'hidden';
     announcement.textContent = message;
-    
+
     document.body.appendChild(announcement);
-    
+
     setTimeout(() => {
       document.body.removeChild(announcement);
     }, 1000);
   } else {
     // For React Native, use the accessibility service
-    logger.info('Screen reader announcement', 'AccessibilityHelpers', { message, priority });
+    logger.info('Screen reader announcement', 'AccessibilityHelpers', {
+      message,
+      priority,
+    });
   }
 };
 
 // Focus management
 export const focusElement = (elementRef: any) => {
-  if (elementRef && elementRef.current) {
+  if (elementRef?.current) {
     if (Platform.OS === 'web') {
       elementRef.current.focus();
     } else {
@@ -226,17 +256,23 @@ export const focusElement = (elementRef: any) => {
 export const isAccessibilityEnabled = (): boolean => {
   if (Platform.OS === 'web') {
     // Check for screen reader usage
-    return window.navigator.userAgent.includes('NVDA') || 
-           window.navigator.userAgent.includes('JAWS') ||
-           window.navigator.userAgent.includes('VoiceOver');
+    return (
+      window.navigator.userAgent.includes('NVDA') ||
+      window.navigator.userAgent.includes('JAWS') ||
+      window.navigator.userAgent.includes('VoiceOver')
+    );
   }
   return false; // For React Native, this would check device settings
 };
 
 // Generate accessible color contrast
-export const getAccessibleColor = (backgroundColor: string, textColor: string): string => {
+export const getAccessibleColor = (
+  backgroundColor: string,
+  _textColor: string
+): string => {
   // Simple contrast check - in a real app, you'd use a proper contrast calculation
-  const isLight = backgroundColor.includes('#fff') || backgroundColor.includes('#f');
+  const isLight =
+    backgroundColor.includes('#fff') || backgroundColor.includes('#f');
   return isLight ? '#000000' : '#ffffff';
 };
 
@@ -253,18 +289,24 @@ export const getAccessibleTouchTarget = (size: number = 44) => {
 // Accessibility testing helpers
 export const testAccessibility = (component: any) => {
   const issues: string[] = [];
-  
+
   // Check for required accessibility props
-  if (!component.props.accessibilityLabel && !component.props.accessibilityHint) {
+  if (
+    !component.props.accessibilityLabel &&
+    !component.props.accessibilityHint
+  ) {
     issues.push('Missing accessibility label or hint');
   }
-  
-  if (component.props.accessibilityRole === 'button' && component.props.disabled) {
+
+  if (
+    component.props.accessibilityRole === 'button' &&
+    component.props.disabled
+  ) {
     if (!component.props.accessibilityState?.disabled) {
       issues.push('Button should have disabled state in accessibilityState');
     }
   }
-  
+
   return issues;
 };
 

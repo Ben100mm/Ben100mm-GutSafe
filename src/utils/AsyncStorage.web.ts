@@ -67,10 +67,10 @@ class WebAsyncStorage implements AsyncStorageInterface {
 
   async multiGet(keys: string[]): Promise<[string, string | null][]> {
     try {
-      return keys.map(key => [key, localStorage.getItem(key)]);
+      return keys.map((key) => [key, localStorage.getItem(key)]);
     } catch (error) {
       console.warn('AsyncStorage.multiGet failed:', error);
-      return keys.map(key => [key, null]);
+      return keys.map((key) => [key, null]);
     }
   }
 
@@ -87,7 +87,7 @@ class WebAsyncStorage implements AsyncStorageInterface {
 
   async multiRemove(keys: string[]): Promise<void> {
     try {
-      keys.forEach(key => {
+      keys.forEach((key) => {
         localStorage.removeItem(key);
       });
     } catch (error) {

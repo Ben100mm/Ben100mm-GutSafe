@@ -5,6 +5,7 @@
  * @private
  */
 
+import { useNavigation } from '@react-navigation/native';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -15,15 +16,21 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import LinearGradient from '../components/LinearGradientWrapper';
-import { useNavigation } from '@react-navigation/native';
-import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
-import { Spacing, BorderRadius } from '../constants/spacing';
+
 import { ConditionToggle } from '../components/ConditionToggle';
-import { SymptomTracker } from '../components/SymptomTracker';
+import LinearGradient from '../components/LinearGradientWrapper';
 import { MedicationTracker } from '../components/MedicationTracker';
-import { GutCondition, SeverityLevel, GutConditionToggle, GutSymptom, MedicationSupplement } from '../types';
+import { SymptomTracker } from '../components/SymptomTracker';
+import { Colors } from '../constants/colors';
+import { Spacing, BorderRadius } from '../constants/spacing';
+import { Typography } from '../constants/typography';
+import type {
+  GutCondition,
+  SeverityLevel,
+  GutConditionToggle,
+  GutSymptom,
+  MedicationSupplement,
+} from '../types';
 
 export const GutProfileScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -31,8 +38,12 @@ export const GutProfileScreen: React.FC = () => {
   const isDark = colorScheme === 'dark';
   const colors = isDark ? Colors.dark : Colors.light;
 
-  const [activeTab, setActiveTab] = useState<'conditions' | 'symptoms' | 'medications'>('conditions');
-  const [conditionToggles, setConditionToggles] = useState<GutConditionToggle[]>([]);
+  const [activeTab, setActiveTab] = useState<
+    'conditions' | 'symptoms' | 'medications'
+  >('conditions');
+  const [conditionToggles, setConditionToggles] = useState<
+    GutConditionToggle[]
+  >([]);
   const [symptoms, setSymptoms] = useState<GutSymptom[]>([]);
   const [medications, setMedications] = useState<MedicationSupplement[]>([]);
 
@@ -46,7 +57,7 @@ export const GutProfileScreen: React.FC = () => {
       'histamine',
       'allergies',
       'additives',
-    ].map(condition => ({
+    ].map((condition) => ({
       condition: condition as GutCondition,
       enabled: false,
       severity: 'mild' as SeverityLevel,
@@ -57,19 +68,22 @@ export const GutProfileScreen: React.FC = () => {
   }, []);
 
   const handleConditionToggle = (condition: GutCondition, enabled: boolean) => {
-    setConditionToggles(prev => 
-      prev.map(toggle => 
-        toggle.condition === condition 
+    setConditionToggles((prev) =>
+      prev.map((toggle) =>
+        toggle.condition === condition
           ? { ...toggle, enabled, lastUpdated: new Date() }
           : toggle
       )
     );
   };
 
-  const handleSeverityChange = (condition: GutCondition, severity: SeverityLevel) => {
-    setConditionToggles(prev => 
-      prev.map(toggle => 
-        toggle.condition === condition 
+  const handleSeverityChange = (
+    condition: GutCondition,
+    severity: SeverityLevel
+  ) => {
+    setConditionToggles((prev) =>
+      prev.map((toggle) =>
+        toggle.condition === condition
           ? { ...toggle, severity, lastUpdated: new Date() }
           : toggle
       )
@@ -82,18 +96,27 @@ export const GutProfileScreen: React.FC = () => {
       'Enter known triggers for this condition (comma separated):',
       (text) => {
         if (text !== null) {
-          const triggers = text.split(',').map(t => t.trim()).filter(t => t.length > 0);
-          setConditionToggles(prev => 
-            prev.map(toggle => 
-              toggle.condition === condition 
-                ? { ...toggle, knownTriggers: triggers, lastUpdated: new Date() }
+          const triggers = text
+            .split(',')
+            .map((t) => t.trim())
+            .filter((t) => t.length > 0);
+          setConditionToggles((prev) =>
+            prev.map((toggle) =>
+              toggle.condition === condition
+                ? {
+                    ...toggle,
+                    knownTriggers: triggers,
+                    lastUpdated: new Date(),
+                  }
                 : toggle
             )
           );
         }
       },
       'plain-text',
-      conditionToggles.find(t => t.condition === condition)?.knownTriggers.join(', ') || ''
+      conditionToggles
+        .find((t) => t.condition === condition)
+        ?.knownTriggers.join(', ') || ''
     );
   };
 
@@ -102,20 +125,25 @@ export const GutProfileScreen: React.FC = () => {
       ...symptomData,
       id: Date.now().toString(),
     };
-    setSymptoms(prev => [newSymptom, ...prev]);
+    setSymptoms((prev) => [newSymptom, ...prev]);
   };
 
-  const handleAddMedication = (medicationData: Omit<MedicationSupplement, 'id'>) => {
+  const handleAddMedication = (
+    medicationData: Omit<MedicationSupplement, 'id'>
+  ) => {
     const newMedication: MedicationSupplement = {
       ...medicationData,
       id: Date.now().toString(),
     };
-    setMedications(prev => [newMedication, ...prev]);
+    setMedications((prev) => [newMedication, ...prev]);
   };
 
-  const handleUpdateMedication = (id: string, updates: Partial<MedicationSupplement>) => {
-    setMedications(prev => 
-      prev.map(med => med.id === id ? { ...med, ...updates } : med)
+  const handleUpdateMedication = (
+    id: string,
+    updates: Partial<MedicationSupplement>
+  ) => {
+    setMedications((prev) =>
+      prev.map((med) => (med.id === id ? { ...med, ...updates } : med))
     );
   };
 
@@ -132,14 +160,11 @@ export const GutProfileScreen: React.FC = () => {
     );
   };
 
-  const enabledConditions = conditionToggles.filter(toggle => toggle.enabled);
+  const enabledConditions = conditionToggles.filter((toggle) => toggle.enabled);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <LinearGradient
-        colors={Colors.primaryGradient}
-        style={styles.header}
-      >
+      <LinearGradient colors={Colors.primaryGradient} style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -162,11 +187,15 @@ export const GutProfileScreen: React.FC = () => {
           onPress={() => setActiveTab('conditions')}
         >
           {getTabIcon('conditions', activeTab === 'conditions')}
-          <Text style={[
-            styles.tabText,
-            activeTab === 'conditions' && styles.activeTabText,
-            { color: activeTab === 'conditions' ? Colors.white : colors.text },
-          ]}>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === 'conditions' && styles.activeTabText,
+              {
+                color: activeTab === 'conditions' ? Colors.white : colors.text,
+              },
+            ]}
+          >
             Conditions
           </Text>
         </TouchableOpacity>
@@ -178,11 +207,13 @@ export const GutProfileScreen: React.FC = () => {
           onPress={() => setActiveTab('symptoms')}
         >
           {getTabIcon('symptoms', activeTab === 'symptoms')}
-          <Text style={[
-            styles.tabText,
-            activeTab === 'symptoms' && styles.activeTabText,
-            { color: activeTab === 'symptoms' ? Colors.white : colors.text },
-          ]}>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === 'symptoms' && styles.activeTabText,
+              { color: activeTab === 'symptoms' ? Colors.white : colors.text },
+            ]}
+          >
             Symptoms
           </Text>
         </TouchableOpacity>
@@ -194,25 +225,34 @@ export const GutProfileScreen: React.FC = () => {
           onPress={() => setActiveTab('medications')}
         >
           {getTabIcon('medications', activeTab === 'medications')}
-          <Text style={[
-            styles.tabText,
-            activeTab === 'medications' && styles.activeTabText,
-            { color: activeTab === 'medications' ? Colors.white : colors.text },
-          ]}>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === 'medications' && styles.activeTabText,
+              {
+                color: activeTab === 'medications' ? Colors.white : colors.text,
+              },
+            ]}
+          >
             Medications
           </Text>
         </TouchableOpacity>
       </View>
 
       {/* Content */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} style={styles.content}>
         {activeTab === 'conditions' && (
           <View style={styles.tabContent}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>
                 Gut Conditions
               </Text>
-              <Text style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
+              <Text
+                style={[
+                  styles.sectionSubtitle,
+                  { color: colors.textSecondary },
+                ]}
+              >
                 Toggle conditions that affect your gut health
               </Text>
             </View>
@@ -225,14 +265,22 @@ export const GutProfileScreen: React.FC = () => {
                 <View style={styles.summaryList}>
                   {enabledConditions.map((toggle) => (
                     <View key={toggle.condition} style={styles.summaryItem}>
-                      <View style={[
-                        styles.severityDot,
-                        { backgroundColor: 
-                          toggle.severity === 'mild' ? Colors.safe :
-                          toggle.severity === 'moderate' ? Colors.caution : Colors.avoid
-                        }
-                      ]} />
-                      <Text style={[styles.summaryText, { color: colors.text }]}>
+                      <View
+                        style={[
+                          styles.severityDot,
+                          {
+                            backgroundColor:
+                              toggle.severity === 'mild'
+                                ? Colors.safe
+                                : toggle.severity === 'moderate'
+                                  ? Colors.caution
+                                  : Colors.avoid,
+                          },
+                        ]}
+                      />
+                      <Text
+                        style={[styles.summaryText, { color: colors.text }]}
+                      >
                         {toggle.condition.replace('-', ' ').toUpperCase()}
                       </Text>
                     </View>
@@ -246,9 +294,9 @@ export const GutProfileScreen: React.FC = () => {
                 <ConditionToggle
                   key={toggle.condition}
                   condition={toggle}
-                  onToggle={handleConditionToggle}
-                  onSeverityChange={handleSeverityChange}
                   onEditTriggers={handleEditTriggers}
+                  onSeverityChange={handleSeverityChange}
+                  onToggle={handleConditionToggle}
                 />
               ))}
             </View>
@@ -258,8 +306,8 @@ export const GutProfileScreen: React.FC = () => {
         {activeTab === 'symptoms' && (
           <View style={styles.tabContent}>
             <SymptomTracker
-              onLogSymptom={handleLogSymptom}
               recentSymptoms={symptoms}
+              onLogSymptom={handleLogSymptom}
             />
           </View>
         )}
@@ -267,8 +315,8 @@ export const GutProfileScreen: React.FC = () => {
         {activeTab === 'medications' && (
           <View style={styles.tabContent}>
             <MedicationTracker
-              onAddMedication={handleAddMedication}
               medications={medications}
+              onAddMedication={handleAddMedication}
               onUpdateMedication={handleUpdateMedication}
             />
           </View>
@@ -279,121 +327,121 @@ export const GutProfileScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
-    alignItems: 'center',
-  },
-  backButton: {
-    position: 'absolute',
-    top: 60,
-    left: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-  },
-  backButtonText: {
-    fontFamily: Typography.fontFamily.semiBold,
-    fontSize: Typography.fontSize.body,
-    color: Colors.white,
-  },
-  headerTitle: {
-    fontFamily: Typography.fontFamily.bold,
-    fontSize: Typography.fontSize.h1,
-    color: Colors.white,
-    marginBottom: Spacing.xs,
-  },
-  headerSubtitle: {
-    fontFamily: Typography.fontFamily.regular,
-    fontSize: Typography.fontSize.body,
-    color: Colors.white,
-    opacity: 0.9,
-    textAlign: 'center',
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(15, 82, 87, 0.1)',
-  },
-  tab: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    marginHorizontal: Spacing.xs,
-  },
-  tabIcon: {
-    fontSize: 20,
-    marginRight: Spacing.xs,
-  },
   activeTabIcon: {
     opacity: 1,
-  },
-  tabText: {
-    fontFamily: Typography.fontFamily.semiBold,
-    fontSize: Typography.fontSize.bodySmall,
   },
   activeTabText: {
     color: Colors.white,
   },
+  backButton: {
+    left: Spacing.lg,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    position: 'absolute',
+    top: 60,
+  },
+  backButtonText: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+  },
+  conditionsList: {
+    gap: Spacing.sm,
+  },
+  container: {
+    flex: 1,
+  },
   content: {
     flex: 1,
   },
-  tabContent: {
-    padding: Spacing.lg,
+  header: {
+    alignItems: 'center',
+    paddingBottom: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: 60,
+  },
+  headerSubtitle: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
+    opacity: 0.9,
+    textAlign: 'center',
+  },
+  headerTitle: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h1,
+    marginBottom: Spacing.xs,
   },
   sectionHeader: {
     marginBottom: Spacing.lg,
-  },
-  sectionTitle: {
-    fontFamily: Typography.fontFamily.bold,
-    fontSize: Typography.fontSize.h2,
-    marginBottom: Spacing.xs,
   },
   sectionSubtitle: {
     fontFamily: Typography.fontFamily.regular,
     fontSize: Typography.fontSize.body,
     lineHeight: 22,
   },
+  sectionTitle: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h2,
+    marginBottom: Spacing.xs,
+  },
+  severityDot: {
+    borderRadius: 4,
+    height: 8,
+    marginRight: Spacing.sm,
+    width: 8,
+  },
   summaryCard: {
     backgroundColor: 'rgba(15, 82, 87, 0.05)',
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.lg,
-    borderWidth: 1,
     borderColor: 'rgba(15, 82, 87, 0.1)',
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    marginBottom: Spacing.lg,
+    padding: Spacing.lg,
+  },
+  summaryItem: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  summaryList: {
+    gap: Spacing.sm,
+  },
+  summaryText: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.bodySmall,
   },
   summaryTitle: {
     fontFamily: Typography.fontFamily.semiBold,
     fontSize: Typography.fontSize.h4,
     marginBottom: Spacing.md,
   },
-  summaryList: {
-    gap: Spacing.sm,
-  },
-  summaryItem: {
-    flexDirection: 'row',
+  tab: {
     alignItems: 'center',
+    borderRadius: BorderRadius.md,
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginHorizontal: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.md,
   },
-  severityDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: Spacing.sm,
+  tabContainer: {
+    borderBottomColor: 'rgba(15, 82, 87, 0.1)',
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
   },
-  summaryText: {
-    fontFamily: Typography.fontFamily.medium,
+  tabContent: {
+    padding: Spacing.lg,
+  },
+  tabIcon: {
+    fontSize: 20,
+    marginRight: Spacing.xs,
+  },
+  tabText: {
+    fontFamily: Typography.fontFamily.semiBold,
     fontSize: Typography.fontSize.bodySmall,
-  },
-  conditionsList: {
-    gap: Spacing.sm,
   },
 });

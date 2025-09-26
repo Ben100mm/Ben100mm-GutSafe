@@ -45,7 +45,7 @@ class NotificationService {
       end: '08:00',
     },
   };
-  private stats: NotificationStats = {
+  private readonly stats: NotificationStats = {
     totalScheduled: 0,
     mealReminders: 0,
     newSafeFoods: 0,
@@ -80,7 +80,9 @@ class NotificationService {
 
   async updateSettings(settings: Partial<NotificationSettings>): Promise<void> {
     this.settings = { ...this.settings, ...settings };
-    logger.info('Notification settings updated', 'NotificationService', { settings });
+    logger.info('Notification settings updated', 'NotificationService', {
+      settings,
+    });
   }
 
   async requestPermission(): Promise<boolean> {
@@ -90,9 +92,14 @@ class NotificationService {
   }
 
   async showImmediateNotification(title: string, body: string): Promise<void> {
-    if (!this.settings.enabled) return;
-    
-    logger.info('Showing immediate notification', 'NotificationService', { title, body });
+    if (!this.settings.enabled) {
+      return;
+    }
+
+    logger.info('Showing immediate notification', 'NotificationService', {
+      title,
+      body,
+    });
     this.stats.totalScheduled++;
   }
 

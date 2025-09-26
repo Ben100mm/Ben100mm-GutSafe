@@ -5,6 +5,7 @@
  * @private
  */
 
+import { BlurView } from '@react-native-community/blur';
 import React, { useRef, useEffect, useState } from 'react';
 import {
   View,
@@ -15,17 +16,15 @@ import {
   Animated,
   useColorScheme,
 } from 'react-native';
-import LinearGradient from './LinearGradientWrapper';
-import { BlurView } from '@react-native-community/blur';
+
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
-import { HapticFeedback } from '../utils/haptics';
-import { 
-  TransformUtils, 
-  AnimationUtils
-} from '../utils/animations';
+import { Typography } from '../constants/typography';
 import AccessibilityService from '../utils/accessibility';
+import { TransformUtils, AnimationUtils } from '../utils/animations';
+import { HapticFeedback } from '../utils/haptics';
+
+import LinearGradient from './LinearGradientWrapper';
 
 // const { width: screenWidth } = Dimensions.get('window');
 
@@ -33,13 +32,15 @@ interface AnimationShowcaseProps {
   onClose?: () => void;
 }
 
-export const AnimationShowcase: React.FC<AnimationShowcaseProps> = ({ onClose }) => {
+export const AnimationShowcase: React.FC<AnimationShowcaseProps> = ({
+  onClose,
+}) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = isDark ? Colors.dark : Colors.light;
 
   const [currentDemo, setCurrentDemo] = useState(0);
-  
+
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -136,7 +137,12 @@ export const AnimationShowcase: React.FC<AnimationShowcaseProps> = ({ onClose })
       description: 'Continuous pulsing effect for attention',
       action: () => {
         HapticFeedback.trigger('selection');
-        const pulseAnimation = AnimationUtils.createPulse(pulseAnim, 0.9, 1.1, 1000);
+        const pulseAnimation = AnimationUtils.createPulse(
+          pulseAnim,
+          0.9,
+          1.1,
+          1000
+        );
         pulseAnimation.start();
         setTimeout(() => pulseAnimation.stop(), 3000);
       },
@@ -190,15 +196,24 @@ export const AnimationShowcase: React.FC<AnimationShowcaseProps> = ({ onClose })
   // 3D transform styles
   const transform3DStyle = {
     transform: [
-      { scale: Animated.multiply(scaleAnim, Animated.multiply(pulseAnim, bounceAnim)) },
-      { translateZ: translateZAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, 20],
-      })},
-      { rotateY: rotateAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: ['0deg', '180deg'],
-      })},
+      {
+        scale: Animated.multiply(
+          scaleAnim,
+          Animated.multiply(pulseAnim, bounceAnim)
+        ),
+      },
+      {
+        translateZ: translateZAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 20],
+        }),
+      },
+      {
+        rotateY: rotateAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: ['0deg', '180deg'],
+        }),
+      },
       { translateX: shakeAnim },
     ],
     ...TransformUtils.createPerspective(1000),
@@ -227,42 +242,49 @@ export const AnimationShowcase: React.FC<AnimationShowcaseProps> = ({ onClose })
   };
 
   return (
-    <Animated.View style={[
-      styles.container,
-      {
-        backgroundColor: colors.background,
-        opacity: fadeAnim,
-        transform: [
-          { translateY: slideAnim },
-          { scale: scaleAnim }
-        ]
-      }
-    ]}>
+    <Animated.View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.background,
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
+        },
+      ]}
+    >
       {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.surface }]}>
-        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <Text style={[styles.closeButtonText, { color: colors.accent }]}>✕</Text>
+        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+          <Text style={[styles.closeButtonText, { color: colors.accent }]}>
+            ✕
+          </Text>
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Animation Showcase</Text>
+        <Text style={[styles.title, { color: colors.text }]}>
+          Animation Showcase
+        </Text>
         <View style={styles.placeholder} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} style={styles.content}>
         {/* Demo Card */}
         <Animated.View style={[transform3DStyle, shadowStyle]}>
           <BlurView
-            style={styles.demoCard}
-            blurType={isDark ? 'dark' : 'light'}
             blurAmount={20}
+            blurType={isDark ? 'dark' : 'light'}
             reducedTransparencyFallbackColor={colors.surface}
+            style={styles.demoCard}
           >
             <LinearGradient
               colors={Colors.primaryGradient}
               style={styles.gradientOverlay}
             >
-              <Text style={styles.demoTitle}>{demos[currentDemo]?.title || 'Demo'}</Text>
-              <Text style={styles.demoDescription}>{demos[currentDemo]?.description || 'Description'}</Text>
-              
+              <Text style={styles.demoTitle}>
+                {demos[currentDemo]?.title || 'Demo'}
+              </Text>
+              <Text style={styles.demoDescription}>
+                {demos[currentDemo]?.description || 'Description'}
+              </Text>
+
               <TouchableOpacity
                 style={styles.demoButton}
                 onPress={demos[currentDemo]?.action || (() => {})}
@@ -287,15 +309,22 @@ export const AnimationShowcase: React.FC<AnimationShowcaseProps> = ({ onClose })
               'Go to previous animation demo'
             )}
           >
-            <Text style={[styles.navButtonText, { color: colors.text }]}>← Previous</Text>
+            <Text style={[styles.navButtonText, { color: colors.text }]}>
+              ← Previous
+            </Text>
           </TouchableOpacity>
-          
+
           <View style={styles.demoIndicator}>
-            <Text style={[styles.demoIndicatorText, { color: colors.textSecondary }]}>
+            <Text
+              style={[
+                styles.demoIndicatorText,
+                { color: colors.textSecondary },
+              ]}
+            >
               {currentDemo + 1} of {demos.length}
             </Text>
           </View>
-          
+
           <TouchableOpacity
             style={[styles.navButton, { backgroundColor: colors.surface }]}
             onPress={nextDemo}
@@ -304,23 +333,28 @@ export const AnimationShowcase: React.FC<AnimationShowcaseProps> = ({ onClose })
               'Go to next animation demo'
             )}
           >
-            <Text style={[styles.navButtonText, { color: colors.text }]}>Next →</Text>
+            <Text style={[styles.navButtonText, { color: colors.text }]}>
+              Next →
+            </Text>
           </TouchableOpacity>
         </View>
 
         {/* Animation Types */}
         <View style={styles.animationTypes}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Available Animations</Text>
-          
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Available Animations
+          </Text>
+
           {demos.map((demo, index) => (
             <TouchableOpacity
               key={index}
               style={[
                 styles.animationTypeItem,
-                { 
+                {
                   backgroundColor: colors.surface,
-                  borderColor: currentDemo === index ? colors.accent : colors.border,
-                }
+                  borderColor:
+                    currentDemo === index ? colors.accent : colors.border,
+                },
               ]}
               onPress={() => {
                 HapticFeedback.selection();
@@ -334,7 +368,12 @@ export const AnimationShowcase: React.FC<AnimationShowcaseProps> = ({ onClose })
               <Text style={[styles.animationTypeTitle, { color: colors.text }]}>
                 {demo.title}
               </Text>
-              <Text style={[styles.animationTypeDescription, { color: colors.textSecondary }]}>
+              <Text
+                style={[
+                  styles.animationTypeDescription,
+                  { color: colors.textSecondary },
+                ]}
+              >
                 {demo.description}
               </Text>
             </TouchableOpacity>
@@ -343,8 +382,10 @@ export const AnimationShowcase: React.FC<AnimationShowcaseProps> = ({ onClose })
 
         {/* Haptic Feedback Demo */}
         <View style={styles.hapticDemo}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Haptic Feedback</Text>
-          
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Haptic Feedback
+          </Text>
+
           <View style={styles.hapticButtons}>
             {[
               { type: 'light', label: 'Light' },
@@ -356,7 +397,10 @@ export const AnimationShowcase: React.FC<AnimationShowcaseProps> = ({ onClose })
             ].map((haptic, index) => (
               <TouchableOpacity
                 key={index}
-                style={[styles.hapticButton, { backgroundColor: colors.surface }]}
+                style={[
+                  styles.hapticButton,
+                  { backgroundColor: colors.surface },
+                ]}
                 onPress={() => HapticFeedback.trigger(haptic.type)}
                 {...AccessibilityService.createButtonConfig(
                   `${haptic.label} haptic feedback`,
@@ -376,148 +420,148 @@ export const AnimationShowcase: React.FC<AnimationShowcaseProps> = ({ onClose })
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  animationTypeDescription: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.bodySmall,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 44,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+  animationTypeItem: {
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    marginBottom: Spacing.sm,
+    padding: Spacing.md,
+  },
+  animationTypeTitle: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+    marginBottom: Spacing.xs,
+  },
+  animationTypes: {
+    marginBottom: Spacing.xl,
   },
   closeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
     alignItems: 'center',
+    borderRadius: 16,
+    height: 32,
     justifyContent: 'center',
+    width: 32,
   },
   closeButtonText: {
     fontSize: 18,
     fontWeight: '600',
   },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    letterSpacing: -0.5,
-  },
-  placeholder: {
-    width: 32,
+  container: {
+    flex: 1,
   },
   content: {
     flex: 1,
     padding: Spacing.lg,
   },
-  demoCard: {
-    borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
-    marginBottom: Spacing.xl,
-    minHeight: 200,
-  },
-  gradientOverlay: {
-    flex: 1,
-    padding: Spacing.xl,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  demoTitle: {
-    fontSize: Typography.fontSize.h2,
-    fontFamily: Typography.fontFamily.bold,
-    color: Colors.white,
-    textAlign: 'center',
-    marginBottom: Spacing.sm,
-  },
-  demoDescription: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.white,
-    textAlign: 'center',
-    marginBottom: Spacing.lg,
-    opacity: 0.9,
-  },
   demoButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
   },
   demoButtonText: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.semiBold,
     color: Colors.white,
-  },
-  navigation: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.xl,
-  },
-  navButton: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-    minWidth: 100,
-    alignItems: 'center',
-  },
-  navButtonText: {
-    fontSize: Typography.fontSize.body,
     fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+  },
+  demoCard: {
+    borderRadius: BorderRadius.lg,
+    marginBottom: Spacing.xl,
+    minHeight: 200,
+    overflow: 'hidden',
+  },
+  demoDescription: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
+    marginBottom: Spacing.lg,
+    opacity: 0.9,
+    textAlign: 'center',
   },
   demoIndicator: {
     alignItems: 'center',
   },
   demoIndicatorText: {
-    fontSize: Typography.fontSize.caption,
     fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.caption,
   },
-  animationTypes: {
-    marginBottom: Spacing.xl,
-  },
-  sectionTitle: {
-    fontSize: Typography.fontSize.h3,
+  demoTitle: {
+    color: Colors.white,
     fontFamily: Typography.fontFamily.bold,
-    marginBottom: Spacing.md,
-  },
-  animationTypeItem: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
+    fontSize: Typography.fontSize.h2,
     marginBottom: Spacing.sm,
-    borderWidth: 1,
+    textAlign: 'center',
   },
-  animationTypeTitle: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.semiBold,
-    marginBottom: Spacing.xs,
+  gradientOverlay: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    padding: Spacing.xl,
   },
-  animationTypeDescription: {
+  hapticButton: {
+    alignItems: 'center',
+    borderRadius: BorderRadius.sm,
+    marginBottom: Spacing.sm,
+    minWidth: '30%',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  hapticButtonText: {
+    fontFamily: Typography.fontFamily.medium,
     fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.regular,
-  },
-  hapticDemo: {
-    marginBottom: Spacing.xl,
   },
   hapticButtons: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
-  hapticButton: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.sm,
-    marginBottom: Spacing.sm,
-    minWidth: '30%',
-    alignItems: 'center',
+  hapticDemo: {
+    marginBottom: Spacing.xl,
   },
-  hapticButtonText: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.medium,
+  header: {
+    alignItems: 'center',
+    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+    borderBottomWidth: 0.5,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingBottom: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: 44,
+  },
+  navButton: {
+    alignItems: 'center',
+    borderRadius: BorderRadius.md,
+    minWidth: 100,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  navButtonText: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+  },
+  navigation: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.xl,
+  },
+  placeholder: {
+    width: 32,
+  },
+  sectionTitle: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h3,
+    marginBottom: Spacing.md,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    letterSpacing: -0.5,
   },
 });
 

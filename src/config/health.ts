@@ -1,13 +1,18 @@
 /**
  * Configuration Health Monitoring System
  * Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
- * 
+ *
  * Comprehensive health monitoring for configuration and system status.
  */
 
-import { config } from './environment';
-import { secretManager, validateApiKey, validateJwtSecret, validateEncryptionKey } from './secrets';
 import { getBuildConfig, detectBuildEnvironment } from './build';
+import { config } from './environment';
+import {
+  secretManager,
+  validateApiKey,
+  validateJwtSecret,
+  validateEncryptionKey,
+} from './secrets';
 
 // Health check result types
 export interface HealthCheckResult {
@@ -34,7 +39,7 @@ export interface HealthStatus {
 }
 
 // Health check categories
-export type HealthCheckCategory = 
+export type HealthCheckCategory =
   | 'configuration'
   | 'secrets'
   | 'database'
@@ -71,9 +76,9 @@ const configurationChecks: HealthCheck[] = [
           'REACT_APP_SESSION_KEY',
           'REACT_APP_DB_ENCRYPTION_KEY',
         ];
-        
-        const missing = requiredVars.filter(varName => !process.env[varName]);
-        
+
+        const missing = requiredVars.filter((varName) => !process.env[varName]);
+
         if (missing.length > 0) {
           return {
             name: 'Environment Variables',
@@ -84,7 +89,7 @@ const configurationChecks: HealthCheck[] = [
             duration: Date.now() - startTime,
           };
         }
-        
+
         return {
           name: 'Environment Variables',
           status: 'healthy',
@@ -104,7 +109,7 @@ const configurationChecks: HealthCheck[] = [
       }
     },
   },
-  
+
   {
     name: 'Configuration Validation',
     category: 'configuration',
@@ -115,7 +120,7 @@ const configurationChecks: HealthCheck[] = [
         // Test configuration access
         const apiUrl = config.api.baseUrl;
         const isDebug = config.app.debug;
-        
+
         return {
           name: 'Configuration Validation',
           status: 'healthy',
@@ -156,14 +161,18 @@ const secretChecks: HealthCheck[] = [
             duration: Date.now() - startTime,
           };
         }
-        
+
         const isValid = validateApiKey(apiKey);
-        const strength = secretManager.calculateSecretStrength ? secretManager.calculateSecretStrength(apiKey) : 0;
-        
+        const strength = secretManager.calculateSecretStrength
+          ? secretManager.calculateSecretStrength(apiKey)
+          : 0;
+
         return {
           name: 'API Key Validation',
           status: isValid ? 'healthy' : 'unhealthy',
-          message: isValid ? 'API key is valid' : 'API key does not meet security requirements',
+          message: isValid
+            ? 'API key is valid'
+            : 'API key does not meet security requirements',
           details: { strength, length: apiKey.length },
           timestamp: new Date(),
           duration: Date.now() - startTime,
@@ -179,7 +188,7 @@ const secretChecks: HealthCheck[] = [
       }
     },
   },
-  
+
   {
     name: 'JWT Secret Validation',
     category: 'secrets',
@@ -197,14 +206,18 @@ const secretChecks: HealthCheck[] = [
             duration: Date.now() - startTime,
           };
         }
-        
+
         const isValid = validateJwtSecret(jwtSecret);
-        const strength = secretManager.calculateSecretStrength ? secretManager.calculateSecretStrength(jwtSecret) : 0;
-        
+        const strength = secretManager.calculateSecretStrength
+          ? secretManager.calculateSecretStrength(jwtSecret)
+          : 0;
+
         return {
           name: 'JWT Secret Validation',
           status: isValid ? 'healthy' : 'unhealthy',
-          message: isValid ? 'JWT secret is valid' : 'JWT secret does not meet security requirements',
+          message: isValid
+            ? 'JWT secret is valid'
+            : 'JWT secret does not meet security requirements',
           details: { strength, length: jwtSecret.length },
           timestamp: new Date(),
           duration: Date.now() - startTime,
@@ -220,7 +233,7 @@ const secretChecks: HealthCheck[] = [
       }
     },
   },
-  
+
   {
     name: 'Database Encryption Key Validation',
     category: 'secrets',
@@ -238,14 +251,18 @@ const secretChecks: HealthCheck[] = [
             duration: Date.now() - startTime,
           };
         }
-        
+
         const isValid = validateEncryptionKey(dbKey);
-        const strength = secretManager.calculateSecretStrength ? secretManager.calculateSecretStrength(dbKey) : 0;
-        
+        const strength = secretManager.calculateSecretStrength
+          ? secretManager.calculateSecretStrength(dbKey)
+          : 0;
+
         return {
           name: 'Database Encryption Key Validation',
           status: isValid ? 'healthy' : 'unhealthy',
-          message: isValid ? 'Database encryption key is valid' : 'Database encryption key does not meet security requirements',
+          message: isValid
+            ? 'Database encryption key is valid'
+            : 'Database encryption key does not meet security requirements',
           details: { strength, length: dbKey.length },
           timestamp: new Date(),
           duration: Date.now() - startTime,
@@ -275,7 +292,7 @@ const apiChecks: HealthCheck[] = [
         const apiUrl = config.api.baseUrl;
         const hasApiKey = !!config.api.key;
         const hasApiSecret = !!config.api.secret;
-        
+
         if (!apiUrl || !hasApiKey || !hasApiSecret) {
           return {
             name: 'API Configuration',
@@ -286,7 +303,7 @@ const apiChecks: HealthCheck[] = [
             duration: Date.now() - startTime,
           };
         }
-        
+
         return {
           name: 'API Configuration',
           status: 'healthy',
@@ -319,11 +336,13 @@ const securityChecks: HealthCheck[] = [
       try {
         const buildConfig = getBuildConfig(detectBuildEnvironment());
         const hasSecurityHeaders = buildConfig.security.contentSecurityPolicy;
-        
+
         return {
           name: 'Security Headers',
           status: hasSecurityHeaders ? 'healthy' : 'degraded',
-          message: hasSecurityHeaders ? 'Security headers are configured' : 'Security headers are not configured',
+          message: hasSecurityHeaders
+            ? 'Security headers are configured'
+            : 'Security headers are not configured',
           details: { contentSecurityPolicy: hasSecurityHeaders },
           timestamp: new Date(),
           duration: Date.now() - startTime,
@@ -351,13 +370,16 @@ const performanceChecks: HealthCheck[] = [
       const startTime = Date.now();
       try {
         const buildConfig = getBuildConfig(detectBuildEnvironment());
-        const isOptimized = buildConfig.optimization.minify && buildConfig.optimization.compress;
-        
+        const isOptimized =
+          buildConfig.optimization.minify && buildConfig.optimization.compress;
+
         return {
           name: 'Build Configuration',
           status: isOptimized ? 'healthy' : 'degraded',
-          message: isOptimized ? 'Build is optimized for performance' : 'Build is not fully optimized',
-          details: { 
+          message: isOptimized
+            ? 'Build is optimized for performance'
+            : 'Build is not fully optimized',
+          details: {
             minify: buildConfig.optimization.minify,
             compress: buildConfig.optimization.compress,
             treeShaking: buildConfig.optimization.treeShaking,
@@ -388,9 +410,11 @@ const allHealthChecks: HealthCheck[] = [
 ];
 
 // Run a single health check
-export const runHealthCheck = async (check: HealthCheck): Promise<HealthCheckResult> => {
+export const runHealthCheck = async (
+  check: HealthCheck
+): Promise<HealthCheckResult> => {
   const startTime = Date.now();
-  
+
   try {
     const result = await check.check();
     return {
@@ -411,21 +435,21 @@ export const runHealthCheck = async (check: HealthCheck): Promise<HealthCheckRes
 // Run all health checks
 export const runAllHealthChecks = async (): Promise<HealthStatus> => {
   const checks: HealthCheckResult[] = [];
-  
+
   // Run all checks in parallel
-  const checkPromises = allHealthChecks.map(check => runHealthCheck(check));
+  const checkPromises = allHealthChecks.map((check) => runHealthCheck(check));
   const results = await Promise.all(checkPromises);
-  
+
   checks.push(...results);
-  
+
   // Calculate summary
   const summary = {
     total: checks.length,
-    healthy: checks.filter(c => c.status === 'healthy').length,
-    unhealthy: checks.filter(c => c.status === 'unhealthy').length,
-    degraded: checks.filter(c => c.status === 'degraded').length,
+    healthy: checks.filter((c) => c.status === 'healthy').length,
+    unhealthy: checks.filter((c) => c.status === 'unhealthy').length,
+    degraded: checks.filter((c) => c.status === 'degraded').length,
   };
-  
+
   // Determine overall status
   let overall: 'healthy' | 'unhealthy' | 'degraded' = 'healthy';
   if (summary.unhealthy > 0) {
@@ -433,7 +457,7 @@ export const runAllHealthChecks = async (): Promise<HealthStatus> => {
   } else if (summary.degraded > 0) {
     overall = 'degraded';
   }
-  
+
   return {
     overall,
     timestamp: new Date(),
@@ -445,9 +469,13 @@ export const runAllHealthChecks = async (): Promise<HealthStatus> => {
 };
 
 // Run health checks by category
-export const runHealthChecksByCategory = async (category: HealthCheckCategory): Promise<HealthCheckResult[]> => {
-  const categoryChecks = allHealthChecks.filter(check => check.category === category);
-  const checkPromises = categoryChecks.map(check => runHealthCheck(check));
+export const runHealthChecksByCategory = async (
+  category: HealthCheckCategory
+): Promise<HealthCheckResult[]> => {
+  const categoryChecks = allHealthChecks.filter(
+    (check) => check.category === category
+  );
+  const checkPromises = categoryChecks.map((check) => runHealthCheck(check));
   return Promise.all(checkPromises);
 };
 
@@ -459,7 +487,7 @@ export const formatHealthStatus = (status: HealthStatus): string => {
   output += `Timestamp: ${status.timestamp.toISOString()}\n`;
   output += `Overall Status: ${status.overall.toUpperCase()}\n`;
   output += `\n`;
-  
+
   // Summary
   output += `📊 Summary:\n`;
   output += `  Total Checks: ${status.summary.total}\n`;
@@ -467,11 +495,16 @@ export const formatHealthStatus = (status: HealthStatus): string => {
   output += `  Unhealthy: ${status.summary.unhealthy}\n`;
   output += `  Degraded: ${status.summary.degraded}\n`;
   output += `\n`;
-  
+
   // Detailed results
   output += `🔍 Detailed Results:\n`;
-  status.checks.forEach(check => {
-    const statusIcon = check.status === 'healthy' ? '✅' : check.status === 'degraded' ? '⚠️' : '❌';
+  status.checks.forEach((check) => {
+    const statusIcon =
+      check.status === 'healthy'
+        ? '✅'
+        : check.status === 'degraded'
+          ? '⚠️'
+          : '❌';
     output += `  ${statusIcon} ${check.name}: ${check.message}\n`;
     if (check.details) {
       Object.entries(check.details).forEach(([key, value]) => {
@@ -483,7 +516,7 @@ export const formatHealthStatus = (status: HealthStatus): string => {
     }
     output += `\n`;
   });
-  
+
   return output;
 };
 
@@ -491,10 +524,14 @@ export const formatHealthStatus = (status: HealthStatus): string => {
 export const getHealthEndpoint = async (_req: any, res: any) => {
   try {
     const healthStatus = await runAllHealthChecks();
-    
-    const statusCode = healthStatus.overall === 'healthy' ? 200 : 
-                      healthStatus.overall === 'degraded' ? 200 : 503;
-    
+
+    const statusCode =
+      healthStatus.overall === 'healthy'
+        ? 200
+        : healthStatus.overall === 'degraded'
+          ? 200
+          : 503;
+
     res.status(statusCode).json(healthStatus);
   } catch (error) {
     res.status(500).json({

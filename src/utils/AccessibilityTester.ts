@@ -14,7 +14,7 @@ import AccessibilityService from './accessibility';
  */
 class AccessibilityTester {
   private static instance: AccessibilityTester;
-  private testResults: Map<string, any> = new Map();
+  private readonly testResults: Map<string, any> = new Map();
   private isRunning: boolean = false;
 
   private constructor() {}
@@ -52,10 +52,10 @@ class AccessibilityTester {
     ];
 
     const results = await Promise.all(tests);
-    
-    const passed = results.filter(r => r.status === 'passed').length;
-    const failed = results.filter(r => r.status === 'failed').length;
-    const warnings = results.filter(r => r.status === 'warning').length;
+
+    const passed = results.filter((r) => r.status === 'passed').length;
+    const failed = results.filter((r) => r.status === 'failed').length;
+    const warnings = results.filter((r) => r.status === 'warning').length;
 
     this.isRunning = false;
 
@@ -86,20 +86,32 @@ class AccessibilityTester {
       ];
 
       for (const pair of colorPairs) {
-        const contrast = AccessibilityService.checkColorContrast(pair.fg, pair.bg);
-        
+        const contrast = AccessibilityService.checkColorContrast(
+          pair.fg,
+          pair.bg
+        );
+
         if (!contrast.meetsAA) {
-          issues.push(`${pair.name}: Contrast ratio ${contrast.ratio} (AA requires 4.5)`);
+          issues.push(
+            `${pair.name}: Contrast ratio ${contrast.ratio} (AA requires 4.5)`
+          );
         }
-        
+
         if (contrast.ratio < 3) {
-          issues.push(`${pair.name}: Very low contrast ratio ${contrast.ratio}`);
+          issues.push(
+            `${pair.name}: Very low contrast ratio ${contrast.ratio}`
+          );
         }
       }
 
       return {
         testName,
-        status: issues.length === 0 ? 'passed' : issues.length <= 2 ? 'warning' : 'failed',
+        status:
+          issues.length === 0
+            ? 'passed'
+            : issues.length <= 2
+              ? 'warning'
+              : 'failed',
         issues,
         details: 'Color contrast testing for WCAG AA compliance',
       };
@@ -128,7 +140,9 @@ class AccessibilityTester {
       for (const size of testSizes) {
         const accessibleSize = AccessibilityService.getAccessibleSpacing(size);
         if (accessibleSize < minSize) {
-          issues.push(`Touch target size ${size}pt is too small (minimum ${minSize}pt)`);
+          issues.push(
+            `Touch target size ${size}pt is too small (minimum ${minSize}pt)`
+          );
         }
       }
 
@@ -157,18 +171,24 @@ class AccessibilityTester {
 
     try {
       const isScreenReaderEnabled = AccessibilityService.isScreenReaderActive();
-      
+
       if (!isScreenReaderEnabled) {
         issues.push('Screen reader not detected - some tests may be limited');
       }
 
       // Test accessibility config creation
-      const buttonConfig = AccessibilityService.createButtonConfig('Test Button', 'Test hint');
+      const buttonConfig = AccessibilityService.createButtonConfig(
+        'Test Button',
+        'Test hint'
+      );
       if (!buttonConfig.accessible) {
         issues.push('Button accessibility config not properly set');
       }
 
-      const cardConfig = AccessibilityService.createCardConfig('Test Card', 'Test subtitle');
+      const cardConfig = AccessibilityService.createCardConfig(
+        'Test Card',
+        'Test subtitle'
+      );
       if (!cardConfig.accessible) {
         issues.push('Card accessibility config not properly set');
       }
@@ -198,12 +218,20 @@ class AccessibilityTester {
 
     try {
       // Test if keyboard navigation is properly configured
-      const tabConfig = AccessibilityService.createTabConfig('Test Tab', true, 'Test hint');
+      const tabConfig = AccessibilityService.createTabConfig(
+        'Test Tab',
+        true,
+        'Test hint'
+      );
       if (!tabConfig.accessible) {
         issues.push('Tab accessibility config not properly set');
       }
 
-      const switchConfig = AccessibilityService.createSwitchConfig('Test Switch', true, 'Test hint');
+      const switchConfig = AccessibilityService.createSwitchConfig(
+        'Test Switch',
+        true,
+        'Test hint'
+      );
       if (!switchConfig.accessible) {
         issues.push('Switch accessibility config not properly set');
       }
@@ -233,12 +261,18 @@ class AccessibilityTester {
 
     try {
       // Test focus management configurations
-      const modalConfig = AccessibilityService.createModalConfig('Test Modal', true);
+      const modalConfig = AccessibilityService.createModalConfig(
+        'Test Modal',
+        true
+      );
       if (!modalConfig.accessible) {
         issues.push('Modal accessibility config not properly set');
       }
 
-      const searchConfig = AccessibilityService.createSearchConfig('Test Search', 'Search placeholder');
+      const searchConfig = AccessibilityService.createSearchConfig(
+        'Test Search',
+        'Search placeholder'
+      );
       if (!searchConfig.accessible) {
         issues.push('Search accessibility config not properly set');
       }
@@ -268,12 +302,18 @@ class AccessibilityTester {
 
     try {
       // Test semantic structure configurations
-      const headerConfig = AccessibilityService.createHeaderConfig('Test Header', 1);
+      const headerConfig = AccessibilityService.createHeaderConfig(
+        'Test Header',
+        1
+      );
       if (!headerConfig.accessible) {
         issues.push('Header accessibility config not properly set');
       }
 
-      const landmarkConfig = AccessibilityService.createLandmarkConfig('main', 'Main Content');
+      const landmarkConfig = AccessibilityService.createLandmarkConfig(
+        'main',
+        'Main Content'
+      );
       if (!landmarkConfig.accessible) {
         issues.push('Landmark accessibility config not properly set');
       }
@@ -313,7 +353,10 @@ class AccessibilityTester {
         issues.push('Image accessibility config not properly set');
       }
 
-      const decorativeImageConfig = AccessibilityService.createImageConfig('Decorative Image', true);
+      const decorativeImageConfig = AccessibilityService.createImageConfig(
+        'Decorative Image',
+        true
+      );
       if (decorativeImageConfig.accessible) {
         issues.push('Decorative image should not be accessible');
       }
@@ -343,12 +386,21 @@ class AccessibilityTester {
 
     try {
       // Test form field configurations
-      const textInputConfig = AccessibilityService.createFormFieldConfig('Test Input', 'text', true);
+      const textInputConfig = AccessibilityService.createFormFieldConfig(
+        'Test Input',
+        'text',
+        true
+      );
       if (!textInputConfig.accessible) {
         issues.push('Text input accessibility config not properly set');
       }
 
-      const emailInputConfig = AccessibilityService.createFormFieldConfig('Email Input', 'email', true, 'Invalid email');
+      const emailInputConfig = AccessibilityService.createFormFieldConfig(
+        'Email Input',
+        'email',
+        true,
+        'Invalid email'
+      );
       if (!emailInputConfig.accessible) {
         issues.push('Email input accessibility config not properly set');
       }
@@ -378,12 +430,18 @@ class AccessibilityTester {
 
     try {
       // Test error and success message configurations
-      const errorConfig = AccessibilityService.createErrorConfig('Test error message', 'Test field');
+      const errorConfig = AccessibilityService.createErrorConfig(
+        'Test error message',
+        'Test field'
+      );
       if (!errorConfig.accessible) {
         issues.push('Error message accessibility config not properly set');
       }
 
-      const successConfig = AccessibilityService.createSuccessConfig('Test success message', 'Test field');
+      const successConfig = AccessibilityService.createSuccessConfig(
+        'Test success message',
+        'Test field'
+      );
       if (!successConfig.accessible) {
         issues.push('Success message accessibility config not properly set');
       }
@@ -413,12 +471,20 @@ class AccessibilityTester {
 
     try {
       // Test loading state configurations
-      const loadingConfig = AccessibilityService.createLoadingConfig('Test Loading', 50);
+      const loadingConfig = AccessibilityService.createLoadingConfig(
+        'Test Loading',
+        50
+      );
       if (!loadingConfig.accessible) {
         issues.push('Loading state accessibility config not properly set');
       }
 
-      const progressConfig = AccessibilityService.createProgressConfig('Test Progress', 25, 100, 'items');
+      const progressConfig = AccessibilityService.createProgressConfig(
+        'Test Progress',
+        25,
+        100,
+        'items'
+      );
       if (!progressConfig.accessible) {
         issues.push('Progress indicator accessibility config not properly set');
       }
@@ -466,7 +532,12 @@ class AccessibilityTester {
 
       return {
         testName,
-        status: issues.length === 0 ? 'passed' : issues.length <= 1 ? 'warning' : 'failed',
+        status:
+          issues.length === 0
+            ? 'passed'
+            : issues.length <= 1
+              ? 'warning'
+              : 'failed',
         issues,
         details: `Accessibility testing for ${componentName} component`,
       };
@@ -493,28 +564,39 @@ class AccessibilityTester {
       '',
     ];
 
-    const passed = results.filter(r => r.status === 'passed').length;
-    const failed = results.filter(r => r.status === 'failed').length;
-    const warnings = results.filter(r => r.status === 'warning').length;
+    const passed = results.filter((r) => r.status === 'passed').length;
+    const failed = results.filter((r) => r.status === 'failed').length;
+    const warnings = results.filter((r) => r.status === 'warning').length;
     const total = results.length;
 
     report.push(`- **Total Tests**: ${total}`);
-    report.push(`- **Passed**: ${passed} (${Math.round((passed / total) * 100)}%)`);
-    report.push(`- **Failed**: ${failed} (${Math.round((failed / total) * 100)}%)`);
-    report.push(`- **Warnings**: ${warnings} (${Math.round((warnings / total) * 100)}%)`);
+    report.push(
+      `- **Passed**: ${passed} (${Math.round((passed / total) * 100)}%)`
+    );
+    report.push(
+      `- **Failed**: ${failed} (${Math.round((failed / total) * 100)}%)`
+    );
+    report.push(
+      `- **Warnings**: ${warnings} (${Math.round((warnings / total) * 100)}%)`
+    );
     report.push('');
 
     // Add detailed results
     report.push('## Detailed Results');
     report.push('');
 
-    results.forEach(result => {
-      const statusIcon = result.status === 'passed' ? '✅' : result.status === 'warning' ? '⚠️' : '❌';
+    results.forEach((result) => {
+      const statusIcon =
+        result.status === 'passed'
+          ? '✅'
+          : result.status === 'warning'
+            ? '⚠️'
+            : '❌';
       report.push(`### ${statusIcon} ${result.testName}`);
       report.push('');
       report.push(`**Status**: ${result.status.toUpperCase()}`);
       report.push(`**Details**: ${result.details}`);
-      
+
       if (result.issues && result.issues.length > 0) {
         report.push('');
         report.push('**Issues**:');
@@ -522,7 +604,7 @@ class AccessibilityTester {
           report.push(`- ${issue}`);
         });
       }
-      
+
       report.push('');
     });
 

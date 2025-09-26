@@ -1,13 +1,14 @@
 /**
  * Environment Validation System
  * Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
- * 
+ *
  * Comprehensive environment validation with detailed error reporting.
  */
 
 import { z } from 'zod';
-import { secretManager } from './secrets';
+
 import { getBuildConfig, detectBuildEnvironment } from './build';
+import { secretManager } from './secrets';
 
 // Validation result types
 export interface ValidationResult {
@@ -34,9 +35,12 @@ export interface ValidationWarning {
 // Environment validation schemas
 const BaseEnvironmentSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']),
-  PORT: z.string().transform(Number).refine(val => val > 0 && val < 65536, {
-    message: 'Port must be between 1 and 65535',
-  }),
+  PORT: z
+    .string()
+    .transform(Number)
+    .refine((val) => val > 0 && val < 65536, {
+      message: 'Port must be between 1 and 65535',
+    }),
 });
 
 const ApiSchema = z.object({
@@ -47,28 +51,58 @@ const ApiSchema = z.object({
 
 const DatabaseSchema = z.object({
   REACT_APP_DATABASE_URL: z.string().optional(),
-  REACT_APP_DB_ENCRYPTION_KEY: z.string().min(32, 'Database encryption key must be at least 32 characters'),
+  REACT_APP_DB_ENCRYPTION_KEY: z
+    .string()
+    .min(32, 'Database encryption key must be at least 32 characters'),
 });
 
 const SecuritySchema = z.object({
-  REACT_APP_JWT_SECRET: z.string().min(32, 'JWT secret must be at least 32 characters'),
-  REACT_APP_SESSION_KEY: z.string().min(32, 'Session key must be at least 32 characters'),
-  REACT_APP_BIOMETRIC_ENABLED: z.string().transform(val => val === 'true').optional(),
+  REACT_APP_JWT_SECRET: z
+    .string()
+    .min(32, 'JWT secret must be at least 32 characters'),
+  REACT_APP_SESSION_KEY: z
+    .string()
+    .min(32, 'Session key must be at least 32 characters'),
+  REACT_APP_BIOMETRIC_ENABLED: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
   REACT_APP_BIOMETRIC_TIMEOUT: z.string().transform(Number).optional(),
 });
 
 const FeatureFlagsSchema = z.object({
-  REACT_APP_ENABLE_OFFLINE_MODE: z.string().transform(val => val === 'true').optional(),
-  REACT_APP_ENABLE_CLOUD_SYNC: z.string().transform(val => val === 'true').optional(),
-  REACT_APP_ENABLE_ANALYTICS: z.string().transform(val => val === 'true').optional(),
-  REACT_APP_ENABLE_CRASH_REPORTING: z.string().transform(val => val === 'true').optional(),
-  REACT_APP_ENABLE_DEBUG_MODE: z.string().transform(val => val === 'true').optional(),
+  REACT_APP_ENABLE_OFFLINE_MODE: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
+  REACT_APP_ENABLE_CLOUD_SYNC: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
+  REACT_APP_ENABLE_ANALYTICS: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
+  REACT_APP_ENABLE_CRASH_REPORTING: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
+  REACT_APP_ENABLE_DEBUG_MODE: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
 });
 
 const LoggingSchema = z.object({
-  REACT_APP_DEBUG_MODE: z.string().transform(val => val === 'true').optional(),
+  REACT_APP_DEBUG_MODE: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
   REACT_APP_LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).optional(),
-  REACT_APP_ENABLE_LOGGING: z.string().transform(val => val === 'true').optional(),
+  REACT_APP_ENABLE_LOGGING: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
 });
 
 const SecuritySettingsSchema = z.object({
@@ -82,17 +116,41 @@ const SecuritySettingsSchema = z.object({
 
 const PrivacySchema = z.object({
   REACT_APP_DATA_RETENTION_DAYS: z.string().transform(Number).optional(),
-  REACT_APP_ANONYMOUS_ANALYTICS: z.string().transform(val => val === 'true').optional(),
-  REACT_APP_COLLECT_USAGE_DATA: z.string().transform(val => val === 'true').optional(),
-  REACT_APP_COLLECT_CRASH_DATA: z.string().transform(val => val === 'true').optional(),
-  REACT_APP_COLLECT_PERFORMANCE_DATA: z.string().transform(val => val === 'true').optional(),
+  REACT_APP_ANONYMOUS_ANALYTICS: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
+  REACT_APP_COLLECT_USAGE_DATA: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
+  REACT_APP_COLLECT_CRASH_DATA: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
+  REACT_APP_COLLECT_PERFORMANCE_DATA: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
 });
 
 const ComplianceSchema = z.object({
-  REACT_APP_GDPR_COMPLIANCE: z.string().transform(val => val === 'true').optional(),
-  REACT_APP_DATA_PROCESSING_CONSENT_REQUIRED: z.string().transform(val => val === 'true').optional(),
-  REACT_APP_HIPAA_COMPLIANCE: z.string().transform(val => val === 'true').optional(),
-  REACT_APP_PHI_ENCRYPTION_REQUIRED: z.string().transform(val => val === 'true').optional(),
+  REACT_APP_GDPR_COMPLIANCE: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
+  REACT_APP_DATA_PROCESSING_CONSENT_REQUIRED: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
+  REACT_APP_HIPAA_COMPLIANCE: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
+  REACT_APP_PHI_ENCRYPTION_REQUIRED: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
 });
 
 const LegalSchema = z.object({
@@ -120,12 +178,12 @@ export const validateEnvironment = (): ValidationResult => {
   const errors: ValidationError[] = [];
   const warnings: ValidationWarning[] = [];
   const environment = process.env['NODE_ENV'] || 'development';
-  
+
   try {
     // Validate base environment
     const baseResult = BaseEnvironmentSchema.safeParse(process.env);
     if (!baseResult.success) {
-      baseResult.error.issues.forEach(error => {
+      baseResult.error.issues.forEach((error) => {
         errors.push({
           field: error.path.join('.'),
           message: error.message,
@@ -133,11 +191,11 @@ export const validateEnvironment = (): ValidationResult => {
         });
       });
     }
-    
+
     // Validate API configuration
     const apiResult = ApiSchema.safeParse(process.env);
     if (!apiResult.success) {
-      apiResult.error.issues.forEach(error => {
+      apiResult.error.issues.forEach((error) => {
         errors.push({
           field: error.path.join('.'),
           message: error.message,
@@ -146,24 +204,25 @@ export const validateEnvironment = (): ValidationResult => {
         });
       });
     }
-    
+
     // Validate database configuration
     const dbResult = DatabaseSchema.safeParse(process.env);
     if (!dbResult.success) {
-      dbResult.error.issues.forEach(error => {
+      dbResult.error.issues.forEach((error) => {
         errors.push({
           field: error.path.join('.'),
           message: error.message,
           severity: 'error',
-          suggestion: 'Ensure database encryption key is at least 32 characters long',
+          suggestion:
+            'Ensure database encryption key is at least 32 characters long',
         });
       });
     }
-    
+
     // Validate security configuration
     const securityResult = SecuritySchema.safeParse(process.env);
     if (!securityResult.success) {
-      securityResult.error.issues.forEach(error => {
+      securityResult.error.issues.forEach((error) => {
         errors.push({
           field: error.path.join('.'),
           message: error.message,
@@ -172,11 +231,11 @@ export const validateEnvironment = (): ValidationResult => {
         });
       });
     }
-    
+
     // Validate feature flags
     const featuresResult = FeatureFlagsSchema.safeParse(process.env);
     if (!featuresResult.success) {
-      featuresResult.error.issues.forEach(error => {
+      featuresResult.error.issues.forEach((error) => {
         warnings.push({
           field: error.path.join('.'),
           message: error.message,
@@ -184,11 +243,11 @@ export const validateEnvironment = (): ValidationResult => {
         });
       });
     }
-    
+
     // Validate logging configuration
     const loggingResult = LoggingSchema.safeParse(process.env);
     if (!loggingResult.success) {
-      loggingResult.error.issues.forEach(error => {
+      loggingResult.error.issues.forEach((error) => {
         warnings.push({
           field: error.path.join('.'),
           message: error.message,
@@ -196,11 +255,13 @@ export const validateEnvironment = (): ValidationResult => {
         });
       });
     }
-    
+
     // Validate security settings
-    const securitySettingsResult = SecuritySettingsSchema.safeParse(process.env);
+    const securitySettingsResult = SecuritySettingsSchema.safeParse(
+      process.env
+    );
     if (!securitySettingsResult.success) {
-      securitySettingsResult.error.issues.forEach(error => {
+      securitySettingsResult.error.issues.forEach((error) => {
         warnings.push({
           field: error.path.join('.'),
           message: error.message,
@@ -208,11 +269,11 @@ export const validateEnvironment = (): ValidationResult => {
         });
       });
     }
-    
+
     // Validate privacy settings
     const privacyResult = PrivacySchema.safeParse(process.env);
     if (!privacyResult.success) {
-      privacyResult.error.issues.forEach(error => {
+      privacyResult.error.issues.forEach((error) => {
         warnings.push({
           field: error.path.join('.'),
           message: error.message,
@@ -220,11 +281,11 @@ export const validateEnvironment = (): ValidationResult => {
         });
       });
     }
-    
+
     // Validate compliance settings
     const complianceResult = ComplianceSchema.safeParse(process.env);
     if (!complianceResult.success) {
-      complianceResult.error.issues.forEach(error => {
+      complianceResult.error.issues.forEach((error) => {
         warnings.push({
           field: error.path.join('.'),
           message: error.message,
@@ -232,11 +293,11 @@ export const validateEnvironment = (): ValidationResult => {
         });
       });
     }
-    
+
     // Validate legal settings
     const legalResult = LegalSchema.safeParse(process.env);
     if (!legalResult.success) {
-      legalResult.error.issues.forEach(error => {
+      legalResult.error.issues.forEach((error) => {
         warnings.push({
           field: error.path.join('.'),
           message: error.message,
@@ -244,12 +305,11 @@ export const validateEnvironment = (): ValidationResult => {
         });
       });
     }
-    
+
     // Additional validations
     validateSecrets(errors);
     validateBuildConfiguration(errors, warnings);
     validateEnvironmentSpecific(errors, warnings, environment);
-    
   } catch (error) {
     errors.push({
       field: 'validation',
@@ -257,7 +317,7 @@ export const validateEnvironment = (): ValidationResult => {
       severity: 'error',
     });
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors,
@@ -276,7 +336,7 @@ const validateSecrets = (errors: ValidationError[]) => {
     'REACT_APP_SESSION_KEY',
     'REACT_APP_DB_ENCRYPTION_KEY',
   ];
-  
+
   for (const secretName of requiredSecrets) {
     const secretValue = process.env[secretName];
     if (!secretValue) {
@@ -288,7 +348,7 @@ const validateSecrets = (errors: ValidationError[]) => {
       });
       continue;
     }
-    
+
     if (!secretManager.validateSecret(secretValue)) {
       errors.push({
         field: secretName,
@@ -301,10 +361,13 @@ const validateSecrets = (errors: ValidationError[]) => {
 };
 
 // Build configuration validation
-const validateBuildConfiguration = (errors: ValidationError[], warnings: ValidationWarning[]) => {
+const validateBuildConfiguration = (
+  errors: ValidationError[],
+  warnings: ValidationWarning[]
+) => {
   try {
     const buildConfig = getBuildConfig(detectBuildEnvironment());
-    
+
     if (buildConfig.optimization.minify && !buildConfig.optimization.compress) {
       warnings.push({
         field: 'build.optimization',
@@ -312,16 +375,22 @@ const validateBuildConfiguration = (errors: ValidationError[], warnings: Validat
         suggestion: 'Enable compression for better performance',
       });
     }
-    
-    if (buildConfig.security.hsts && !buildConfig.security.contentSecurityPolicy) {
+
+    if (
+      buildConfig.security.hsts &&
+      !buildConfig.security.contentSecurityPolicy
+    ) {
       warnings.push({
         field: 'build.security',
         message: 'HSTS enabled but CSP disabled',
         suggestion: 'Enable CSP for better security',
       });
     }
-    
-    if (buildConfig.monitoring.analytics && !buildConfig.monitoring.errorTracking) {
+
+    if (
+      buildConfig.monitoring.analytics &&
+      !buildConfig.monitoring.errorTracking
+    ) {
       warnings.push({
         field: 'build.monitoring',
         message: 'Analytics enabled but error tracking disabled',
@@ -338,7 +407,11 @@ const validateBuildConfiguration = (errors: ValidationError[], warnings: Validat
 };
 
 // Environment-specific validation
-const validateEnvironmentSpecific = (errors: ValidationError[], warnings: ValidationWarning[], environment: string) => {
+const validateEnvironmentSpecific = (
+  errors: ValidationError[],
+  warnings: ValidationWarning[],
+  environment: string
+) => {
   switch (environment) {
     case 'development':
       // Development-specific validations
@@ -350,7 +423,7 @@ const validateEnvironmentSpecific = (errors: ValidationError[], warnings: Valida
         });
       }
       break;
-      
+
     case 'production':
       // Production-specific validations
       if (process.env['REACT_APP_DEBUG_MODE'] === 'true') {
@@ -361,7 +434,7 @@ const validateEnvironmentSpecific = (errors: ValidationError[], warnings: Valida
           suggestion: 'Set REACT_APP_DEBUG_MODE=false for production',
         });
       }
-      
+
       if (process.env['REACT_APP_ENABLE_ANALYTICS'] !== 'true') {
         warnings.push({
           field: 'REACT_APP_ENABLE_ANALYTICS',
@@ -370,7 +443,7 @@ const validateEnvironmentSpecific = (errors: ValidationError[], warnings: Valida
         });
       }
       break;
-      
+
     case 'test':
       // Test-specific validations
       if (process.env['REACT_APP_ENABLE_ANALYTICS'] === 'true') {
@@ -391,10 +464,10 @@ export const formatValidationResult = (result: ValidationResult): string => {
   output += `Timestamp: ${result.timestamp.toISOString()}\n`;
   output += `Status: ${result.isValid ? '✅ Valid' : '❌ Invalid'}\n`;
   output += `\n`;
-  
+
   if (result.errors.length > 0) {
     output += `❌ Errors (${result.errors.length}):\n`;
-    result.errors.forEach(error => {
+    result.errors.forEach((error) => {
       output += `  - ${error.field}: ${error.message}\n`;
       if (error.suggestion) {
         output += `    💡 Suggestion: ${error.suggestion}\n`;
@@ -402,10 +475,10 @@ export const formatValidationResult = (result: ValidationResult): string => {
     });
     output += `\n`;
   }
-  
+
   if (result.warnings.length > 0) {
     output += `⚠️  Warnings (${result.warnings.length}):\n`;
-    result.warnings.forEach(warning => {
+    result.warnings.forEach((warning) => {
       output += `  - ${warning.field}: ${warning.message}\n`;
       if (warning.suggestion) {
         output += `    💡 Suggestion: ${warning.suggestion}\n`;
@@ -413,11 +486,11 @@ export const formatValidationResult = (result: ValidationResult): string => {
     });
     output += `\n`;
   }
-  
+
   if (result.isValid && result.warnings.length === 0) {
     output += `✅ All validations passed!\n`;
   }
-  
+
   return output;
 };
 

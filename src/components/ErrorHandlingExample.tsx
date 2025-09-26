@@ -6,14 +6,22 @@
  */
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
+
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
+import { Typography } from '../constants/typography';
+import { getFoodService } from '../services/ServiceManager';
+import { retryUtils } from '../utils/retryUtils';
+
 import { ErrorMessage } from './ErrorMessage';
 import { withErrorBoundary, useErrorHandler } from './withErrorBoundary';
-import { retryUtils } from '../utils/retryUtils';
-import { getFoodService } from '../services/ServiceManager';
 
 /**
  * Example component demonstrating comprehensive error handling
@@ -39,7 +47,9 @@ const ErrorHandlingExample: React.FC = () => {
       );
 
       if (!result.success) {
-        setError(new Error((result as any).error.message || 'Unknown error occurred'));
+        setError(
+          new Error((result as any).error.message || 'Unknown error occurred')
+        );
       }
     } catch (err) {
       setError(err as Error);
@@ -53,7 +63,10 @@ const ErrorHandlingExample: React.FC = () => {
       // Simulate validation error
       throw new Error('Invalid input: Email format is incorrect');
     } catch (err) {
-      const errorResult = handleError(err as Error, 'ErrorHandlingExample.simulateValidationError');
+      const errorResult = handleError(
+        err as Error,
+        'ErrorHandlingExample.simulateValidationError'
+      );
       setError(new Error(errorResult.error.message));
     }
   };
@@ -71,7 +84,9 @@ const ErrorHandlingExample: React.FC = () => {
       }, 'ErrorHandlingExample.simulateServiceError');
 
       if (!result.success && result.error) {
-        setError(new Error(result.error.error?.message || 'Unknown error occurred'));
+        setError(
+          new Error(result.error.error?.message || 'Unknown error occurred')
+        );
       }
     } catch (err) {
       setError(err as Error);
@@ -99,11 +114,11 @@ const ErrorHandlingExample: React.FC = () => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Error Scenarios</Text>
-          
+
           <TouchableOpacity
+            disabled={isLoading}
             style={[styles.button, styles.networkButton]}
             onPress={simulateNetworkError}
-            disabled={isLoading}
           >
             <Text style={styles.buttonText}>
               {isLoading ? 'Testing...' : 'Simulate Network Error (with Retry)'}
@@ -118,9 +133,9 @@ const ErrorHandlingExample: React.FC = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
+            disabled={isLoading}
             style={[styles.button, styles.serviceButton]}
             onPress={simulateServiceError}
-            disabled={isLoading}
           >
             <Text style={styles.buttonText}>
               {isLoading ? 'Testing...' : 'Simulate Service Error'}
@@ -131,7 +146,9 @@ const ErrorHandlingExample: React.FC = () => {
             style={[styles.button, styles.criticalButton]}
             onPress={simulateCriticalError}
           >
-            <Text style={styles.buttonText}>Simulate Critical Error (Error Boundary)</Text>
+            <Text style={styles.buttonText}>
+              Simulate Critical Error (Error Boundary)
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -139,11 +156,11 @@ const ErrorHandlingExample: React.FC = () => {
           <View style={styles.errorSection}>
             <Text style={styles.sectionTitle}>Error Display</Text>
             <ErrorMessage
-              error={error}
-              onRetry={clearError}
-              onDismiss={clearError}
-              showDetails={true}
+              showDetails
               context="ErrorHandlingExample"
+              error={error}
+              onDismiss={clearError}
+              onRetry={clearError}
             />
           </View>
         )}
@@ -153,12 +170,24 @@ const ErrorHandlingExample: React.FC = () => {
           <View style={styles.featureList}>
             <Text style={styles.featureItem}>• Centralized error handling</Text>
             <Text style={styles.featureItem}>• Automatic retry mechanisms</Text>
-            <Text style={styles.featureItem}>• User-friendly error messages</Text>
-            <Text style={styles.featureItem}>• Error categorization and severity</Text>
-            <Text style={styles.featureItem}>• Error reporting and logging</Text>
-            <Text style={styles.featureItem}>• Error boundaries for React components</Text>
-            <Text style={styles.featureItem}>• Retry with exponential backoff</Text>
-            <Text style={styles.featureItem}>• Context-aware error handling</Text>
+            <Text style={styles.featureItem}>
+              • User-friendly error messages
+            </Text>
+            <Text style={styles.featureItem}>
+              • Error categorization and severity
+            </Text>
+            <Text style={styles.featureItem}>
+              • Error reporting and logging
+            </Text>
+            <Text style={styles.featureItem}>
+              • Error boundaries for React components
+            </Text>
+            <Text style={styles.featureItem}>
+              • Retry with exponential backoff
+            </Text>
+            <Text style={styles.featureItem}>
+              • Context-aware error handling
+            </Text>
           </View>
         </View>
       </View>
@@ -167,79 +196,82 @@ const ErrorHandlingExample: React.FC = () => {
 };
 
 // Wrap the component with error boundary
-const ErrorHandlingExampleWithBoundary = withErrorBoundary(ErrorHandlingExample, {
-  context: 'ErrorHandlingExample',
-  showDetails: true,
-  enableReporting: true,
-});
+const ErrorHandlingExampleWithBoundary = withErrorBoundary(
+  ErrorHandlingExample,
+  {
+    context: 'ErrorHandlingExample',
+    showDetails: true,
+    enableReporting: true,
+  }
+);
 
 const styles = StyleSheet.create({
+  button: {
+    alignItems: 'center',
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.sm,
+    padding: Spacing.md,
+  },
+  buttonText: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.button,
+  },
   container: {
-    flex: 1,
     backgroundColor: Colors.light.background,
+    flex: 1,
   },
   content: {
     padding: Spacing.lg,
   },
-  title: {
-    fontSize: Typography.fontSize.h1,
-    fontFamily: Typography.fontFamily.bold,
-    color: Colors.light.text,
-    textAlign: 'center',
-    marginBottom: Spacing.sm,
-  },
-  subtitle: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.light.textSecondary,
-    textAlign: 'center',
-    marginBottom: Spacing.xl,
-  },
-  section: {
-    marginBottom: Spacing.xl,
-  },
-  sectionTitle: {
-    fontSize: Typography.fontSize.h3,
-    fontFamily: Typography.fontFamily.semiBold,
-    color: Colors.light.text,
-    marginBottom: Spacing.md,
-  },
-  button: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    marginBottom: Spacing.sm,
-    alignItems: 'center',
-  },
-  networkButton: {
-    backgroundColor: Colors.primary,
-  },
-  validationButton: {
-    backgroundColor: Colors.caution,
-  },
-  serviceButton: {
-    backgroundColor: Colors.avoid,
-  },
   criticalButton: {
     backgroundColor: '#dc2626',
   },
-  buttonText: {
-    fontSize: Typography.fontSize.button,
-    fontFamily: Typography.fontFamily.medium,
-    color: Colors.white,
-  },
   errorSection: {
     marginBottom: Spacing.xl,
+  },
+  featureItem: {
+    color: Colors.light.text,
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
+    marginBottom: Spacing.sm,
   },
   featureList: {
     backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
   },
-  featureItem: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.regular,
+  networkButton: {
+    backgroundColor: Colors.primary,
+  },
+  section: {
+    marginBottom: Spacing.xl,
+  },
+  sectionTitle: {
     color: Colors.light.text,
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.h3,
+    marginBottom: Spacing.md,
+  },
+  serviceButton: {
+    backgroundColor: Colors.avoid,
+  },
+  subtitle: {
+    color: Colors.light.textSecondary,
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
+    marginBottom: Spacing.xl,
+    textAlign: 'center',
+  },
+  title: {
+    color: Colors.light.text,
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h1,
     marginBottom: Spacing.sm,
+    textAlign: 'center',
+  },
+  validationButton: {
+    backgroundColor: Colors.caution,
   },
 });
 

@@ -6,9 +6,11 @@
  */
 
 import { EventEmitter } from 'events';
+
 import { Platform } from 'react-native';
+
+import type { SafeFood } from '../types';
 import { logger } from '../utils/logger';
-import { SafeFood } from '../types';
 import { retryUtils } from '../utils/retryUtils';
 
 // Notification types
@@ -40,19 +42,17 @@ export interface ScheduledNotification {
 class NetworkService extends EventEmitter {
   private static instance: NetworkService;
   private isConnected: boolean = true;
-  private isOnlineStatus: boolean = true;
-  private connectionType: string = 'unknown';
+  private readonly connectionType: string = 'unknown';
   private lastOnlineTime: number = Date.now();
   private lastOfflineTime: number = 0;
   private reconnectAttempts: number = 0;
-  private maxReconnectAttempts: number = 5;
-  private reconnectDelay: number = 1000; // 1 second
   private statusCheckInterval: NodeJS.Timeout | null = null;
   private simulationInterval: NodeJS.Timeout | null = null;
-  
+
   // Notification properties
   private notificationPermission: boolean = false;
-  private scheduledNotifications: Map<string, ScheduledNotification> = new Map();
+  private readonly scheduledNotifications: Map<string, ScheduledNotification> =
+    new Map();
   private notificationSettings: NotificationSettings = {
     mealReminders: true,
     newSafeFoods: true,
@@ -63,13 +63,6 @@ class NetworkService extends EventEmitter {
       start: '22:00',
       end: '08:00',
     },
-  };
-  
-  // Storage keys
-  private readonly KEYS = {
-    NOTIFICATION_SETTINGS: 'gut_safe_notification_settings',
-    SCHEDULED_NOTIFICATIONS: 'gut_safe_scheduled_notifications',
-    NOTIFICATION_HISTORY: 'gut_safe_notification_history',
   };
 
   private constructor() {
@@ -87,11 +80,14 @@ class NetworkService extends EventEmitter {
   public async initialize(): Promise<void> {
     this.setupListeners();
     this.checkInitialStatus();
-    this.statusCheckInterval = setInterval(() => this.getNetworkStatus(), 30000); // Check every 30 seconds
-    
+    this.statusCheckInterval = setInterval(
+      () => this.getNetworkStatus(),
+      30000
+    ); // Check every 30 seconds
+
     // Initialize notifications
     await this.initializeNotifications();
-    
+
     logger.info('NetworkService initialized', 'NetworkService');
   }
 
@@ -100,17 +96,17 @@ class NetworkService extends EventEmitter {
       clearInterval(this.statusCheckInterval);
       this.statusCheckInterval = null;
     }
-    
+
     if (this.simulationInterval) {
       clearInterval(this.simulationInterval);
       this.simulationInterval = null;
     }
-    
+
     if (Platform.OS === 'web') {
       window.removeEventListener('online', this.handleOnline.bind(this));
       window.removeEventListener('offline', this.handleOffline.bind(this));
     }
-    
+
     logger.info('NetworkService cleaned up', 'NetworkService');
   }
 
@@ -124,7 +120,6 @@ class NetworkService extends EventEmitter {
 
   private checkInitialStatus(): void {
     if (Platform.OS === 'web') {
-      this.isOnlineStatus = navigator.onLine;
       this.isConnected = navigator.onLine; // Set isConnected for web
       if (navigator.onLine) {
         this.handleOnline();
@@ -146,7 +141,7 @@ class NetworkService extends EventEmitter {
     if (typeof window !== 'undefined') {
       // Web implementation
       this.isConnected = navigator.onLine;
-      
+
       window.addEventListener('online', this.handleOnline.bind(this));
       window.addEventListener('offline', this.handleOffline.bind(this));
     } else {
@@ -163,12 +158,12 @@ class NetworkService extends EventEmitter {
     this.isConnected = true;
     this.lastOnlineTime = Date.now();
     this.reconnectAttempts = 0;
-    
+
     this.emit('online', {
       connectionType: this.connectionType,
       timestamp: this.lastOnlineTime,
     });
-    
+
     logger.info('Network connected', 'NetworkService');
   }
 
@@ -178,12 +173,12 @@ class NetworkService extends EventEmitter {
   private handleOffline(): void {
     this.isConnected = false;
     this.lastOfflineTime = Date.now();
-    
+
     this.emit('offline', {
       connectionType: this.connectionType,
       timestamp: this.lastOfflineTime,
     });
-    
+
     logger.warn('Network disconnected', 'NetworkService');
   }
 
@@ -194,14 +189,17 @@ class NetworkService extends EventEmitter {
     // Simulate network changes every 30 seconds for testing
     this.simulationInterval = setInterval(() => {
       const shouldGoOffline = Math.random() < 0.1; // 10% chance to go offline
-      
+
       if (shouldGoOffline && this.isConnected) {
         this.handleOffline();
-        
+
         // Simulate reconnection after 5-15 seconds
-        setTimeout(() => {
-          this.handleOnline();
-        }, Math.random() * 10000 + 5000);
+        setTimeout(
+          () => {
+            this.handleOnline();
+          },
+          Math.random() * 10000 + 5000
+        );
       }
     }, 30000);
   }
@@ -248,45 +246,49 @@ class NetworkService extends EventEmitter {
     timestamp: number;
   }> {
     const startTime = Date.now();
-    
-    const result = await retryUtils.retryApiCall(async () => {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
-      try {
-        const response = await fetch('https://httpbin.org/get', {
-          method: 'GET',
-          signal: controller.signal,
-        });
-        
-        clearTimeout(timeoutId);
-        
-        const latency = Date.now() - startTime;
-        const isConnected = response.ok;
-        
-        if (isConnected) {
-          this.handleOnline();
-        } else {
+
+    const result = await retryUtils.retryApiCall(
+      async () => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        try {
+          const response = await fetch('https://httpbin.org/get', {
+            method: 'GET',
+            signal: controller.signal,
+          });
+
+          clearTimeout(timeoutId);
+
+          const latency = Date.now() - startTime;
+          const isConnected = response.ok;
+
+          if (isConnected) {
+            this.handleOnline();
+          } else {
+            this.handleOffline();
+          }
+
+          return {
+            isConnected,
+            latency,
+            timestamp: Date.now(),
+          };
+        } catch (error) {
+          clearTimeout(timeoutId);
           this.handleOffline();
+          throw error;
         }
-        
-        return {
-          isConnected,
-          latency,
-          timestamp: Date.now(),
-        };
-      } catch (error) {
-        clearTimeout(timeoutId);
-        this.handleOffline();
-        throw error;
-      }
-    }, {
-      maxAttempts: 2,
-      baseDelay: 1000,
-      maxDelay: 3000,
-      backoffMultiplier: 2,
-      retryableErrors: ['NETWORK_ERROR', 'TIMEOUT_ERROR'],
-    }, 'NetworkService.testConnectivity');
+      },
+      {
+        maxAttempts: 2,
+        baseDelay: 1000,
+        maxDelay: 3000,
+        backoffMultiplier: 2,
+        retryableErrors: ['NETWORK_ERROR', 'TIMEOUT_ERROR'],
+      },
+      'NetworkService.testConnectivity'
+    );
 
     if (result.success) {
       return result.data;
@@ -333,7 +335,7 @@ class NetworkService extends EventEmitter {
     maxRetries: number = 3
   ): Promise<T> {
     let attempts = 0;
-    
+
     while (attempts < maxRetries) {
       try {
         if (this.isConnected) {
@@ -347,13 +349,13 @@ class NetworkService extends EventEmitter {
         if (attempts >= maxRetries) {
           throw error;
         }
-        
+
         // Wait before retrying
         const delay = 1000 * attempts;
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
-    
+
     throw new Error('Max retries exceeded');
   }
 
@@ -367,10 +369,10 @@ class NetworkService extends EventEmitter {
     timestamp: number;
   }> {
     const testResult = await this.testConnectivity();
-    
+
     // Calculate quality score based on latency and reliability
     let score = 100;
-    
+
     // Penalize high latency
     if (testResult.latency > 1000) {
       score -= 30;
@@ -379,16 +381,16 @@ class NetworkService extends EventEmitter {
     } else if (testResult.latency > 200) {
       score -= 5;
     }
-    
+
     // Penalize connection failures
     if (!testResult.isConnected) {
       score = 0;
     }
-    
+
     // Calculate reliability based on recent connection history
     const uptime = this.isConnected ? Date.now() - this.lastOnlineTime : 0;
     const reliability = Math.min(100, (uptime / (60 * 1000)) * 10); // 10 points per minute uptime
-    
+
     return {
       score: Math.max(0, Math.min(100, score)),
       latency: testResult.latency,
@@ -404,9 +406,9 @@ class NetworkService extends EventEmitter {
     if (!this.isConnected) {
       return false;
     }
-    
+
     const quality = await this.getNetworkQuality();
-    
+
     // Require at least 50% quality score for sync operations
     return quality.score >= 50;
   }
@@ -421,19 +423,19 @@ class NetworkService extends EventEmitter {
     averageUptime: number;
   } {
     const now = Date.now();
-    const totalUptime = this.isConnected 
-      ? now - this.lastOnlineTime 
+    const totalUptime = this.isConnected
+      ? now - this.lastOnlineTime
       : this.lastOnlineTime - this.lastOfflineTime;
-    
-    const totalDowntime = this.isConnected 
-      ? this.lastOfflineTime - this.lastOnlineTime 
+
+    const totalDowntime = this.isConnected
+      ? this.lastOfflineTime - this.lastOnlineTime
       : now - this.lastOfflineTime;
-    
+
     return {
       totalUptime,
       totalDowntime,
       connectionCount: this.reconnectAttempts,
-      averageUptime: totalUptime / (totalUptime + totalDowntime) * 100,
+      averageUptime: (totalUptime / (totalUptime + totalDowntime)) * 100,
     };
   }
 
@@ -458,10 +460,14 @@ class NetworkService extends EventEmitter {
       await this.loadNotificationSettings();
       await this.loadScheduledNotifications();
       await this.requestNotificationPermission();
-      
+
       logger.info('Notifications initialized', 'NetworkService');
     } catch (error) {
-      logger.error('Failed to initialize notifications', 'NetworkService', error);
+      logger.error(
+        'Failed to initialize notifications',
+        'NetworkService',
+        error
+      );
     }
   }
 
@@ -480,14 +486,18 @@ class NetworkService extends EventEmitter {
         // or react-native-push-notification
         this.notificationPermission = true; // Mock for now
       }
-      
-      logger.info('Notification permission requested', 'NetworkService', { 
-        granted: this.notificationPermission 
+
+      logger.info('Notification permission requested', 'NetworkService', {
+        granted: this.notificationPermission,
       });
-      
+
       return this.notificationPermission;
     } catch (error) {
-      logger.error('Failed to request notification permission', 'NetworkService', error);
+      logger.error(
+        'Failed to request notification permission',
+        'NetworkService',
+        error
+      );
       return false;
     }
   }
@@ -495,7 +505,11 @@ class NetworkService extends EventEmitter {
   /**
    * Send local notification
    */
-  async sendNotification(title: string, body: string, data?: any): Promise<void> {
+  async sendNotification(
+    title: string,
+    body: string,
+    data?: any
+  ): Promise<void> {
     try {
       if (!this.notificationPermission) {
         logger.warn('Notification permission not granted', 'NetworkService');
@@ -509,7 +523,7 @@ class NetworkService extends EventEmitter {
             icon: '/favicon.ico',
             data,
           });
-          
+
           // Auto-close after 5 seconds
           setTimeout(() => notification.close(), 5000);
         }
@@ -518,17 +532,22 @@ class NetworkService extends EventEmitter {
         // This would be implemented with react-native-push-notification
         console.log('Notification:', { title, body, data });
       }
-      
+
       logger.info('Notification sent', 'NetworkService', { title });
     } catch (error) {
-      logger.error('Failed to send notification', 'NetworkService', { title, error });
+      logger.error('Failed to send notification', 'NetworkService', {
+        title,
+        error,
+      });
     }
   }
 
   /**
    * Schedule notification
    */
-  async scheduleNotification(notification: Omit<ScheduledNotification, 'id'>): Promise<string> {
+  async scheduleNotification(
+    notification: Omit<ScheduledNotification, 'id'>
+  ): Promise<string> {
     try {
       const id = this.generateNotificationId();
       const scheduledNotification: ScheduledNotification = {
@@ -543,16 +562,26 @@ class NetworkService extends EventEmitter {
       const delay = notification.scheduledFor.getTime() - Date.now();
       if (delay > 0) {
         setTimeout(() => {
-          this.sendNotification(notification.title, notification.body, notification.data);
+          this.sendNotification(
+            notification.title,
+            notification.body,
+            notification.data
+          );
           this.scheduledNotifications.delete(id);
           this.saveScheduledNotifications();
         }, delay);
       }
 
-      logger.info('Notification scheduled', 'NetworkService', { id, scheduledFor: notification.scheduledFor });
+      logger.info('Notification scheduled', 'NetworkService', {
+        id,
+        scheduledFor: notification.scheduledFor,
+      });
       return id;
     } catch (error) {
-      logger.error('Failed to schedule notification', 'NetworkService', { notification, error });
+      logger.error('Failed to schedule notification', 'NetworkService', {
+        notification,
+        error,
+      });
       throw error;
     }
   }
@@ -564,10 +593,13 @@ class NetworkService extends EventEmitter {
     try {
       this.scheduledNotifications.delete(id);
       await this.saveScheduledNotifications();
-      
+
       logger.info('Notification cancelled', 'NetworkService', { id });
     } catch (error) {
-      logger.error('Failed to cancel notification', 'NetworkService', { id, error });
+      logger.error('Failed to cancel notification', 'NetworkService', {
+        id,
+        error,
+      });
       throw error;
     }
   }
@@ -576,11 +608,13 @@ class NetworkService extends EventEmitter {
    * Send meal reminder notification
    */
   async sendMealReminder(): Promise<void> {
-    if (!this.notificationSettings.mealReminders) return;
+    if (!this.notificationSettings.mealReminders) {
+      return;
+    }
 
     await this.sendNotification(
       'Meal Time! 🍽️',
-      'Don\'t forget to log your meal and check for gut-friendly options.',
+      "Don't forget to log your meal and check for gut-friendly options.",
       { type: 'meal_reminder' }
     );
   }
@@ -589,11 +623,13 @@ class NetworkService extends EventEmitter {
    * Send new safe food notification
    */
   async sendNewSafeFoodNotification(safeFood: SafeFood): Promise<void> {
-    if (!this.notificationSettings.newSafeFoods) return;
+    if (!this.notificationSettings.newSafeFoods) {
+      return;
+    }
 
     await this.sendNotification(
       'New Safe Food! ✅',
-      `${safeFood.foodName || 'Unknown food'} has been added to your safe foods list.`,
+      `${safeFood.foodItem.name || 'Unknown food'} has been added to your safe foods list.`,
       { type: 'safe_food_alert', foodId: safeFood.id }
     );
   }
@@ -602,7 +638,9 @@ class NetworkService extends EventEmitter {
    * Send scan reminder notification
    */
   async sendScanReminder(): Promise<void> {
-    if (!this.notificationSettings.scanReminders) return;
+    if (!this.notificationSettings.scanReminders) {
+      return;
+    }
 
     await this.sendNotification(
       'Scan Reminder 📱',
@@ -615,7 +653,9 @@ class NetworkService extends EventEmitter {
    * Send weekly report notification
    */
   async sendWeeklyReport(): Promise<void> {
-    if (!this.notificationSettings.weeklyReports) return;
+    if (!this.notificationSettings.weeklyReports) {
+      return;
+    }
 
     await this.sendNotification(
       'Weekly Report 📊',
@@ -627,18 +667,25 @@ class NetworkService extends EventEmitter {
   /**
    * Update notification settings
    */
-  async updateNotificationSettings(settings: Partial<NotificationSettings>): Promise<void> {
+  async updateNotificationSettings(
+    settings: Partial<NotificationSettings>
+  ): Promise<void> {
     try {
       this.notificationSettings = {
         ...this.notificationSettings,
         ...settings,
       };
-      
+
       await this.saveNotificationSettings();
-      
-      logger.info('Notification settings updated', 'NetworkService', { settings });
+
+      logger.info('Notification settings updated', 'NetworkService', {
+        settings,
+      });
     } catch (error) {
-      logger.error('Failed to update notification settings', 'NetworkService', { settings, error });
+      logger.error('Failed to update notification settings', 'NetworkService', {
+        settings,
+        error,
+      });
       throw error;
     }
   }
@@ -651,34 +698,6 @@ class NetworkService extends EventEmitter {
   }
 
   /**
-   * Check if in quiet hours
-   */
-  private isInQuietHours(): boolean {
-    if (!this.notificationSettings.quietHours.enabled) return false;
-
-    const now = new Date();
-    const currentTime = now.getHours() * 60 + now.getMinutes();
-    
-    const startParts = this.notificationSettings.quietHours.start.split(':').map(Number);
-    const endParts = this.notificationSettings.quietHours.end.split(':').map(Number);
-    
-    const startHour = startParts[0] || 0;
-    const startMin = startParts[1] || 0;
-    const endHour = endParts[0] || 0;
-    const endMin = endParts[1] || 0;
-    
-    const startTime = startHour * 60 + startMin;
-    const endTime = endHour * 60 + endMin;
-
-    if (startTime < endTime) {
-      return currentTime >= startTime && currentTime <= endTime;
-    } else {
-      // Quiet hours span midnight
-      return currentTime >= startTime || currentTime <= endTime;
-    }
-  }
-
-  /**
    * Load notification settings from storage
    */
   private async loadNotificationSettings(): Promise<void> {
@@ -687,7 +706,11 @@ class NetworkService extends EventEmitter {
       // For now, use default settings
       logger.info('Notification settings loaded', 'NetworkService');
     } catch (error) {
-      logger.error('Failed to load notification settings', 'NetworkService', error);
+      logger.error(
+        'Failed to load notification settings',
+        'NetworkService',
+        error
+      );
     }
   }
 
@@ -699,7 +722,11 @@ class NetworkService extends EventEmitter {
       // This would save to actual storage in a real implementation
       logger.info('Notification settings saved', 'NetworkService');
     } catch (error) {
-      logger.error('Failed to save notification settings', 'NetworkService', error);
+      logger.error(
+        'Failed to save notification settings',
+        'NetworkService',
+        error
+      );
     }
   }
 
@@ -712,7 +739,11 @@ class NetworkService extends EventEmitter {
       this.scheduledNotifications.clear();
       logger.info('Scheduled notifications loaded', 'NetworkService');
     } catch (error) {
-      logger.error('Failed to load scheduled notifications', 'NetworkService', error);
+      logger.error(
+        'Failed to load scheduled notifications',
+        'NetworkService',
+        error
+      );
     }
   }
 
@@ -724,7 +755,11 @@ class NetworkService extends EventEmitter {
       // This would save to actual storage in a real implementation
       logger.info('Scheduled notifications saved', 'NetworkService');
     } catch (error) {
-      logger.error('Failed to save scheduled notifications', 'NetworkService', error);
+      logger.error(
+        'Failed to save scheduled notifications',
+        'NetworkService',
+        error
+      );
     }
   }
 

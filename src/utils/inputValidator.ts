@@ -10,7 +10,17 @@ import { securityUtils } from './securityUtils';
 
 // Validation rule interface
 export interface ValidationRule {
-  type: 'string' | 'number' | 'boolean' | 'email' | 'uuid' | 'url' | 'date' | 'array' | 'object' | 'custom';
+  type:
+    | 'string'
+    | 'number'
+    | 'boolean'
+    | 'email'
+    | 'uuid'
+    | 'url'
+    | 'date'
+    | 'array'
+    | 'object'
+    | 'custom';
   required?: boolean;
   minLength?: number;
   maxLength?: number;
@@ -36,8 +46,11 @@ export interface ValidationResult {
 // Input validator class
 export class InputValidator {
   private static instance: InputValidator;
-  private rules: Map<string, ValidationRule[]> = new Map();
-  private customValidators: Map<string, (value: any) => { isValid: boolean; error?: string }> = new Map();
+  private readonly rules: Map<string, ValidationRule[]> = new Map();
+  private readonly customValidators: Map<
+    string,
+    (value: any) => { isValid: boolean; error?: string }
+  > = new Map();
 
   private constructor() {
     this.initializeDefaultRules();
@@ -55,9 +68,30 @@ export class InputValidator {
     // User registration rules
     this.rules.set('userRegistration', [
       { type: 'email', required: true, sanitize: true, trim: true },
-      { type: 'string', required: true, minLength: 8, maxLength: 100, sanitize: true, trim: true },
-      { type: 'string', required: true, minLength: 1, maxLength: 100, sanitize: true, trim: true },
-      { type: 'string', required: true, minLength: 1, maxLength: 100, sanitize: true, trim: true },
+      {
+        type: 'string',
+        required: true,
+        minLength: 8,
+        maxLength: 100,
+        sanitize: true,
+        trim: true,
+      },
+      {
+        type: 'string',
+        required: true,
+        minLength: 1,
+        maxLength: 100,
+        sanitize: true,
+        trim: true,
+      },
+      {
+        type: 'string',
+        required: true,
+        minLength: 1,
+        maxLength: 100,
+        sanitize: true,
+        trim: true,
+      },
     ]);
 
     // User login rules
@@ -80,16 +114,46 @@ export class InputValidator {
 
     // Food item rules
     this.rules.set('foodItem', [
-      { type: 'string', required: true, minLength: 1, maxLength: 255, sanitize: true, trim: true },
-      { type: 'string', required: false, minLength: 8, maxLength: 50, sanitize: true, trim: true },
-      { type: 'string', required: false, maxLength: 100, sanitize: true, trim: true },
-      { type: 'string', required: false, maxLength: 100, sanitize: true, trim: true },
+      {
+        type: 'string',
+        required: true,
+        minLength: 1,
+        maxLength: 255,
+        sanitize: true,
+        trim: true,
+      },
+      {
+        type: 'string',
+        required: false,
+        minLength: 8,
+        maxLength: 50,
+        sanitize: true,
+        trim: true,
+      },
+      {
+        type: 'string',
+        required: false,
+        maxLength: 100,
+        sanitize: true,
+        trim: true,
+      },
+      {
+        type: 'string',
+        required: false,
+        maxLength: 100,
+        sanitize: true,
+        trim: true,
+      },
       { type: 'array', required: true },
       { type: 'array', required: true },
       { type: 'array', required: true },
       { type: 'object', required: false },
       { type: 'object', required: true },
-      { type: 'string', required: true, enum: ['openfoodfacts', 'usda', 'spoonacular', 'manual', 'user'] },
+      {
+        type: 'string',
+        required: true,
+        enum: ['openfoodfacts', 'usda', 'spoonacular', 'manual', 'user'],
+      },
     ]);
 
     // Scan analysis rules
@@ -100,18 +164,56 @@ export class InputValidator {
       { type: 'array', required: true },
       { type: 'array', required: true },
       { type: 'array', required: true },
-      { type: 'string', required: true, minLength: 1, sanitize: true, trim: true },
+      {
+        type: 'string',
+        required: true,
+        minLength: 1,
+        sanitize: true,
+        trim: true,
+      },
       { type: 'string', required: true, enum: ['ai', 'manual', 'user', 'api'] },
     ]);
 
     // Gut symptom rules
     this.rules.set('gutSymptom', [
-      { type: 'string', required: true, enum: ['bloating', 'cramping', 'diarrhea', 'constipation', 'gas', 'nausea', 'reflux', 'fatigue', 'headache', 'skin_irritation', 'other'] },
+      {
+        type: 'string',
+        required: true,
+        enum: [
+          'bloating',
+          'cramping',
+          'diarrhea',
+          'constipation',
+          'gas',
+          'nausea',
+          'reflux',
+          'fatigue',
+          'headache',
+          'skin_irritation',
+          'other',
+        ],
+      },
       { type: 'number', required: true, min: 1, max: 10 },
-      { type: 'string', required: false, maxLength: 1000, sanitize: true, trim: true },
+      {
+        type: 'string',
+        required: false,
+        maxLength: 1000,
+        sanitize: true,
+        trim: true,
+      },
       { type: 'number', required: true, min: 1 },
       { type: 'array', required: true },
-      { type: 'string', required: false, enum: ['upper_abdomen', 'lower_abdomen', 'full_abdomen', 'chest', 'general'] },
+      {
+        type: 'string',
+        required: false,
+        enum: [
+          'upper_abdomen',
+          'lower_abdomen',
+          'full_abdomen',
+          'chest',
+          'general',
+        ],
+      },
       { type: 'array', required: false },
       { type: 'object', required: false },
       { type: 'number', required: false, min: 1, max: 10 },
@@ -120,16 +222,63 @@ export class InputValidator {
 
     // Medication rules
     this.rules.set('medication', [
-      { type: 'string', required: true, minLength: 1, maxLength: 255, sanitize: true, trim: true },
-      { type: 'string', required: true, enum: ['medication', 'supplement', 'probiotic', 'enzyme', 'antacid', 'other'] },
-      { type: 'string', required: true, minLength: 1, maxLength: 100, sanitize: true, trim: true },
-      { type: 'string', required: true, enum: ['daily', 'twice_daily', 'as_needed', 'weekly', 'monthly'] },
+      {
+        type: 'string',
+        required: true,
+        minLength: 1,
+        maxLength: 255,
+        sanitize: true,
+        trim: true,
+      },
+      {
+        type: 'string',
+        required: true,
+        enum: [
+          'medication',
+          'supplement',
+          'probiotic',
+          'enzyme',
+          'antacid',
+          'other',
+        ],
+      },
+      {
+        type: 'string',
+        required: true,
+        minLength: 1,
+        maxLength: 100,
+        sanitize: true,
+        trim: true,
+      },
+      {
+        type: 'string',
+        required: true,
+        enum: ['daily', 'twice_daily', 'as_needed', 'weekly', 'monthly'],
+      },
       { type: 'date', required: true },
       { type: 'date', required: false },
       { type: 'boolean', required: true },
-      { type: 'string', required: false, maxLength: 1000, sanitize: true, trim: true },
+      {
+        type: 'string',
+        required: false,
+        maxLength: 1000,
+        sanitize: true,
+        trim: true,
+      },
       { type: 'boolean', required: true },
-      { type: 'string', required: false, enum: ['digestive_aid', 'anti_inflammatory', 'probiotic', 'enzyme_support', 'acid_control', 'immune_support', 'other'] },
+      {
+        type: 'string',
+        required: false,
+        enum: [
+          'digestive_aid',
+          'anti_inflammatory',
+          'probiotic',
+          'enzyme_support',
+          'acid_control',
+          'immune_support',
+          'other',
+        ],
+      },
       { type: 'array', required: false },
       { type: 'number', required: false, min: 1, max: 10 },
     ]);
@@ -137,7 +286,13 @@ export class InputValidator {
     // Safe food rules
     this.rules.set('safeFood', [
       { type: 'uuid', required: true },
-      { type: 'string', required: false, maxLength: 1000, sanitize: true, trim: true },
+      {
+        type: 'string',
+        required: false,
+        maxLength: 1000,
+        sanitize: true,
+        trim: true,
+      },
       { type: 'boolean', required: false },
       { type: 'array', required: false },
       { type: 'number', required: false, min: 1, max: 5 },
@@ -173,21 +328,25 @@ export class InputValidator {
 
     // Barcode validator
     this.customValidators.set('barcode', (value: string) => {
-      if (!value) return { isValid: true };
-      
+      if (!value) {
+        return { isValid: true };
+      }
+
       const barcodeRegex = /^[0-9]{8,14}$/;
       const isValid = barcodeRegex.test(value);
-      
+
       return {
         isValid,
-        error: isValid ? undefined : 'Invalid barcode format',
+        error: isValid ? '' : 'Invalid barcode format',
       };
     });
 
     // URL validator
     this.customValidators.set('url', (value: string) => {
-      if (!value) return { isValid: true };
-      
+      if (!value) {
+        return { isValid: true };
+      }
+
       try {
         new URL(value);
         return { isValid: true };
@@ -201,21 +360,23 @@ export class InputValidator {
 
     // Date validator
     this.customValidators.set('date', (value: any) => {
-      if (!value) return { isValid: true };
-      
+      if (!value) {
+        return { isValid: true };
+      }
+
       const date = new Date(value);
       const isValid = !isNaN(date.getTime());
-      
+
       return {
         isValid,
-        error: isValid ? undefined : 'Invalid date format',
+        error: isValid ? '' : 'Invalid date format',
       };
     });
 
     // Array validator
     this.customValidators.set('array', (value: any) => {
       const isValid = Array.isArray(value);
-      
+
       return {
         isValid,
         error: isValid ? undefined : 'Value must be an array',
@@ -224,8 +385,9 @@ export class InputValidator {
 
     // Object validator
     this.customValidators.set('object', (value: any) => {
-      const isValid = typeof value === 'object' && value !== null && !Array.isArray(value);
-      
+      const isValid =
+        typeof value === 'object' && value !== null && !Array.isArray(value);
+
       return {
         isValid,
         error: isValid ? undefined : 'Value must be an object',
@@ -234,9 +396,13 @@ export class InputValidator {
   }
 
   // Validate data against rules
-  validate(data: any, ruleSet: string, fieldNames?: string[]): ValidationResult {
+  validate(
+    data: any,
+    ruleSet: string,
+    fieldNames?: string[]
+  ): ValidationResult {
     const rules = this.rules.get(ruleSet);
-    
+
     if (!rules) {
       return {
         isValid: false,
@@ -265,7 +431,7 @@ export class InputValidator {
       }
 
       const fieldResult = this.validateField(value, rule, fieldName);
-      
+
       if (!fieldResult.isValid) {
         errors.push(...fieldResult.errors);
         fieldErrors[fieldName] = fieldResult.errors;
@@ -288,7 +454,11 @@ export class InputValidator {
   }
 
   // Validate single field
-  private validateField(value: any, rule: ValidationRule, fieldName: string): {
+  private validateField(
+    value: any,
+    rule: ValidationRule,
+    fieldName: string
+  ): {
     isValid: boolean;
     sanitized: any;
     errors: string[];
@@ -299,13 +469,19 @@ export class InputValidator {
     let sanitized = value;
 
     // Check if required
-    if (rule.required && (value === undefined || value === null || value === '')) {
+    if (
+      rule.required &&
+      (value === undefined || value === null || value === '')
+    ) {
       errors.push(`${fieldName} is required`);
       return { isValid: false, sanitized, errors, warnings };
     }
 
     // Skip validation if value is empty and not required
-    if (!rule.required && (value === undefined || value === null || value === '')) {
+    if (
+      !rule.required &&
+      (value === undefined || value === null || value === '')
+    ) {
       return { isValid: true, sanitized, errors, warnings };
     }
 
@@ -339,10 +515,14 @@ export class InputValidator {
     // Length validation for strings
     if (rule.type === 'string' && typeof sanitized === 'string') {
       if (rule.minLength !== undefined && sanitized.length < rule.minLength) {
-        errors.push(`${fieldName} must be at least ${rule.minLength} characters long`);
+        errors.push(
+          `${fieldName} must be at least ${rule.minLength} characters long`
+        );
       }
       if (rule.maxLength !== undefined && sanitized.length > rule.maxLength) {
-        errors.push(`${fieldName} must be no more than ${rule.maxLength} characters long`);
+        errors.push(
+          `${fieldName} must be no more than ${rule.maxLength} characters long`
+        );
       }
     }
 
@@ -385,7 +565,11 @@ export class InputValidator {
   }
 
   // Validate type
-  private validateType(value: any, rule: ValidationRule, fieldName: string): {
+  private validateType(
+    value: any,
+    rule: ValidationRule,
+    fieldName: string
+  ): {
     isValid: boolean;
     errors: string[];
   } {
@@ -411,13 +595,19 @@ export class InputValidator {
         break;
 
       case 'email':
-        if (typeof value !== 'string' || !securityUtils.validateInput(value, 'email').isValid) {
+        if (
+          typeof value !== 'string' ||
+          !securityUtils.validateInput(value, 'email').isValid
+        ) {
           errors.push(`${fieldName} must be a valid email address`);
         }
         break;
 
       case 'uuid':
-        if (typeof value !== 'string' || !securityUtils.validateInput(value, 'uuid').isValid) {
+        if (
+          typeof value !== 'string' ||
+          !securityUtils.validateInput(value, 'uuid').isValid
+        ) {
           errors.push(`${fieldName} must be a valid UUID`);
         }
         break;
@@ -465,7 +655,10 @@ export class InputValidator {
   }
 
   // Add custom validator
-  addCustomValidator(name: string, validator: (value: any) => { isValid: boolean; error?: string }): void {
+  addCustomValidator(
+    name: string,
+    validator: (value: any) => { isValid: boolean; error?: string }
+  ): void {
     this.customValidators.set(name, validator);
     logger.info('Custom validator added', 'InputValidator', { name });
   }
@@ -473,7 +666,10 @@ export class InputValidator {
   // Add validation rule set
   addRuleSet(name: string, rules: ValidationRule[]): void {
     this.rules.set(name, rules);
-    logger.info('Validation rule set added', 'InputValidator', { name, ruleCount: rules.length });
+    logger.info('Validation rule set added', 'InputValidator', {
+      name,
+      ruleCount: rules.length,
+    });
   }
 
   // Get validation rule set

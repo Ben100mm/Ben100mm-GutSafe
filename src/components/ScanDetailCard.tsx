@@ -17,13 +17,17 @@ import {
   Platform,
   UIManager,
 } from 'react-native';
+
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
-import { ScanHistory, SeverityLevel } from '../types';
+import { Typography } from '../constants/typography';
+import type { ScanHistory, SeverityLevel } from '../types';
 
 // Enable LayoutAnimation on Android
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+if (
+  Platform.OS === 'android' &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
@@ -43,12 +47,18 @@ export const ScanDetailCard: React.FC<ScanDetailCardProps> = ({
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = isDark ? Colors.dark : Colors.light;
-  
+
   const [isExpanded, setIsExpanded] = useState(expanded);
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
   const { foodItem, analysis, timestamp } = scanHistory;
-  const { overallSafety, flaggedIngredients, safeAlternatives, explanation, dataSource } = analysis;
+  const {
+    overallSafety,
+    flaggedIngredients,
+    safeAlternatives,
+    explanation,
+    dataSource,
+  } = analysis;
 
   const getResultConfig = () => {
     switch (overallSafety) {
@@ -101,20 +111,22 @@ export const ScanDetailCard: React.FC<ScanDetailCardProps> = ({
   const toggleExpanded = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsExpanded(!isExpanded);
-    
+
     Animated.timing(rotateAnim, {
       toValue: isExpanded ? 0 : 1,
       duration: 200,
       useNativeDriver: true,
     }).start();
-    
+
     onExpand?.();
   };
 
   const formatTimestamp = (date: Date) => {
     const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+    const diffInHours = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60)
+    );
+
     if (diffInHours < 1) {
       return 'Just now';
     } else if (diffInHours < 24) {
@@ -126,7 +138,7 @@ export const ScanDetailCard: React.FC<ScanDetailCardProps> = ({
   };
 
   const resultConfig = getResultConfig();
-  
+
   if (!resultConfig) {
     return null;
   }
@@ -137,9 +149,9 @@ export const ScanDetailCard: React.FC<ScanDetailCardProps> = ({
 
   return (
     <TouchableOpacity
+      activeOpacity={0.7}
       style={[styles.card, { backgroundColor: colors.surface }]}
       onPress={onPress}
-      activeOpacity={0.7}
     >
       {/* Header */}
       <View style={styles.header}>
@@ -155,16 +167,27 @@ export const ScanDetailCard: React.FC<ScanDetailCardProps> = ({
           </View>
         </View>
         <View style={styles.rightSection}>
-          <View style={[styles.resultBadge, { backgroundColor: resultConfig.backgroundColor }]}>
+          <View
+            style={[
+              styles.resultBadge,
+              { backgroundColor: resultConfig.backgroundColor },
+            ]}
+          >
             <Text style={[styles.resultText, { color: resultConfig.color }]}>
               {resultConfig.title}
             </Text>
           </View>
-          <TouchableOpacity onPress={toggleExpanded} style={styles.expandButton}>
+          <TouchableOpacity
+            style={styles.expandButton}
+            onPress={toggleExpanded}
+          >
             <Animated.Text
               style={[
                 styles.chevron,
-                { color: colors.textSecondary, transform: [{ rotate: chevronRotation }] }
+                {
+                  color: colors.textSecondary,
+                  transform: [{ rotate: chevronRotation }],
+                },
               ]}
             >
               ›
@@ -176,7 +199,9 @@ export const ScanDetailCard: React.FC<ScanDetailCardProps> = ({
       {/* Basic Info */}
       <View style={styles.basicInfo}>
         <View style={styles.confidenceRow}>
-          <Text style={[styles.confidenceLabel, { color: colors.textSecondary }]}>
+          <Text
+            style={[styles.confidenceLabel, { color: colors.textSecondary }]}
+          >
             Data Source
           </Text>
           <Text style={[styles.confidenceValue, { color: colors.text }]}>
@@ -218,25 +243,43 @@ export const ScanDetailCard: React.FC<ScanDetailCardProps> = ({
                     <Text style={styles.severityIcon}>
                       {getSeverityIcon(ingredient.severity)}
                     </Text>
-                    <Text style={[styles.ingredientName, { color: colors.text }]}>
+                    <Text
+                      style={[styles.ingredientName, { color: colors.text }]}
+                    >
                       {ingredient.ingredient}
                     </Text>
-                    <View style={[
-                      styles.severityBadge,
-                      { backgroundColor: `${getSeverityColor(ingredient.severity)}20` }
-                    ]}>
-                      <Text style={[
-                        styles.severityText,
-                        { color: getSeverityColor(ingredient.severity) }
-                      ]}>
+                    <View
+                      style={[
+                        styles.severityBadge,
+                        {
+                          backgroundColor: `${getSeverityColor(ingredient.severity)}20`,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.severityText,
+                          { color: getSeverityColor(ingredient.severity) },
+                        ]}
+                      >
                         {ingredient.severity}
                       </Text>
                     </View>
                   </View>
-                  <Text style={[styles.ingredientReason, { color: colors.textSecondary }]}>
+                  <Text
+                    style={[
+                      styles.ingredientReason,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
                     {ingredient.reason}
                   </Text>
-                  <Text style={[styles.conditionText, { color: colors.textTertiary }]}>
+                  <Text
+                    style={[
+                      styles.conditionText,
+                      { color: colors.textTertiary },
+                    ]}
+                  >
                     Affects: {ingredient.condition}
                   </Text>
                 </View>
@@ -252,9 +295,17 @@ export const ScanDetailCard: React.FC<ScanDetailCardProps> = ({
               </Text>
               <View style={styles.alternativesList}>
                 {safeAlternatives.map((alternative, index) => (
-                  <View key={index} style={[styles.alternativeItem, { backgroundColor: colors.background }]}>
+                  <View
+                    key={index}
+                    style={[
+                      styles.alternativeItem,
+                      { backgroundColor: colors.background },
+                    ]}
+                  >
                     <Text style={styles.alternativeIcon}>✅</Text>
-                    <Text style={[styles.alternativeText, { color: colors.text }]}>
+                    <Text
+                      style={[styles.alternativeText, { color: colors.text }]}
+                    >
                       {alternative}
                     </Text>
                   </View>
@@ -271,7 +322,12 @@ export const ScanDetailCard: React.FC<ScanDetailCardProps> = ({
             <View style={styles.foodDetails}>
               {foodItem.category && (
                 <View style={styles.detailRow}>
-                  <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
+                  <Text
+                    style={[
+                      styles.detailLabel,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
                     Category
                   </Text>
                   <Text style={[styles.detailValue, { color: colors.text }]}>
@@ -281,7 +337,12 @@ export const ScanDetailCard: React.FC<ScanDetailCardProps> = ({
               )}
               {foodItem.histamineLevel && (
                 <View style={styles.detailRow}>
-                  <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
+                  <Text
+                    style={[
+                      styles.detailLabel,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
                     Histamine Level
                   </Text>
                   <Text style={[styles.detailValue, { color: colors.text }]}>
@@ -298,191 +359,193 @@ export const ScanDetailCard: React.FC<ScanDetailCardProps> = ({
 };
 
 const styles = StyleSheet.create({
-  card: {
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.sm,
-    borderRadius: 12,
-    padding: Spacing.md,
-    ...(Platform.OS === 'web' ? {
-      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-    } : {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 2,
-    }),
+  alternativeIcon: {
+    fontSize: 12,
+    marginRight: Spacing.xs,
   },
-  header: {
+  alternativeItem: {
+    alignItems: 'center',
+    borderRadius: 16,
+    flexDirection: 'row',
+    marginBottom: Spacing.xs,
+    marginRight: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+  },
+  alternativeText: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.caption,
+  },
+  alternativesList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  basicInfo: {
+    marginBottom: Spacing.sm,
+  },
+  brand: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.caption,
+  },
+  card: {
+    borderRadius: 12,
+    marginBottom: Spacing.sm,
+    marginHorizontal: Spacing.lg,
+    padding: Spacing.md,
+    ...(Platform.OS === 'web'
+      ? {
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+        }
+      : {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 2,
+        }),
+  },
+  chevron: {
+    fontSize: 16,
+    fontWeight: '300',
+  },
+  conditionText: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.caption,
+    fontStyle: 'italic',
+  },
+  confidenceLabel: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.caption,
+  },
+  confidenceRow: {
+    alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.xs,
   },
-  titleRow: {
+  confidenceValue: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.bodySmall,
+  },
+  dataSource: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.caption,
+    marginTop: 2,
+  },
+  detailLabel: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.caption,
+  },
+  detailRow: {
+    alignItems: 'center',
     flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  detailValue: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.caption,
+    textTransform: 'capitalize',
+  },
+  expandButton: {
+    padding: Spacing.xs,
+  },
+  expandedContent: {
+    borderTopColor: 'rgba(0,0,0,0.1)',
+    borderTopWidth: 1,
+    marginTop: Spacing.sm,
+    paddingTop: Spacing.sm,
+  },
+  explanation: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.bodySmall,
+    lineHeight: Typography.lineHeight.bodySmall,
+  },
+  foodDetails: {
+    gap: Spacing.xs,
+  },
+  foodName: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+    marginBottom: 2,
+  },
+  header: {
     alignItems: 'flex-start',
-    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
   },
   icon: {
     fontSize: 20,
     marginRight: Spacing.sm,
     marginTop: 2,
   },
-  titleContainer: {
-    flex: 1,
+  ingredientHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginBottom: Spacing.xs,
   },
-  foodName: {
-    fontSize: Typography.fontSize.body,
+  ingredientItem: {
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderRadius: 8,
+    marginBottom: Spacing.sm,
+    padding: Spacing.sm,
+  },
+  ingredientName: {
+    flex: 1,
     fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.bodySmall,
+    marginRight: Spacing.sm,
+  },
+  ingredientReason: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.caption,
     marginBottom: 2,
   },
-  timestamp: {
+  resultBadge: {
+    borderRadius: 8,
+    marginBottom: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+  },
+  resultText: {
+    fontFamily: Typography.fontFamily.semiBold,
     fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
   },
   rightSection: {
     alignItems: 'flex-end',
-  },
-  resultBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: 8,
-    marginBottom: Spacing.xs,
-  },
-  resultText: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.semiBold,
-  },
-  expandButton: {
-    padding: Spacing.xs,
-  },
-  chevron: {
-    fontSize: 16,
-    fontWeight: '300',
-  },
-  basicInfo: {
-    marginBottom: Spacing.sm,
-  },
-  confidenceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.xs,
-  },
-  confidenceLabel: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
-  },
-  confidenceValue: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.semiBold,
-  },
-  brand: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
-  },
-  dataSource: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
-    marginTop: 2,
-  },
-  expandedContent: {
-    marginTop: Spacing.sm,
-    paddingTop: Spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.1)',
   },
   section: {
     marginBottom: Spacing.md,
   },
   sectionTitle: {
-    fontSize: Typography.fontSize.bodySmall,
     fontFamily: Typography.fontFamily.semiBold,
-    marginBottom: Spacing.sm,
-  },
-  explanation: {
     fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.regular,
-    lineHeight: Typography.lineHeight.bodySmall,
-  },
-  ingredientItem: {
     marginBottom: Spacing.sm,
-    padding: Spacing.sm,
-    borderRadius: 8,
-    backgroundColor: 'rgba(0,0,0,0.05)',
   },
-  ingredientHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.xs,
+  severityBadge: {
+    borderRadius: 4,
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 2,
   },
   severityIcon: {
     fontSize: 12,
     marginRight: Spacing.xs,
   },
-  ingredientName: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.semiBold,
-    flex: 1,
-    marginRight: Spacing.sm,
-  },
-  severityBadge: {
-    paddingHorizontal: Spacing.xs,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
   severityText: {
-    fontSize: Typography.fontSize.caption,
     fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.caption,
     textTransform: 'capitalize',
   },
-  ingredientReason: {
-    fontSize: Typography.fontSize.caption,
+  timestamp: {
     fontFamily: Typography.fontFamily.regular,
-    marginBottom: 2,
-  },
-  conditionText: {
     fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
-    fontStyle: 'italic',
   },
-  alternativesList: {
+  titleContainer: {
+    flex: 1,
+  },
+  titleRow: {
+    alignItems: 'flex-start',
     flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  alternativeItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: 16,
-    marginRight: Spacing.sm,
-    marginBottom: Spacing.xs,
-  },
-  alternativeIcon: {
-    fontSize: 12,
-    marginRight: Spacing.xs,
-  },
-  alternativeText: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
-  },
-  foodDetails: {
-    gap: Spacing.xs,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  detailLabel: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
-  },
-  detailValue: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.semiBold,
-    textTransform: 'capitalize',
+    flex: 1,
   },
 });

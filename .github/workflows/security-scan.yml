@@ -1,0 +1,262 @@
+# Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+# License: PROPRIETARY - See LICENSE file for details
+# Security scanning and vulnerability assessment
+
+name: Security Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run security scan daily at 3 AM UTC
+    - cron: '0 3 * * *'
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # Dependency vulnerability scan
+  dependency-scan:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level moderate
+
+      - name: Run security linting
+        run: npm run lint:security
+
+      - name: Check for secrets
+        run: |
+          echo "Checking for potential secrets in code..."
+          if grep -r "password\|secret\|key\|token" src/ --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" | grep -v "// TODO\|// FIXME\|test\|mock\|example"; then
+            echo "⚠️ Potential secrets found in code. Please review."
+            exit 1
+          else
+            echo "✅ No obvious secrets found in code."
+          fi
+
+  # Code security analysis
+  code-security:
+    name: Code Security Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security-focused ESLint
+        run: npm run lint:security
+
+      - name: Check for unsafe patterns
+        run: |
+          echo "Checking for unsafe code patterns..."
+          
+          # Check for eval usage
+          if grep -r "eval(" src/ --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx"; then
+            echo "❌ eval() usage detected - security risk!"
+            exit 1
+          fi
+          
+          # Check for innerHTML usage
+          if grep -r "innerHTML" src/ --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx"; then
+            echo "❌ innerHTML usage detected - potential XSS risk!"
+            exit 1
+          fi
+          
+          # Check for dangerous regex patterns
+          if grep -r "new RegExp" src/ --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx"; then
+            echo "⚠️ Dynamic regex patterns detected - review for ReDoS vulnerabilities"
+          fi
+          
+          echo "✅ Security pattern checks completed"
+
+  # License compliance check
+  license-check:
+    name: License Compliance Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check license compliance
+        run: |
+          echo "Checking license compliance..."
+          npx license-checker --summary
+          
+          # Check for GPL licenses (may require special handling)
+          if npx license-checker --summary | grep -i "gpl"; then
+            echo "⚠️ GPL licenses detected - review compliance requirements"
+          fi
+          
+          # Check for AGPL licenses (may require special handling)
+          if npx license-checker --summary | grep -i "agpl"; then
+            echo "⚠️ AGPL licenses detected - review compliance requirements"
+          fi
+
+  # Security report generation
+  security-report:
+    name: Security Report
+    runs-on: ubuntu-latest
+    needs: [dependency-scan, code-security, license-check]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate security report
+        run: |
+          echo "## Security Scan Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Dependency Scan" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.dependency-scan.result }}" == "success" ]; then
+            echo "✅ **PASSED** - No dependency vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **FAILED** - Dependency vulnerabilities detected" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Code Security Analysis" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.code-security.result }}" == "success" ]; then
+            echo "✅ **PASSED** - No security issues in code" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **FAILED** - Security issues detected in code" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### License Compliance" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.license-check.result }}" == "success" ]; then
+            echo "✅ **PASSED** - License compliance verified" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **WARNING** - License compliance issues detected" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Recommendations" >> $GITHUB_STEP_SUMMARY
+          echo "- Review any failed security checks" >> $GITHUB_STEP_SUMMARY
+          echo "- Update dependencies with known vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          echo "- Address any code security issues" >> $GITHUB_STEP_SUMMARY
+          echo "- Verify license compliance for all dependencies" >> $GITHUB_STEP_SUMMARY
+
+  # Automated security review
+  automated-security-review:
+    name: Automated Security Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: [dependency-scan, code-security, license-check]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Comment PR with security review
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const dependencyStatus = '${{ needs.dependency-scan.result }}';
+            const codeSecurityStatus = '${{ needs.code-security.result }}';
+            const licenseStatus = '${{ needs.license-check.result }}';
+            
+            let securityScore = 0;
+            let issues = [];
+            
+            if (dependencyStatus === 'success') {
+              securityScore += 33;
+            } else {
+              issues.push('Dependency vulnerabilities detected');
+            }
+            
+            if (codeSecurityStatus === 'success') {
+              securityScore += 33;
+            } else {
+              issues.push('Code security issues found');
+            }
+            
+            if (licenseStatus === 'success') {
+              securityScore += 34;
+            } else {
+              issues.push('License compliance issues');
+            }
+            
+            const comment = `
+            ## 🔒 Automated Security Review
+            
+            ### Security Score: ${securityScore}/100
+            
+            ### Security Checks
+            - **Dependency Scan**: ${dependencyStatus === 'success' ? '✅ Passed' : '❌ Failed'}
+            - **Code Security**: ${codeSecurityStatus === 'success' ? '✅ Passed' : '❌ Failed'}
+            - **License Compliance**: ${licenseStatus === 'success' ? '✅ Passed' : '⚠️ Warning'}
+            
+            ${issues.length > 0 ? `
+            ### Issues Found
+            ${issues.map(issue => `- ${issue}`).join('\n')}
+            ` : ''}
+            
+            ### Security Recommendations
+            - Review all security findings before merging
+            - Ensure no sensitive data is exposed in code
+            - Verify all dependencies are up to date
+            - Check for proper input validation and sanitization
+            - Ensure secure coding practices are followed
+            
+            ### Next Steps
+            ${issues.length > 0 ? 
+              'Please address the security issues before merging this PR.' : 
+              'Security checks passed. Proceed with manual review.'}
+            
+            ---
+            *This is an automated security review. Please conduct additional manual security review as needed.*
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

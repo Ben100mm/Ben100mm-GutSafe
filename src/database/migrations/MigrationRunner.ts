@@ -1,13 +1,14 @@
 /**
  * Migration Runner
  * Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
- * 
+ *
  * Handles database migrations for the GutSafe application.
  */
 
-import { databaseManager } from '../connection';
 import fs from 'fs';
 import path from 'path';
+
+import { databaseManager } from '../connection';
 
 export interface Migration {
   version: string;
@@ -19,7 +20,7 @@ export interface Migration {
 
 export class MigrationRunner {
   private static instance: MigrationRunner;
-  private migrations: Migration[] = [];
+  private readonly migrations: Migration[] = [];
 
   static getInstance(): MigrationRunner {
     if (!MigrationRunner.instance) {
@@ -35,20 +36,21 @@ export class MigrationRunner {
   private loadMigrations(): void {
     // Load migration files from the migrations directory
     const migrationsDir = path.join(__dirname, '..', 'migrations');
-    
+
     try {
-      const files = fs.readdirSync(migrationsDir)
-        .filter(file => file.endsWith('.sql'))
+      const files = fs
+        .readdirSync(migrationsDir)
+        .filter((file) => file.endsWith('.sql'))
         .sort();
 
       for (const file of files) {
         const filePath = path.join(migrationsDir, file);
         const content = fs.readFileSync(filePath, 'utf8');
-        
+
         // Extract version from filename (e.g., 001_initial_schema.sql -> 001)
         const version = file.split('_')[0] || '000';
         const name = file.replace('.sql', '').replace(`${version}_`, '');
-        
+
         this.migrations.push({
           version,
           name,
@@ -84,7 +86,7 @@ export class MigrationRunner {
 
       // Find pending migrations
       const pendingMigrations = this.migrations.filter(
-        migration => !executedMigrations.includes(migration.version)
+        (migration) => !executedMigrations.includes(migration.version)
       );
 
       if (pendingMigrations.length === 0) {
@@ -97,13 +99,15 @@ export class MigrationRunner {
       // Execute pending migrations
       for (const migration of pendingMigrations) {
         try {
-          console.log(`Executing migration ${migration.version}: ${migration.name}`);
-          
+          console.log(
+            `Executing migration ${migration.version}: ${migration.name}`
+          );
+
           // Split migration into individual statements
           const statements = migration.up
             .split(';')
-            .map(stmt => stmt.trim())
-            .filter(stmt => stmt.length > 0);
+            .map((stmt) => stmt.trim())
+            .filter((stmt) => stmt.length > 0);
 
           // Execute each statement
           for (const statement of statements) {
@@ -114,7 +118,7 @@ export class MigrationRunner {
 
           // Record migration as executed
           await this.recordMigrationExecuted(connection, migration);
-          
+
           console.log(`✓ Migration ${migration.version} completed`);
         } catch (error) {
           console.error(`✗ Migration ${migration.version} failed:`, error);
@@ -139,9 +143,10 @@ export class MigrationRunner {
 
       // Find migrations to rollback (in reverse order)
       const migrationsToRollback = this.migrations
-        .filter(migration => 
-          versions.includes(migration.version) && 
-          executedMigrations.includes(migration.version)
+        .filter(
+          (migration) =>
+            versions.includes(migration.version) &&
+            executedMigrations.includes(migration.version)
         )
         .reverse();
 
@@ -155,13 +160,15 @@ export class MigrationRunner {
       // Execute rollback migrations
       for (const migration of migrationsToRollback) {
         try {
-          console.log(`Rolling back migration ${migration.version}: ${migration.name}`);
-          
+          console.log(
+            `Rolling back migration ${migration.version}: ${migration.name}`
+          );
+
           // Split down migration into individual statements
           const statements = migration.down
             .split(';')
-            .map(stmt => stmt.trim())
-            .filter(stmt => stmt.length > 0);
+            .map((stmt) => stmt.trim())
+            .filter((stmt) => stmt.length > 0);
 
           // Execute each statement
           for (const statement of statements) {
@@ -172,10 +179,13 @@ export class MigrationRunner {
 
           // Remove migration from executed list
           await this.removeMigrationExecuted(connection, migration.version);
-          
+
           console.log(`✓ Migration ${migration.version} rolled back`);
         } catch (error) {
-          console.error(`✗ Rollback of migration ${migration.version} failed:`, error);
+          console.error(
+            `✗ Rollback of migration ${migration.version} failed:`,
+            error
+          );
           throw error;
         }
       }
@@ -208,7 +218,7 @@ export class MigrationRunner {
       // Get executed migrations
       const executedMigrations = await this.getExecutedMigrations(connection);
 
-      const migrations = this.migrations.map(migration => ({
+      const migrations = this.migrations.map((migration) => ({
         version: migration.version,
         name: migration.name,
         executed: executedMigrations.includes(migration.version),
@@ -236,7 +246,7 @@ export class MigrationRunner {
         executed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
     `;
-    
+
     await connection.executeQuery(createTableQuery);
   }
 
@@ -251,19 +261,30 @@ export class MigrationRunner {
     }
   }
 
-  private async recordMigrationExecuted(connection: any, migration: Migration): Promise<void> {
+  private async recordMigrationExecuted(
+    connection: any,
+    migration: Migration
+  ): Promise<void> {
     const query = `
       INSERT INTO migrations (id, version, name, executed_at) 
       VALUES (?, ?, ?, ?)
     `;
-    
+
     const id = `${migration.version}_${Date.now()}`;
     const executedAt = new Date().toISOString();
-    
-    await connection.executeQuery(query, [id, migration.version, migration.name, executedAt]);
+
+    await connection.executeQuery(query, [
+      id,
+      migration.version,
+      migration.name,
+      executedAt,
+    ]);
   }
 
-  private async removeMigrationExecuted(connection: any, version: string): Promise<void> {
+  private async removeMigrationExecuted(
+    connection: any,
+    version: string
+  ): Promise<void> {
     const query = 'DELETE FROM migrations WHERE version = ?';
     await connection.executeQuery(query, [version]);
   }
@@ -284,13 +305,13 @@ export class MigrationRunner {
     if (this.migrations.length === 0) {
       return null;
     }
-    
+
     return this.migrations[this.migrations.length - 1]?.version || '000';
   }
 
   // Get migration by version
   getMigration(version: string): Migration | undefined {
-    return this.migrations.find(migration => migration.version === version);
+    return this.migrations.find((migration) => migration.version === version);
   }
 
   // List all available migrations

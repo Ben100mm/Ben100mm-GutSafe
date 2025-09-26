@@ -13,9 +13,10 @@ import {
   StyleSheet,
   useColorScheme,
 } from 'react-native';
+
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
+import { Typography } from '../constants/typography';
 
 interface HealthSectionProps {
   title: string;
@@ -46,9 +47,7 @@ export const HealthSection: React.FC<HealthSectionProps> = ({
           </TouchableOpacity>
         )}
       </View>
-      <View style={styles.content}>
-        {children}
-      </View>
+      <View style={styles.content}>{children}</View>
     </View>
   );
 };
@@ -57,22 +56,22 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: Spacing.lg,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
-  },
-  title: {
-    fontSize: Typography.fontSize.h2,
-    fontFamily: Typography.fontFamily.bold,
-  },
-  rightButton: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.medium,
-  },
   content: {
     flex: 1,
+  },
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+  },
+  rightButton: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.body,
+  },
+  title: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h2,
   },
 });

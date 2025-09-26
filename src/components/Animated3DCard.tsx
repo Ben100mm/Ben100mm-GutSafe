@@ -5,25 +5,31 @@
  * @private
  */
 
+import { BlurView } from '@react-native-community/blur';
 import React, { useRef, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ViewStyle,
   TouchableOpacity,
   Animated,
   // Dimensions,
   Platform,
 } from 'react-native';
-import LinearGradient from './LinearGradientWrapper';
-import { BlurView } from '@react-native-community/blur';
+import type { ViewStyle } from 'react-native';
+
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius, Shadows } from '../constants/spacing';
-import { HapticFeedback } from '../utils/haptics';
-import { AnimationPresets, TransformUtils, AnimationUtils } from '../utils/animations';
+import { Typography } from '../constants/typography';
 import AccessibilityService from '../utils/accessibility';
+import {
+  AnimationPresets,
+  TransformUtils,
+  AnimationUtils,
+} from '../utils/animations';
+import { HapticFeedback } from '../utils/haptics';
+
+import LinearGradient from './LinearGradientWrapper';
 
 // const { width: screenWidth } = Dimensions.get('window');
 
@@ -67,22 +73,29 @@ export const Animated3DCard: React.FC<Animated3DCardProps> = ({
   useEffect(() => {
     // Initial entrance animation
     if (enable3D) {
-      const entranceAnimation = AnimationPresets.scale3D({ 
-        duration: 600, 
-        useNativeDriver: Platform.OS !== 'web' 
+      const entranceAnimation = AnimationPresets.scale3D({
+        duration: 600,
+        useNativeDriver: Platform.OS !== 'web',
       });
       entranceAnimation.start();
     }
 
     // Pulse animation for selected state
     if (selected) {
-      const pulseAnimation = AnimationUtils.createPulse(pulseAnim, 0.98, 1.02, 2000);
+      const pulseAnimation = AnimationUtils.createPulse(
+        pulseAnim,
+        0.98,
+        1.02,
+        2000
+      );
       pulseAnimation.start();
     }
   }, [enable3D, selected, pulseAnim]);
 
   const handlePressIn = () => {
-    if (disabled) return;
+    if (disabled) {
+      return;
+    }
 
     HapticFeedback.trigger(hapticType);
 
@@ -127,7 +140,9 @@ export const Animated3DCard: React.FC<Animated3DCardProps> = ({
   };
 
   const handlePressOut = () => {
-    if (disabled) return;
+    if (disabled) {
+      return;
+    }
 
     const animations = [
       Animated.spring(scaleAnim, {
@@ -176,53 +191,61 @@ export const Animated3DCard: React.FC<Animated3DCardProps> = ({
   };
 
   // 3D transform styles
-  const transform3DStyle = enable3D ? {
-    transform: [
-      { scale: Animated.multiply(scaleAnim, pulseAnim) },
-      { translateZ: translateZAnim },
-      { rotateX: rotateXAnim.interpolate({
-        inputRange: [0, 360],
-        outputRange: ['0deg', '360deg'],
-      })},
-      { rotateY: rotateYAnim.interpolate({
-        inputRange: [0, 360],
-        outputRange: ['0deg', '360deg'],
-      })},
-    ],
-    ...TransformUtils.createPerspective(1000),
-  } : {
-    transform: [{ scale: Animated.multiply(scaleAnim, pulseAnim) }],
-  };
+  const transform3DStyle = enable3D
+    ? {
+        transform: [
+          { scale: Animated.multiply(scaleAnim, pulseAnim) },
+          { translateZ: translateZAnim },
+          {
+            rotateX: rotateXAnim.interpolate({
+              inputRange: [0, 360],
+              outputRange: ['0deg', '360deg'],
+            }),
+          },
+          {
+            rotateY: rotateYAnim.interpolate({
+              inputRange: [0, 360],
+              outputRange: ['0deg', '360deg'],
+            }),
+          },
+        ],
+        ...TransformUtils.createPerspective(1000),
+      }
+    : {
+        transform: [{ scale: Animated.multiply(scaleAnim, pulseAnim) }],
+      };
 
   // Shadow style for 3D effect
-  const shadowStyle = enable3D ? {
-    ...Platform.select({
-      web: {
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-      },
-      default: {
-        shadowOpacity: shadowAnim.interpolate({
-          inputRange: [0, 1],
-          outputRange: [0.1, 0.4],
+  const shadowStyle = enable3D
+    ? {
+        ...Platform.select({
+          web: {
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          },
+          default: {
+            shadowOpacity: shadowAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0.1, 0.4],
+            }),
+            shadowRadius: shadowAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [8, 20],
+            }),
+            shadowOffset: {
+              width: shadowAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, 6],
+              }),
+              height: shadowAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [4, 12],
+              }),
+            },
+            shadowColor: '#000',
+          },
         }),
-        shadowRadius: shadowAnim.interpolate({
-          inputRange: [0, 1],
-          outputRange: [8, 20],
-        }),
-        shadowOffset: {
-          width: shadowAnim.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, 6],
-          }),
-          height: shadowAnim.interpolate({
-            inputRange: [0, 1],
-            outputRange: [4, 12],
-          }),
-        },
-        shadowColor: '#000',
-      },
-    }),
-  } : {};
+      }
+    : {};
 
   // Glow effect
   const glowStyle = {
@@ -261,13 +284,15 @@ export const Animated3DCard: React.FC<Animated3DCardProps> = ({
       case 'glass':
         return (
           <BlurView
-            style={styles.blurContainer}
-            blurType="light"
             blurAmount={20}
+            blurType="light"
             reducedTransparencyFallbackColor={Colors.white}
+            style={styles.blurContainer}
           >
             <Animated.View style={[styles.glow, glowStyle]} />
-            <View style={[styles.glassContent, { opacity: disabled ? 0.5 : 1 }]}>
+            <View
+              style={[styles.glassContent, { opacity: disabled ? 0.5 : 1 }]}
+            >
               {cardContent}
             </View>
           </BlurView>
@@ -276,8 +301,12 @@ export const Animated3DCard: React.FC<Animated3DCardProps> = ({
       case 'gradient':
         return (
           <LinearGradient
-            colors={disabled ? [Colors.body, Colors.body] : Colors.primaryGradient}
-            style={[styles.gradientContainer, { opacity: disabled ? 0.5 : 1 }] as any}
+            colors={
+              disabled ? [Colors.body, Colors.body] : Colors.primaryGradient
+            }
+            style={
+              [styles.gradientContainer, { opacity: disabled ? 0.5 : 1 }] as any
+            }
           >
             <Animated.View style={[styles.glow, glowStyle]} />
             {cardContent}
@@ -286,10 +315,15 @@ export const Animated3DCard: React.FC<Animated3DCardProps> = ({
 
       default:
         return (
-          <View style={[styles.solidContainer, { 
-            backgroundColor: Colors.surface,
-            opacity: disabled ? 0.5 : 1 
-          }]}>
+          <View
+            style={[
+              styles.solidContainer,
+              {
+                backgroundColor: Colors.surface,
+                opacity: disabled ? 0.5 : 1,
+              },
+            ]}
+          >
             <Animated.View style={[styles.glow, glowStyle]} />
             {cardContent}
           </View>
@@ -301,11 +335,11 @@ export const Animated3DCard: React.FC<Animated3DCardProps> = ({
     return (
       <Animated.View style={[transform3DStyle, shadowStyle]}>
         <TouchableOpacity
+          disabled={disabled}
+          style={[styles.container, style]}
           onPress={handlePress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
-          disabled={disabled}
-          style={[styles.container, style]}
           {...accessibilityConfig}
         >
           {renderCard()}
@@ -315,13 +349,19 @@ export const Animated3DCard: React.FC<Animated3DCardProps> = ({
   }
 
   return (
-    <Animated.View style={[transform3DStyle, shadowStyle, styles.container, style]}>
+    <Animated.View
+      style={[transform3DStyle, shadowStyle, styles.container, style]}
+    >
       {renderCard()}
     </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
+  blurContainer: {
+    borderRadius: BorderRadius.lg,
+    flex: 1,
+  },
   container: {
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',
@@ -330,44 +370,40 @@ const styles = StyleSheet.create({
   content: {
     padding: Spacing.lg,
   },
-  title: {
-    fontSize: Typography.fontSize.h3,
-    fontFamily: Typography.fontFamily.semiBold,
-    marginBottom: Spacing.xs,
-  },
-  subtitle: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.regular,
-    marginBottom: Spacing.md,
-  },
-  blurContainer: {
-    flex: 1,
-    borderRadius: BorderRadius.lg,
-  },
   glassContent: {
-    flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  gradientContainer: {
     flex: 1,
-    borderRadius: BorderRadius.lg,
-  },
-  solidContainer: {
-    flex: 1,
-    borderRadius: BorderRadius.lg,
   },
   glow: {
-    position: 'absolute',
-    top: -2,
-    left: -2,
-    right: -2,
-    bottom: -2,
-    borderRadius: BorderRadius.lg + 2,
     backgroundColor: Colors.primaryLight,
+    borderRadius: BorderRadius.lg + 2,
+    bottom: -2,
+    left: -2,
     opacity: 0.3,
+    position: 'absolute',
+    right: -2,
+    top: -2,
+  },
+  gradientContainer: {
+    borderRadius: BorderRadius.lg,
+    flex: 1,
+  },
+  solidContainer: {
+    borderRadius: BorderRadius.lg,
+    flex: 1,
+  },
+  subtitle: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.bodySmall,
+    marginBottom: Spacing.md,
+  },
+  title: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.h3,
+    marginBottom: Spacing.xs,
   },
 });
 

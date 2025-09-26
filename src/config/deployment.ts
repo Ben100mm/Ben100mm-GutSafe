@@ -1,13 +1,16 @@
 /**
  * Deployment Configuration System
  * Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
- * 
+ *
  * Environment-specific deployment configurations and scripts.
  */
 
-
 // Deployment environment types
-export type DeploymentEnvironment = 'development' | 'staging' | 'production' | 'test';
+export type DeploymentEnvironment =
+  | 'development'
+  | 'staging'
+  | 'production'
+  | 'test';
 
 // Deployment configuration interface
 export interface DeploymentConfig {
@@ -78,7 +81,10 @@ export interface DeploymentConfig {
 }
 
 // Deployment configurations for different environments
-export const deploymentConfigs: Record<DeploymentEnvironment, DeploymentConfig> = {
+export const deploymentConfigs: Record<
+  DeploymentEnvironment,
+  DeploymentConfig
+> = {
   development: {
     environment: 'development',
     build: {
@@ -141,7 +147,7 @@ export const deploymentConfigs: Record<DeploymentEnvironment, DeploymentConfig> 
       type: 'local',
     },
   },
-  
+
   staging: {
     environment: 'staging',
     build: {
@@ -179,11 +185,15 @@ export const deploymentConfigs: Record<DeploymentEnvironment, DeploymentConfig> 
         'X-Frame-Options': 'DENY',
         'X-XSS-Protection': '1; mode=block',
         'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
-        'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'",
+        'Content-Security-Policy':
+          "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'",
       },
       cors: {
         enabled: true,
-        origins: ['https://staging.gutsafe.com', 'https://staging-api.gutsafe.com'],
+        origins: [
+          'https://staging.gutsafe.com',
+          'https://staging-api.gutsafe.com',
+        ],
       },
       rateLimit: {
         enabled: true,
@@ -212,7 +222,7 @@ export const deploymentConfigs: Record<DeploymentEnvironment, DeploymentConfig> 
       region: 'us-east-1',
     },
   },
-  
+
   production: {
     environment: 'production',
     build: {
@@ -249,8 +259,10 @@ export const deploymentConfigs: Record<DeploymentEnvironment, DeploymentConfig> 
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
         'X-XSS-Protection': '1; mode=block',
-        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
-        'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'",
+        'Strict-Transport-Security':
+          'max-age=31536000; includeSubDomains; preload',
+        'Content-Security-Policy':
+          "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'",
         'Referrer-Policy': 'strict-origin-when-cross-origin',
         'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
       },
@@ -285,7 +297,7 @@ export const deploymentConfigs: Record<DeploymentEnvironment, DeploymentConfig> 
       region: 'us-east-1',
     },
   },
-  
+
   test: {
     environment: 'test',
     build: {
@@ -350,30 +362,34 @@ export const deploymentConfigs: Record<DeploymentEnvironment, DeploymentConfig> 
 };
 
 // Get deployment configuration for environment
-export const getDeploymentConfig = (environment: DeploymentEnvironment): DeploymentConfig => {
+export const getDeploymentConfig = (
+  environment: DeploymentEnvironment
+): DeploymentConfig => {
   return deploymentConfigs[environment];
 };
 
 // Generate deployment scripts
 export const generateDeploymentScripts = (config: DeploymentConfig) => {
   const scripts: Record<string, string> = {};
-  
+
   // Build script
   scripts[`deploy:${config.environment}:build`] = config.build.command;
-  
+
   // Server start script
   const serverCommand = config.server.ssl.enabled
     ? `node server.js --host ${config.server.host} --port ${config.server.port} --ssl --cert ${config.server.ssl.certPath} --key ${config.server.ssl.keyPath}`
     : `node server.js --host ${config.server.host} --port ${config.server.port}`;
-  
+
   scripts[`deploy:${config.environment}:start`] = serverCommand;
-  
+
   // Full deployment script
-  scripts[`deploy:${config.environment}`] = `npm run deploy:${config.environment}:build && npm run deploy:${config.environment}:start`;
-  
+  scripts[`deploy:${config.environment}`] =
+    `npm run deploy:${config.environment}:build && npm run deploy:${config.environment}:start`;
+
   // Health check script
-  scripts[`deploy:${config.environment}:health`] = `curl -f ${config.server.protocol}://${config.server.host}:${config.server.port}/health || exit 1`;
-  
+  scripts[`deploy:${config.environment}:health`] =
+    `curl -f ${config.server.protocol}://${config.server.host}:${config.server.port}/health || exit 1`;
+
   return scripts;
 };
 
@@ -524,7 +540,11 @@ spec:
 export const currentDeploymentConfig = getDeploymentConfig('development');
 
 // Deployment helpers
-export const isProductionDeployment = () => currentDeploymentConfig.environment === 'production';
-export const isStagingDeployment = () => currentDeploymentConfig.environment === 'staging';
-export const isDevelopmentDeployment = () => currentDeploymentConfig.environment === 'development';
-export const isTestDeployment = () => currentDeploymentConfig.environment === 'test';
+export const isProductionDeployment = () =>
+  currentDeploymentConfig.environment === 'production';
+export const isStagingDeployment = () =>
+  currentDeploymentConfig.environment === 'staging';
+export const isDevelopmentDeployment = () =>
+  currentDeploymentConfig.environment === 'development';
+export const isTestDeployment = () =>
+  currentDeploymentConfig.environment === 'test';

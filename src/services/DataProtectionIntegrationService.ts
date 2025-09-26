@@ -5,11 +5,14 @@
  * @private
  */
 
-import { logger } from '../utils/logger';
-import { dataProtectionService, DataClassification } from '../utils/DataProtectionService';
-import { secureTransmissionService } from '../utils/SecureTransmissionService';
+import {
+  dataProtectionService,
+  DataClassification,
+} from '../utils/DataProtectionService';
 import { dataRetentionService } from '../utils/DataRetentionService';
 import { gdprComplianceService } from '../utils/GDPRComplianceService';
+import { logger } from '../utils/logger';
+import { secureTransmissionService } from '../utils/SecureTransmissionService';
 
 // Data protection configuration
 interface DataProtectionConfig {
@@ -69,13 +72,14 @@ export class DataProtectionIntegrationService {
       enableRetentionPolicies: true,
       enableGDPRCompliance: true,
       enableSecureTransmission: true,
-      auditLogging: true
+      auditLogging: true,
     };
   }
 
   public static getInstance(): DataProtectionIntegrationService {
     if (!DataProtectionIntegrationService.instance) {
-      DataProtectionIntegrationService.instance = new DataProtectionIntegrationService();
+      DataProtectionIntegrationService.instance =
+        new DataProtectionIntegrationService();
     }
     return DataProtectionIntegrationService.instance;
   }
@@ -85,17 +89,26 @@ export class DataProtectionIntegrationService {
    */
   async initialize(): Promise<void> {
     try {
-      logger.info('Initializing data protection services', 'DataProtectionIntegrationService');
+      logger.info(
+        'Initializing data protection services',
+        'DataProtectionIntegrationService'
+      );
 
       // Initialize individual services
       if (this.config.enableRetentionPolicies) {
         // Data retention service is already initialized as singleton
-        logger.info('Data retention service initialized', 'DataProtectionIntegrationService');
+        logger.info(
+          'Data retention service initialized',
+          'DataProtectionIntegrationService'
+        );
       }
 
       if (this.config.enableGDPRCompliance) {
         // GDPR compliance service is already initialized as singleton
-        logger.info('GDPR compliance service initialized', 'DataProtectionIntegrationService');
+        logger.info(
+          'GDPR compliance service initialized',
+          'DataProtectionIntegrationService'
+        );
       }
 
       // Start automated cleanup if enabled
@@ -104,9 +117,16 @@ export class DataProtectionIntegrationService {
       }
 
       this.isInitialized = true;
-      logger.info('Data protection services initialized successfully', 'DataProtectionIntegrationService');
+      logger.info(
+        'Data protection services initialized successfully',
+        'DataProtectionIntegrationService'
+      );
     } catch (error) {
-      logger.error('Failed to initialize data protection services', 'DataProtectionIntegrationService', error);
+      logger.error(
+        'Failed to initialize data protection services',
+        'DataProtectionIntegrationService',
+        error
+      );
       throw error;
     }
   }
@@ -134,20 +154,32 @@ export class DataProtectionIntegrationService {
       let processedData = { ...data };
 
       // Classify data if not provided
-      const classification = context.classification || dataProtectionService.classifyData(data, context.dataType);
+      const classification =
+        context.classification != null ||
+        dataProtectionService.classifyData(data, context.dataType);
 
       // Encrypt data if required
       if (context.encrypt !== false && this.config.enableEncryption) {
-        processedData = await dataProtectionService.encryptData(processedData, classification);
+        processedData = await dataProtectionService.encryptData(
+          processedData,
+          classification
+        );
       }
 
       // Anonymize data if required
       if (context.anonymize && this.config.enableAnonymization) {
-        processedData = dataProtectionService.anonymizeData(processedData, classification);
+        processedData = dataProtectionService.anonymizeData(
+          processedData,
+          classification
+        );
       }
 
       // Record data processing for GDPR compliance
-      if (this.config.enableGDPRCompliance && context.userId && context.purpose) {
+      if (
+        this.config.enableGDPRCompliance &&
+        context.userId &&
+        context.purpose
+      ) {
         gdprComplianceService.recordDataProcessing(
           context.userId,
           context.dataType || 'unknown',
@@ -165,10 +197,14 @@ export class DataProtectionIntegrationService {
 
       return processedData;
     } catch (error) {
-      logger.error('Data processing failed', 'DataProtectionIntegrationService', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        context
-      });
+      logger.error(
+        'Data processing failed',
+        'DataProtectionIntegrationService',
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          context,
+        }
+      );
       throw error;
     }
   }
@@ -197,8 +233,13 @@ export class DataProtectionIntegrationService {
       // Process payload if provided
       let processedPayload = payload;
       if (payload && options?.encryptPayload !== false) {
-        const classification = options?.classification || dataProtectionService.classifyData(payload);
-        processedPayload = await dataProtectionService.encryptData(payload, classification);
+        const classification =
+          options?.classification != null ||
+          dataProtectionService.classifyData(payload);
+        processedPayload = await dataProtectionService.encryptData(
+          payload,
+          classification
+        );
       }
 
       // Make secure request
@@ -211,17 +252,26 @@ export class DataProtectionIntegrationService {
 
       // Process response if anonymization is requested
       if (options?.anonymizeResponse && response.data) {
-        const classification = options?.classification || dataProtectionService.classifyData(response.data);
-        response.data = dataProtectionService.anonymizeData(response.data, classification);
+        const classification =
+          options?.classification != null ||
+          dataProtectionService.classifyData(response.data);
+        response.data = dataProtectionService.anonymizeData(
+          response.data,
+          classification
+        );
       }
 
       return response;
     } catch (error) {
-      logger.error('Secure request failed', 'DataProtectionIntegrationService', {
-        endpoint,
-        method,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      logger.error(
+        'Secure request failed',
+        'DataProtectionIntegrationService',
+        {
+          endpoint,
+          method,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        }
+      );
       throw error;
     }
   }
@@ -249,20 +299,31 @@ export class DataProtectionIntegrationService {
     }
 
     try {
-      const consent = gdprComplianceService.registerConsent(userId, consentData);
-      
-      logger.info('User consent processed', 'DataProtectionIntegrationService', {
+      const consent = gdprComplianceService.registerConsent(
         userId,
-        consentId: consent.id,
-        dataProcessing: consent.dataProcessing
-      });
+        consentData
+      );
+
+      logger.info(
+        'User consent processed',
+        'DataProtectionIntegrationService',
+        {
+          userId,
+          consentId: consent.id,
+          dataProcessing: consent.dataProcessing,
+        }
+      );
 
       return consent;
     } catch (error) {
-      logger.error('Consent processing failed', 'DataProtectionIntegrationService', {
-        userId,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      logger.error(
+        'Consent processing failed',
+        'DataProtectionIntegrationService',
+        {
+          userId,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        }
+      );
       throw error;
     }
   }
@@ -284,35 +345,53 @@ export class DataProtectionIntegrationService {
 
       switch (requestType) {
         case 'access':
-          result = await gdprComplianceService.processAccessRequest(userId, 'full');
+          result = await gdprComplianceService.processAccessRequest(
+            userId,
+            'full'
+          );
           break;
         case 'portability':
-          result = await gdprComplianceService.processPortabilityRequest(userId);
+          result =
+            await gdprComplianceService.processPortabilityRequest(userId);
           break;
         case 'erasure':
-          result = await gdprComplianceService.processErasureRequest(userId, additionalData?.reason || 'User request');
+          result = await gdprComplianceService.processErasureRequest(
+            userId,
+            additionalData?.reason || 'User request'
+          );
           break;
         case 'rectification':
           // This would typically update user data
-          result = { success: true, message: 'Data rectification request processed' };
+          result = {
+            success: true,
+            message: 'Data rectification request processed',
+          };
           break;
         default:
           throw new Error(`Unsupported request type: ${requestType}`);
       }
 
-      logger.info('Data subject rights request processed', 'DataProtectionIntegrationService', {
-        userId,
-        requestType,
-        success: result.success !== false
-      });
+      logger.info(
+        'Data subject rights request processed',
+        'DataProtectionIntegrationService',
+        {
+          userId,
+          requestType,
+          success: result.success !== false,
+        }
+      );
 
       return result;
     } catch (error) {
-      logger.error('Data subject rights request failed', 'DataProtectionIntegrationService', {
-        userId,
-        requestType,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      logger.error(
+        'Data subject rights request failed',
+        'DataProtectionIntegrationService',
+        {
+          userId,
+          requestType,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        }
+      );
       throw error;
     }
   }
@@ -327,18 +406,22 @@ export class DataProtectionIntegrationService {
 
     try {
       const result = await dataRetentionService.runCleanupJob(data);
-      
-      logger.info('Data cleanup completed', 'DataProtectionIntegrationService', {
-        totalRecords: result.result?.totalRecords || 0,
-        deletedRecords: result.result?.deletedRecords || 0,
-        anonymizedRecords: result.result?.anonymizedRecords || 0,
-        retainedRecords: result.result?.retainedRecords || 0
-      });
+
+      logger.info(
+        'Data cleanup completed',
+        'DataProtectionIntegrationService',
+        {
+          totalRecords: result.result?.totalRecords || 0,
+          deletedRecords: result.result?.deletedRecords || 0,
+          anonymizedRecords: result.result?.anonymizedRecords || 0,
+          retainedRecords: result.result?.retainedRecords || 0,
+        }
+      );
 
       return result;
     } catch (error) {
       logger.error('Data cleanup failed', 'DataProtectionIntegrationService', {
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -360,8 +443,12 @@ export class DataProtectionIntegrationService {
       const transmissionAudit = this.auditTransmission();
 
       const overallScore = Math.round(
-        (encryptionAudit.score + anonymizationAudit.score + retentionAudit.score + 
-         gdprAudit.score + transmissionAudit.score) / 5
+        (encryptionAudit.score +
+          anonymizationAudit.score +
+          retentionAudit.score +
+          gdprAudit.score +
+          transmissionAudit.score) /
+          5
       );
 
       const recommendations = this.generateRecommendations([
@@ -369,7 +456,7 @@ export class DataProtectionIntegrationService {
         anonymizationAudit,
         retentionAudit,
         gdprAudit,
-        transmissionAudit
+        transmissionAudit,
       ]);
 
       return {
@@ -380,10 +467,14 @@ export class DataProtectionIntegrationService {
         retention: retentionAudit,
         gdpr: gdprAudit,
         transmission: transmissionAudit,
-        recommendations
+        recommendations,
       };
     } catch (error) {
-      logger.error('Audit report generation failed', 'DataProtectionIntegrationService', error);
+      logger.error(
+        'Audit report generation failed',
+        'DataProtectionIntegrationService',
+        error
+      );
       throw error;
     }
   }
@@ -391,7 +482,11 @@ export class DataProtectionIntegrationService {
   /**
    * Audit encryption implementation
    */
-  private auditEncryption(): { enabled: boolean; score: number; issues: string[] } {
+  private auditEncryption(): {
+    enabled: boolean;
+    score: number;
+    issues: string[];
+  } {
     const issues: string[] = [];
     let score = 100;
 
@@ -408,7 +503,10 @@ export class DataProtectionIntegrationService {
       // Check if encryption service is working
       try {
         const testData = { test: 'data' };
-        const encrypted = dataProtectionService.encryptData(testData, DataClassification.CONFIDENTIAL);
+        const encrypted = dataProtectionService.encryptData(
+          testData,
+          DataClassification.CONFIDENTIAL
+        );
         if (!encrypted) {
           issues.push('Encryption service not functioning');
           score -= 50;
@@ -422,14 +520,18 @@ export class DataProtectionIntegrationService {
     return {
       enabled: this.config.enableEncryption,
       score: Math.max(0, score),
-      issues
+      issues,
     };
   }
 
   /**
    * Audit anonymization implementation
    */
-  private auditAnonymization(): { enabled: boolean; score: number; issues: string[] } {
+  private auditAnonymization(): {
+    enabled: boolean;
+    score: number;
+    issues: string[];
+  } {
     const issues: string[] = [];
     let score = 100;
 
@@ -440,7 +542,10 @@ export class DataProtectionIntegrationService {
       // Check anonymization functionality
       try {
         const testData = { userId: 'test123', email: 'test@example.com' };
-        const anonymized = dataProtectionService.anonymizeData(testData, DataClassification.INTERNAL);
+        const anonymized = dataProtectionService.anonymizeData(
+          testData,
+          DataClassification.INTERNAL
+        );
         if (!anonymized || anonymized.originalId === 'test123') {
           issues.push('Anonymization not working properly');
           score -= 50;
@@ -454,14 +559,18 @@ export class DataProtectionIntegrationService {
     return {
       enabled: this.config.enableAnonymization,
       score: Math.max(0, score),
-      issues
+      issues,
     };
   }
 
   /**
    * Audit retention policies
    */
-  private auditRetention(): { enabled: boolean; score: number; issues: string[] } {
+  private auditRetention(): {
+    enabled: boolean;
+    score: number;
+    issues: string[];
+  } {
     const issues: string[] = [];
     let score = 100;
 
@@ -477,11 +586,13 @@ export class DataProtectionIntegrationService {
 
       const criticalPolicies = ['health-data', 'user-profiles', 'scan-history'];
       const missingPolicies = criticalPolicies.filter(
-        policyId => !policies.some(p => p.id === policyId)
+        (policyId) => !policies.some((p) => p.id === policyId)
       );
-      
+
       if (missingPolicies.length > 0) {
-        issues.push(`Missing critical retention policies: ${missingPolicies.join(', ')}`);
+        issues.push(
+          `Missing critical retention policies: ${missingPolicies.join(', ')}`
+        );
         score -= missingPolicies.length * 15;
       }
     }
@@ -489,7 +600,7 @@ export class DataProtectionIntegrationService {
     return {
       enabled: this.config.enableRetentionPolicies,
       score: Math.max(0, score),
-      issues
+      issues,
     };
   }
 
@@ -520,14 +631,18 @@ export class DataProtectionIntegrationService {
     return {
       enabled: this.config.enableGDPRCompliance,
       score: Math.max(0, score),
-      issues
+      issues,
     };
   }
 
   /**
    * Audit secure transmission
    */
-  private auditTransmission(): { enabled: boolean; score: number; issues: string[] } {
+  private auditTransmission(): {
+    enabled: boolean;
+    score: number;
+    issues: string[];
+  } {
     const issues: string[] = [];
     let score = 100;
 
@@ -550,7 +665,7 @@ export class DataProtectionIntegrationService {
     return {
       enabled: this.config.enableSecureTransmission,
       score: Math.max(0, score),
-      issues
+      issues,
     };
   }
 
@@ -560,7 +675,7 @@ export class DataProtectionIntegrationService {
   private generateRecommendations(audits: any[]): string[] {
     const recommendations: string[] = [];
 
-    audits.forEach(audit => {
+    audits.forEach((audit) => {
       if (audit.score < 50) {
         recommendations.push(`Critical: ${audit.issues.join(', ')}`);
       } else if (audit.score < 80) {
@@ -593,10 +708,14 @@ export class DataProtectionIntegrationService {
       originalSize: JSON.stringify(originalData).length,
       processedSize: JSON.stringify(processedData).length,
       encryptionApplied: originalData !== processedData,
-      anonymizationApplied: processedData.__anonymized === true
+      anonymizationApplied: processedData.__anonymized === true,
     };
 
-    logger.info('Data processing logged', 'DataProtectionIntegrationService', logEntry);
+    logger.info(
+      'Data processing logged',
+      'DataProtectionIntegrationService',
+      logEntry
+    );
   }
 
   /**
@@ -604,7 +723,11 @@ export class DataProtectionIntegrationService {
    */
   updateConfig(newConfig: Partial<DataProtectionConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    logger.info('Data protection configuration updated', 'DataProtectionIntegrationService', newConfig);
+    logger.info(
+      'Data protection configuration updated',
+      'DataProtectionIntegrationService',
+      newConfig
+    );
   }
 
   /**
@@ -621,13 +744,17 @@ export class DataProtectionIntegrationService {
     if (this.config.enableRetentionPolicies) {
       dataRetentionService.stopAutomatedCleanup();
     }
-    
+
     secureTransmissionService.clearCache();
-    
-    logger.info('Data protection services cleaned up', 'DataProtectionIntegrationService');
+
+    logger.info(
+      'Data protection services cleaned up',
+      'DataProtectionIntegrationService'
+    );
   }
 }
 
 // Export singleton instance
-export const dataProtectionIntegrationService = DataProtectionIntegrationService.getInstance();
+export const dataProtectionIntegrationService =
+  DataProtectionIntegrationService.getInstance();
 export default dataProtectionIntegrationService;

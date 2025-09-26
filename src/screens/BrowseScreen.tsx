@@ -17,13 +17,14 @@ import {
   Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
-import { Spacing } from '../constants/spacing';
+
 import { Animated3DCard } from '../components/Animated3DCard';
+import { Colors } from '../constants/colors';
+import { Spacing } from '../constants/spacing';
+import { Typography } from '../constants/typography';
+import AccessibilityService from '../utils/accessibility';
 import { HapticFeedback } from '../utils/haptics';
 // import { AnimationPresets, AnimationUtils } from '../utils/animations';
-import AccessibilityService from '../utils/accessibility';
 
 export const BrowseScreen: React.FC = () => {
   const colorScheme = useColorScheme();
@@ -38,7 +39,7 @@ export const BrowseScreen: React.FC = () => {
   useEffect(() => {
     // Initialize accessibility
     AccessibilityService.initialize();
-    
+
     // Entrance animations
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -98,51 +99,67 @@ export const BrowseScreen: React.FC = () => {
   ];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>Browse</Text>
       </View>
 
-      <ScrollView 
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        style={styles.scrollView}
       >
         {/* Categories Grid */}
-        <Animated.View style={[
-          styles.categoriesGrid,
-          {
-            opacity: fadeAnim,
-            transform: [
-              { translateY: slideAnim },
-              { scale: scaleAnim }
-            ]
-          }
-        ]}>
+        <Animated.View
+          style={[
+            styles.categoriesGrid,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
+            },
+          ]}
+        >
           {browseCategories.map((category, index) => (
             <Animated3DCard
               key={index}
-              variant="solid"
-              enable3D={true}
-              hapticType="light"
-              accessibilityLabel={category.title}
+              enable3D
               accessibilityHint={category.description}
+              accessibilityLabel={category.title}
+              hapticType="light"
+              style={
+                [
+                  styles.categoryCard,
+                  { backgroundColor: colors.surface },
+                ] as any
+              }
+              variant="solid"
               onPress={() => {
                 HapticFeedback.buttonPress();
                 console.log(`${category.title} pressed`);
               }}
-              style={[styles.categoryCard, { backgroundColor: colors.surface }] as any}
             >
-              <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
+              <View
+                style={[
+                  styles.categoryIcon,
+                  { backgroundColor: category.color },
+                ]}
+              >
                 <Text style={styles.categoryIconText}>{category.icon}</Text>
               </View>
               <Text style={[styles.categoryTitle, { color: colors.text }]}>
                 {category.title}
               </Text>
-              <Text style={[styles.categoryDescription, { color: colors.textSecondary }]}>
+              <Text
+                style={[
+                  styles.categoryDescription,
+                  { color: colors.textSecondary },
+                ]}
+              >
                 {category.description}
               </Text>
             </Animated3DCard>
@@ -154,15 +171,19 @@ export const BrowseScreen: React.FC = () => {
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             Recent Activity
           </Text>
-          
-          <View style={[styles.activityCard, { backgroundColor: colors.surface }]}>
+
+          <View
+            style={[styles.activityCard, { backgroundColor: colors.surface }]}
+          >
             <View style={styles.activityItem}>
               <Text style={styles.activityIcon}>📱</Text>
               <View style={styles.activityContent}>
                 <Text style={[styles.activityTitle, { color: colors.text }]}>
                   Scanned: Organic Quinoa
                 </Text>
-                <Text style={[styles.activityTime, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.activityTime, { color: colors.textSecondary }]}
+                >
                   2 hours ago • Source: Monash FODMAP Database
                 </Text>
               </View>
@@ -170,14 +191,16 @@ export const BrowseScreen: React.FC = () => {
                 Safe
               </Text>
             </View>
-            
+
             <View style={styles.activityItem}>
               <Text style={styles.activityIcon}>📋</Text>
               <View style={styles.activityContent}>
                 <Text style={[styles.activityTitle, { color: colors.text }]}>
                   Scanned: Restaurant Menu
                 </Text>
-                <Text style={[styles.activityTime, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.activityTime, { color: colors.textSecondary }]}
+                >
                   Yesterday • Source: Restaurant Database
                 </Text>
               </View>
@@ -192,7 +215,9 @@ export const BrowseScreen: React.FC = () => {
                 <Text style={[styles.activityTitle, { color: colors.text }]}>
                   Scanned: Greek Yogurt
                 </Text>
-                <Text style={[styles.activityTime, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.activityTime, { color: colors.textSecondary }]}
+                >
                   3 days ago • Source: USDA Food Database
                 </Text>
               </View>
@@ -208,6 +233,74 @@ export const BrowseScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  activityCard: {
+    borderRadius: 12,
+    padding: Spacing.md,
+  },
+  activityContent: {
+    flex: 1,
+  },
+  activityIcon: {
+    fontSize: 20,
+    marginRight: Spacing.md,
+  },
+  activityItem: {
+    alignItems: 'center',
+    borderBottomColor: Colors.border,
+    borderBottomWidth: 0.5,
+    flexDirection: 'row',
+    paddingVertical: Spacing.sm,
+  },
+  activityStatus: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.bodySmall,
+  },
+  activityTime: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.caption,
+  },
+  activityTitle: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.body,
+    marginBottom: Spacing.xs,
+  },
+  categoriesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+  },
+  categoryCard: {
+    alignItems: 'center',
+    borderRadius: 12,
+    marginBottom: Spacing.md,
+    padding: Spacing.md,
+    width: '48%',
+  },
+  categoryDescription: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.caption,
+    lineHeight: Typography.lineHeight.caption,
+    textAlign: 'center',
+  },
+  categoryIcon: {
+    alignItems: 'center',
+    borderRadius: 24,
+    height: 48,
+    justifyContent: 'center',
+    marginBottom: Spacing.sm,
+    width: 48,
+  },
+  categoryIconText: {
+    fontSize: 24,
+  },
+  categoryTitle: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+    marginBottom: Spacing.xs,
+    textAlign: 'center',
+  },
   container: {
     flex: 1,
   },
@@ -215,90 +308,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
   },
-  title: {
-    fontSize: Typography.fontSize.h1,
-    fontFamily: Typography.fontFamily.bold,
-  },
-  scrollView: {
-    flex: 1,
+  recentSection: {
+    paddingHorizontal: Spacing.lg,
   },
   scrollContent: {
     paddingBottom: Spacing.xxl,
   },
-  categoriesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.xl,
-  },
-  categoryCard: {
-    width: '48%',
-    borderRadius: 12,
-    padding: Spacing.md,
-    marginBottom: Spacing.md,
-    alignItems: 'center',
-  },
-  categoryIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.sm,
-  },
-  categoryIconText: {
-    fontSize: 24,
-  },
-  categoryTitle: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.semiBold,
-    textAlign: 'center',
-    marginBottom: Spacing.xs,
-  },
-  categoryDescription: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
-    textAlign: 'center',
-    lineHeight: Typography.lineHeight.caption,
-  },
-  recentSection: {
-    paddingHorizontal: Spacing.lg,
-  },
-  sectionTitle: {
-    fontSize: Typography.fontSize.h3,
-    fontFamily: Typography.fontFamily.semiBold,
-    marginBottom: Spacing.md,
-  },
-  activityCard: {
-    borderRadius: 12,
-    padding: Spacing.md,
-  },
-  activityItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 0.5,
-    borderBottomColor: Colors.border,
-  },
-  activityIcon: {
-    fontSize: 20,
-    marginRight: Spacing.md,
-  },
-  activityContent: {
+  scrollView: {
     flex: 1,
   },
-  activityTitle: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.medium,
-    marginBottom: Spacing.xs,
-  },
-  activityTime: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
-  },
-  activityStatus: {
-    fontSize: Typography.fontSize.bodySmall,
+  sectionTitle: {
     fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.h3,
+    marginBottom: Spacing.md,
+  },
+  title: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h1,
   },
 });

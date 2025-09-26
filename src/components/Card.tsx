@@ -6,11 +6,9 @@
  */
 
 import React from 'react';
-import {
-  View,
-  StyleSheet,
-  ViewStyle,
-} from 'react-native';
+import type { ViewStyle } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+
 import { Colors } from '../constants/colors';
 import { Spacing, BorderRadius, Shadows } from '../constants/spacing';
 
@@ -27,14 +25,12 @@ export const Card: React.FC<CardProps> = ({
   variant = 'default',
   padding = 'medium',
 }) => {
-  const paddingStyle = styles[`padding${padding.charAt(0).toUpperCase() + padding.slice(1)}` as keyof typeof styles];
-  
-  const cardStyle = [
-    styles.card,
-    styles[variant],
-    paddingStyle,
-    style,
-  ];
+  const paddingStyle =
+    styles[
+      `padding${padding.charAt(0).toUpperCase() + padding.slice(1)}` as keyof typeof styles
+    ];
+
+  const cardStyle = [styles.card, styles[variant], paddingStyle, style];
 
   return <View style={cardStyle}>{children}</View>;
 };
@@ -51,19 +47,19 @@ const styles = StyleSheet.create({
     ...Shadows.md,
   },
   outlined: {
-    borderWidth: 1,
     borderColor: Colors.border,
+    borderWidth: 1,
+  },
+  paddingLarge: {
+    padding: Spacing.lg,
+  },
+  paddingMedium: {
+    padding: Spacing.md,
   },
   paddingNone: {
     padding: 0,
   },
   paddingSmall: {
     padding: Spacing.sm,
-  },
-  paddingMedium: {
-    padding: Spacing.md,
-  },
-  paddingLarge: {
-    padding: Spacing.lg,
   },
 });

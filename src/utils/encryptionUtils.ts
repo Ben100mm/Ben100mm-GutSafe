@@ -37,7 +37,7 @@ export interface DecryptionResult {
 export class EncryptionUtils {
   private static instance: EncryptionUtils;
   private config: EncryptionConfig;
-  private keyCache: Map<string, CryptoKey> = new Map();
+  private readonly keyCache: Map<string, CryptoKey> = new Map();
 
   private constructor() {
     this.config = {
@@ -64,7 +64,10 @@ export class EncryptionUtils {
   }
 
   // Generate encryption key from password
-  private async generateKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
+  private async generateKey(
+    password: string,
+    salt: Uint8Array
+  ): Promise<CryptoKey> {
     const keyMaterial = await crypto.subtle.importKey(
       'raw',
       new TextEncoder().encode(password),
@@ -76,7 +79,7 @@ export class EncryptionUtils {
     return crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: salt,
+        salt: salt.buffer as ArrayBuffer,
         iterations: this.config.iterations,
         hash: 'SHA-256',
       },
@@ -124,20 +127,20 @@ export class EncryptionUtils {
       const encryptionPassword = password || this.getDefaultPassword();
       const salt = this.generateRandomBytes(this.config.saltLength);
       const iv = this.generateRandomBytes(this.config.ivLength);
-      
+
       const key = await this.generateKey(encryptionPassword, salt);
-      
+
       const encrypted = await crypto.subtle.encrypt(
         {
           name: this.config.algorithm,
-          iv: iv,
+          iv: iv.buffer as ArrayBuffer,
         },
         key,
         new TextEncoder().encode(data)
       );
 
       const encryptedArray = new Uint8Array(encrypted);
-      
+
       return {
         encrypted: this.uint8ArrayToBase64(encryptedArray),
         iv: this.uint8ArrayToBase64(iv),
@@ -151,26 +154,29 @@ export class EncryptionUtils {
   }
 
   // Decrypt data
-  async decrypt(encryptionResult: EncryptionResult, password?: string): Promise<DecryptionResult> {
+  async decrypt(
+    encryptionResult: EncryptionResult,
+    password?: string
+  ): Promise<DecryptionResult> {
     try {
       const encryptionPassword = password || this.getDefaultPassword();
       const salt = this.base64ToUint8Array(encryptionResult.salt);
       const iv = this.base64ToUint8Array(encryptionResult.iv);
       const encrypted = this.base64ToUint8Array(encryptionResult.encrypted);
-      
+
       const key = await this.generateKey(encryptionPassword, salt);
-      
+
       const decrypted = await crypto.subtle.decrypt(
         {
           name: this.config.algorithm,
-          iv: iv,
+          iv: iv.buffer as ArrayBuffer,
         },
         key,
-        encrypted
+        encrypted.buffer as ArrayBuffer
       );
 
       const decryptedString = new TextDecoder().decode(decrypted);
-      
+
       return {
         decrypted: decryptedString,
         success: true,
@@ -186,7 +192,10 @@ export class EncryptionUtils {
   }
 
   // Encrypt sensitive data (with additional security)
-  async encryptSensitive(data: string, password?: string): Promise<EncryptionResult> {
+  async encryptSensitive(
+    data: string,
+    password?: string
+  ): Promise<EncryptionResult> {
     try {
       // Add timestamp and random data for additional security
       const timestamp = Date.now().toString();
@@ -205,21 +214,24 @@ export class EncryptionUtils {
   }
 
   // Decrypt sensitive data
-  async decryptSensitive(encryptionResult: EncryptionResult, password?: string): Promise<DecryptionResult> {
+  async decryptSensitive(
+    encryptionResult: EncryptionResult,
+    password?: string
+  ): Promise<DecryptionResult> {
     try {
       const result = await this.decrypt(encryptionResult, password);
-      
+
       if (!result.success) {
         return result;
       }
 
       const parsed = JSON.parse(result.decrypted);
-      
+
       // Verify timestamp (optional security check)
       const timestamp = parseInt(parsed.timestamp);
       const now = Date.now();
       const maxAge = 24 * 60 * 60 * 1000; // 24 hours
-      
+
       if (now - timestamp > maxAge) {
         logger.warn('Decrypted data is too old', 'EncryptionUtils', {
           timestamp,
@@ -264,11 +276,17 @@ export class EncryptionUtils {
   // Generate secure random token
   generateSecureToken(length: number = 32): string {
     const array = this.generateRandomBytes(length);
-    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join(
+      ''
+    );
   }
 
   // Verify data integrity
-  async verifyIntegrity(data: string, hash: string, algorithm: string = 'SHA-256'): Promise<boolean> {
+  async verifyIntegrity(
+    data: string,
+    hash: string,
+    algorithm: string = 'SHA-256'
+  ): Promise<boolean> {
     try {
       const computedHash = await this.hash(data, algorithm);
       return computedHash === hash;
@@ -279,7 +297,10 @@ export class EncryptionUtils {
   }
 
   // Encrypt file data
-  async encryptFile(fileData: ArrayBuffer, password?: string): Promise<EncryptionResult> {
+  async encryptFile(
+    fileData: ArrayBuffer,
+    password?: string
+  ): Promise<EncryptionResult> {
     try {
       const dataString = this.uint8ArrayToBase64(new Uint8Array(fileData));
       return await this.encrypt(dataString, password);
@@ -290,16 +311,19 @@ export class EncryptionUtils {
   }
 
   // Decrypt file data
-  async decryptFile(encryptionResult: EncryptionResult, password?: string): Promise<ArrayBuffer> {
+  async decryptFile(
+    encryptionResult: EncryptionResult,
+    password?: string
+  ): Promise<ArrayBuffer> {
     try {
       const result = await this.decrypt(encryptionResult, password);
-      
+
       if (!result.success) {
         throw new Error(result.error || 'Decryption failed');
       }
 
       const uint8Array = this.base64ToUint8Array(result.decrypted);
-      return uint8Array.buffer;
+      return uint8Array.buffer as ArrayBuffer;
     } catch (error) {
       logger.error('File decryption failed', 'EncryptionUtils', error);
       throw new Error('File decryption failed');
@@ -308,7 +332,7 @@ export class EncryptionUtils {
 
   // Get default password from environment
   private getDefaultPassword(): string {
-    const password = process.env.REACT_APP_ENCRYPTION_KEY;
+    const password = process.env['REACT_APP_ENCRYPTION_KEY'];
     if (!password || password.length < 32) {
       throw new Error('Encryption key not properly configured');
     }
@@ -342,7 +366,7 @@ export class EncryptionUtils {
       const testData = 'This is a test message for encryption verification';
       const encrypted = await this.encrypt(testData, password);
       const decrypted = await this.decrypt(encrypted, password);
-      
+
       return decrypted.success && decrypted.decrypted === testData;
     } catch (error) {
       logger.error('Encryption test failed', 'EncryptionUtils', error);

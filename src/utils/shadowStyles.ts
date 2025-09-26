@@ -28,7 +28,11 @@ export const createShadowStyle = (options: {
 
   if (Platform.OS === 'web') {
     return {
-      boxShadow: `${shadowOffset.width}px ${shadowOffset.height}px ${shadowRadius}px ${shadowColor}${Math.round(shadowOpacity * 255).toString(16).padStart(2, '0')}`,
+      boxShadow: `${shadowOffset.width}px ${shadowOffset.height}px ${shadowRadius}px ${shadowColor}${Math.round(
+        shadowOpacity * 255
+      )
+        .toString(16)
+        .padStart(2, '0')}`,
     };
   }
 
@@ -51,21 +55,21 @@ export const ShadowStyles = {
     shadowRadius: 2,
     elevation: 1,
   }),
-  
+
   medium: createShadowStyle({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   }),
-  
+
   large: createShadowStyle({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 4,
   }),
-  
+
   xlarge: createShadowStyle({
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,

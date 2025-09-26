@@ -5,6 +5,7 @@
  * @private
  */
 
+import { useNavigation } from '@react-navigation/native';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -17,12 +18,11 @@ import {
   Alert,
   Share,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
+import { Typography } from '../constants/typography';
 import UserSettingsService from '../services/UserSettingsService';
-import { UserSettings } from '../types/comprehensive';
+import type { UserSettings } from '../types/comprehensive';
 // import { GutCondition, SeverityLevel } from '../types';
 
 export const UserSettingsScreen: React.FC = () => {
@@ -32,7 +32,14 @@ export const UserSettingsScreen: React.FC = () => {
   const colors = isDark ? Colors.dark : Colors.light;
 
   const [settings, setSettings] = useState<UserSettings | null>(null);
-  const [activeSection, setActiveSection] = useState<'profile' | 'preferences' | 'scanning' | 'notifications' | 'privacy' | 'advanced'>('profile');
+  const [activeSection, setActiveSection] = useState<
+    | 'profile'
+    | 'preferences'
+    | 'scanning'
+    | 'notifications'
+    | 'privacy'
+    | 'advanced'
+  >('profile');
   const userSettingsService = UserSettingsService.getInstance();
 
   useEffect(() => {
@@ -44,20 +51,30 @@ export const UserSettingsScreen: React.FC = () => {
     loadSettings();
 
     // Listen for settings changes
-    const unsubscribe = userSettingsService.addListener((newSettings) => {
-      setSettings(newSettings);
-    });
+    const unsubscribe = userSettingsService.addListener(
+      (newSettings: UserSettings) => {
+        setSettings(newSettings);
+      }
+    );
 
     return unsubscribe;
   }, []);
 
-  const handleSettingChange = async (section: keyof UserSettings, key: string, value: any) => {
+  const handleSettingChange = async (
+    section: keyof UserSettings,
+    key: string,
+    value: any
+  ) => {
     try {
       if (section === 'preferences' && key === 'notifications') {
         // Handle nested notifications updates
         await userSettingsService.updatePreferences({ notifications: value });
       } else {
-        await userSettingsService.setSettingValue(section, key as keyof UserSettings[typeof section], value);
+        await userSettingsService.setSettingValue(
+          section,
+          key as keyof UserSettings[typeof section],
+          value
+        );
       }
     } catch (error) {
       console.error('Failed to update setting:', error);
@@ -84,13 +101,13 @@ export const UserSettingsScreen: React.FC = () => {
       'This will replace your current settings. Are you sure?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Import', 
+        {
+          text: 'Import',
           style: 'destructive',
           onPress: () => {
             // In a real app, you would open a file picker here
             Alert.alert('Import', 'File picker would open here in a real app');
-          }
+          },
         },
       ]
     );
@@ -102,17 +119,23 @@ export const UserSettingsScreen: React.FC = () => {
       'This will reset all settings to default values. Are you sure?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Reset', 
+        {
+          text: 'Reset',
           style: 'destructive',
           onPress: async () => {
             try {
               await userSettingsService.resetSettings();
-              Alert.alert('Success', 'Settings have been reset to default values.');
+              Alert.alert(
+                'Success',
+                'Settings have been reset to default values.'
+              );
             } catch (error) {
-              Alert.alert('Error', 'Failed to reset settings. Please try again.');
+              Alert.alert(
+                'Error',
+                'Failed to reset settings. Please try again.'
+              );
             }
-          }
+          },
         },
       ]
     );
@@ -133,7 +156,9 @@ export const UserSettingsScreen: React.FC = () => {
   if (!settings) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <Text style={[styles.loadingText, { color: colors.text }]}>Loading settings...</Text>
+        <Text style={[styles.loadingText, { color: colors.text }]}>
+          Loading settings...
+        </Text>
       </View>
     );
   }
@@ -146,7 +171,9 @@ export const UserSettingsScreen: React.FC = () => {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={[styles.backButtonText, { color: colors.accent }]}>← Back</Text>
+          <Text style={[styles.backButtonText, { color: colors.accent }]}>
+            ← Back
+          </Text>
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>Settings</Text>
         <View style={styles.headerSpacer} />
@@ -168,7 +195,10 @@ export const UserSettingsScreen: React.FC = () => {
               style={[
                 styles.sectionTab,
                 {
-                  backgroundColor: activeSection === section.key ? colors.accent : 'transparent',
+                  backgroundColor:
+                    activeSection === section.key
+                      ? colors.accent
+                      : 'transparent',
                 },
               ]}
               onPress={() => setActiveSection(section.key as any)}
@@ -180,7 +210,10 @@ export const UserSettingsScreen: React.FC = () => {
                 style={[
                   styles.sectionTabText,
                   {
-                    color: activeSection === section.key ? Colors.white : colors.text,
+                    color:
+                      activeSection === section.key
+                        ? Colors.white
+                        : colors.text,
                   },
                 ]}
               >
@@ -192,29 +225,44 @@ export const UserSettingsScreen: React.FC = () => {
       </View>
 
       {/* Content */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} style={styles.content}>
         {activeSection === 'profile' && (
-          <ProfileSection settings={settings} onSettingChange={handleSettingChange} />
+          <ProfileSection
+            settings={settings}
+            onSettingChange={handleSettingChange}
+          />
         )}
         {activeSection === 'preferences' && (
-          <PreferencesSection settings={settings} onSettingChange={handleSettingChange} />
+          <PreferencesSection
+            settings={settings}
+            onSettingChange={handleSettingChange}
+          />
         )}
         {activeSection === 'scanning' && (
-          <ScanningSection settings={settings} onSettingChange={handleSettingChange} />
+          <ScanningSection
+            settings={settings}
+            onSettingChange={handleSettingChange}
+          />
         )}
         {activeSection === 'notifications' && (
-          <NotificationsSection settings={settings} onSettingChange={handleSettingChange} />
+          <NotificationsSection
+            settings={settings}
+            onSettingChange={handleSettingChange}
+          />
         )}
         {activeSection === 'privacy' && (
-          <PrivacySection settings={settings} onSettingChange={handleSettingChange} />
+          <PrivacySection
+            settings={settings}
+            onSettingChange={handleSettingChange}
+          />
         )}
         {activeSection === 'advanced' && (
-          <AdvancedSection 
+          <AdvancedSection
             settings={settings} 
-            onSettingChange={handleSettingChange}
             onExport={handleExportSettings}
             onImport={handleImportSettings}
             onReset={handleResetSettings}
+            onSettingChange={handleSettingChange}
           />
         )}
       </ScrollView>
@@ -225,37 +273,50 @@ export const UserSettingsScreen: React.FC = () => {
 // Profile Section Component
 const ProfileSection: React.FC<{
   settings: UserSettings;
-  onSettingChange: (section: keyof UserSettings, key: string, value: any) => void;
-}> = ({ settings, onSettingChange }) => {
+  onSettingChange: (
+    section: keyof UserSettings,
+    key: string,
+    value: any
+  ) => void;
+}> = ({ settings }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = isDark ? Colors.dark : Colors.light;
 
-  const enabledConditions = Object.entries(settings.profile.gutProfile.conditions)
-    .filter(([_, condition]) => condition.enabled);
+  const enabledConditions = Object.entries(
+    settings.profile.gutProfile.conditions
+  ).filter(([_, condition]) => condition.enabled);
 
   return (
     <View style={styles.sectionContent}>
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>Profile Information</Text>
-      
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>
+        Profile Information
+      </Text>
+
       {/* Basic Info */}
       <View style={[styles.settingGroup, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.groupTitle, { color: colors.text }]}>Basic Information</Text>
-        
+        <Text style={[styles.groupTitle, { color: colors.text }]}>
+          Basic Information
+        </Text>
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Name</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Name
+          </Text>
           <Text style={[styles.settingValue, { color: colors.textSecondary }]}>
             {settings.profile.name || 'Not set'}
           </Text>
         </View>
-        
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Email</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Email
+          </Text>
           <Text style={[styles.settingValue, { color: colors.textSecondary }]}>
             {settings.profile.email || 'Not set'}
           </Text>
         </View>
-        
+
         <View style={styles.settingItem}>
           <Text style={[styles.settingLabel, { color: colors.text }]}>Age</Text>
           <Text style={[styles.settingValue, { color: colors.textSecondary }]}>
@@ -266,25 +327,39 @@ const ProfileSection: React.FC<{
 
       {/* Gut Profile Summary */}
       <View style={[styles.settingGroup, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.groupTitle, { color: colors.text }]}>Gut Health Profile</Text>
-        
+        <Text style={[styles.groupTitle, { color: colors.text }]}>
+          Gut Health Profile
+        </Text>
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Active Conditions</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Active Conditions
+          </Text>
           <Text style={[styles.settingValue, { color: colors.textSecondary }]}>
-            {enabledConditions.length} condition{enabledConditions.length !== 1 ? 's' : ''}
+            {enabledConditions.length} condition
+            {enabledConditions.length !== 1 ? 's' : ''}
           </Text>
         </View>
-        
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Dietary Restrictions</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Dietary Restrictions
+          </Text>
           <Text style={[styles.settingValue, { color: colors.textSecondary }]}>
-            {settings.profile.gutProfile.preferences.dietaryRestrictions.length} restriction{settings.profile.gutProfile.preferences.dietaryRestrictions.length !== 1 ? 's' : ''}
+            {settings.profile.gutProfile.preferences.dietaryRestrictions.length}{' '}
+            restriction
+            {settings.profile.gutProfile.preferences.dietaryRestrictions
+              .length !== 1
+              ? 's'
+              : ''}
           </Text>
         </View>
-        
+
         <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: colors.accent }]}
-          onPress={() => {/* Navigate to gut profile */}}
+          onPress={() => {
+            /* Navigate to gut profile */
+          }}
         >
           <Text style={[styles.actionButtonText, { color: Colors.white }]}>
             Edit Gut Profile
@@ -298,7 +373,11 @@ const ProfileSection: React.FC<{
 // Preferences Section Component
 const PreferencesSection: React.FC<{
   settings: UserSettings;
-  onSettingChange: (section: keyof UserSettings, key: string, value: any) => void;
+  onSettingChange: (
+    section: keyof UserSettings,
+    key: string,
+    value: any
+  ) => void;
 }> = ({ settings, onSettingChange }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -306,14 +385,20 @@ const PreferencesSection: React.FC<{
 
   return (
     <View style={styles.sectionContent}>
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>App Preferences</Text>
-      
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>
+        App Preferences
+      </Text>
+
       {/* Theme */}
       <View style={[styles.settingGroup, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.groupTitle, { color: colors.text }]}>Appearance</Text>
-        
+        <Text style={[styles.groupTitle, { color: colors.text }]}>
+          Appearance
+        </Text>
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Theme</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Theme
+          </Text>
           <View style={styles.themeButtons}>
             {(['light', 'dark', 'system'] as const).map((theme) => (
               <TouchableOpacity
@@ -321,7 +406,10 @@ const PreferencesSection: React.FC<{
                 style={[
                   styles.themeButton,
                   {
-                    backgroundColor: settings.preferences.theme === theme ? colors.accent : 'transparent',
+                    backgroundColor:
+                      settings.preferences.theme === theme
+                        ? colors.accent
+                        : 'transparent',
                     borderColor: colors.border,
                   },
                 ]}
@@ -331,7 +419,10 @@ const PreferencesSection: React.FC<{
                   style={[
                     styles.themeButtonText,
                     {
-                      color: settings.preferences.theme === theme ? Colors.white : colors.text,
+                      color:
+                        settings.preferences.theme === theme
+                          ? Colors.white
+                          : colors.text,
                       textTransform: 'capitalize',
                     },
                   ]}
@@ -346,47 +437,59 @@ const PreferencesSection: React.FC<{
 
       {/* Notifications */}
       <View style={[styles.settingGroup, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.groupTitle, { color: colors.text }]}>Notifications</Text>
-        
+        <Text style={[styles.groupTitle, { color: colors.text }]}>
+          Notifications
+        </Text>
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Enable Notifications</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Enable Notifications
+          </Text>
           <Switch
+            thumbColor={settings.preferences.notifications.enabled ? colors.accent : colors.textTertiary}
+            trackColor={{ false: colors.border, true: colors.accent + '40' }}
             value={settings.preferences.notifications.enabled}
             onValueChange={(value) => onSettingChange('preferences', 'notifications', { ...settings.preferences.notifications, enabled: value })}
-            trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.preferences.notifications.enabled ? colors.accent : colors.textTertiary}
+            }
           />
         </View>
-        
+
         {settings.preferences.notifications.enabled && (
           <>
             <View style={styles.settingItem}>
-              <Text style={[styles.settingLabel, { color: colors.text }]}>Meal Reminders</Text>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>
+                Meal Reminders
+              </Text>
               <Switch
+                thumbColor={settings.preferences.notifications.mealReminders ? colors.accent : colors.textTertiary}
+                trackColor={{ false: colors.border, true: colors.accent + '40' }}
                 value={settings.preferences.notifications.mealReminders}
                 onValueChange={(value) => onSettingChange('preferences', 'notifications', { ...settings.preferences.notifications, mealReminders: value })}
-                trackColor={{ false: colors.border, true: colors.accent + '40' }}
-                thumbColor={settings.preferences.notifications.mealReminders ? colors.accent : colors.textTertiary}
+                }
               />
             </View>
-            
+
             <View style={styles.settingItem}>
-              <Text style={[styles.settingLabel, { color: colors.text }]}>New Safe Foods</Text>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>
+                New Safe Foods
+              </Text>
               <Switch
+                thumbColor={settings.preferences.notifications.newSafeFoods ? colors.accent : colors.textTertiary}
+                trackColor={{ false: colors.border, true: colors.accent + '40' }}
                 value={settings.preferences.notifications.newSafeFoods}
                 onValueChange={(value) => onSettingChange('preferences', 'notifications', { ...settings.preferences.notifications, newSafeFoods: value })}
-                trackColor={{ false: colors.border, true: colors.accent + '40' }}
-                thumbColor={settings.preferences.notifications.newSafeFoods ? colors.accent : colors.textTertiary}
               />
             </View>
-            
+
             <View style={styles.settingItem}>
-              <Text style={[styles.settingLabel, { color: colors.text }]}>Weekly Reports</Text>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>
+                Weekly Reports
+              </Text>
               <Switch
+                thumbColor={settings.preferences.notifications.weeklyReports ? colors.accent : colors.textTertiary}
+                trackColor={{ false: colors.border, true: colors.accent + '40' }}
                 value={settings.preferences.notifications.weeklyReports}
                 onValueChange={(value) => onSettingChange('preferences', 'notifications', { ...settings.preferences.notifications, weeklyReports: value })}
-                trackColor={{ false: colors.border, true: colors.accent + '40' }}
-                thumbColor={settings.preferences.notifications.weeklyReports ? colors.accent : colors.textTertiary}
               />
             </View>
           </>
@@ -396,20 +499,24 @@ const PreferencesSection: React.FC<{
       {/* Haptics */}
       <View style={[styles.settingGroup, { backgroundColor: colors.surface }]}>
         <Text style={[styles.groupTitle, { color: colors.text }]}>Haptics</Text>
-        
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Enable Haptics</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Enable Haptics
+          </Text>
           <Switch
+            thumbColor={settings.preferences.haptics.enabled ? colors.accent : colors.textTertiary}
+            trackColor={{ false: colors.border, true: colors.accent + '40' }}
             value={settings.preferences.haptics.enabled}
             onValueChange={(value) => onSettingChange('preferences', 'haptics', { ...settings.preferences.haptics, enabled: value })}
-            trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.preferences.haptics.enabled ? colors.accent : colors.textTertiary}
           />
         </View>
-        
+
         {settings.preferences.haptics.enabled && (
           <View style={styles.settingItem}>
-            <Text style={[styles.settingLabel, { color: colors.text }]}>Intensity</Text>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>
+              Intensity
+            </Text>
             <View style={styles.intensityButtons}>
               {(['light', 'medium', 'strong'] as const).map((intensity) => (
                 <TouchableOpacity
@@ -417,17 +524,28 @@ const PreferencesSection: React.FC<{
                   style={[
                     styles.intensityButton,
                     {
-                      backgroundColor: settings.preferences.haptics.intensity === intensity ? colors.accent : 'transparent',
+                      backgroundColor:
+                        settings.preferences.haptics.intensity === intensity
+                          ? colors.accent
+                          : 'transparent',
                       borderColor: colors.border,
                     },
                   ]}
-                  onPress={() => onSettingChange('preferences', 'haptics', { ...settings.preferences.haptics, intensity })}
+                  onPress={() =>
+                    onSettingChange('preferences', 'haptics', {
+                      ...settings.preferences.haptics,
+                      intensity,
+                    })
+                  }
                 >
                   <Text
                     style={[
                       styles.intensityButtonText,
                       {
-                        color: settings.preferences.haptics.intensity === intensity ? Colors.white : colors.text,
+                        color:
+                          settings.preferences.haptics.intensity === intensity
+                            ? Colors.white
+                            : colors.text,
                         textTransform: 'capitalize',
                       },
                     ]}
@@ -443,45 +561,57 @@ const PreferencesSection: React.FC<{
 
       {/* Accessibility */}
       <View style={[styles.settingGroup, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.groupTitle, { color: colors.text }]}>Accessibility</Text>
-        
+        <Text style={[styles.groupTitle, { color: colors.text }]}>
+          Accessibility
+        </Text>
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>VoiceOver Support</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            VoiceOver Support
+          </Text>
           <Switch
+            thumbColor={settings.preferences.accessibility.voiceOver ? colors.accent : colors.textTertiary}
+            trackColor={{ false: colors.border, true: colors.accent + '40' }}
             value={settings.preferences.accessibility.voiceOver}
             onValueChange={(value) => onSettingChange('preferences', 'accessibility', { ...settings.preferences.accessibility, voiceOver: value })}
-            trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.preferences.accessibility.voiceOver ? colors.accent : colors.textTertiary}
+            }
           />
         </View>
-        
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Large Text</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Large Text
+          </Text>
           <Switch
+            thumbColor={settings.preferences.accessibility.largeText ? colors.accent : colors.textTertiary}
+            trackColor={{ false: colors.border, true: colors.accent + '40' }}
             value={settings.preferences.accessibility.largeText}
             onValueChange={(value) => onSettingChange('preferences', 'accessibility', { ...settings.preferences.accessibility, largeText: value })}
-            trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.preferences.accessibility.largeText ? colors.accent : colors.textTertiary}
           />
         </View>
-        
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>High Contrast</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            High Contrast
+          </Text>
           <Switch
+            thumbColor={settings.preferences.accessibility.highContrast ? colors.accent : colors.textTertiary}
+            trackColor={{ false: colors.border, true: colors.accent + '40' }}
             value={settings.preferences.accessibility.highContrast}
             onValueChange={(value) => onSettingChange('preferences', 'accessibility', { ...settings.preferences.accessibility, highContrast: value })}
-            trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.preferences.accessibility.highContrast ? colors.accent : colors.textTertiary}
+            }
           />
         </View>
-        
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Reduce Motion</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Reduce Motion
+          </Text>
           <Switch
+            thumbColor={settings.preferences.accessibility.reducedMotion ? colors.accent : colors.textTertiary}
+            trackColor={{ false: colors.border, true: colors.accent + '40' }}
             value={settings.preferences.accessibility.reducedMotion}
             onValueChange={(value) => onSettingChange('preferences', 'accessibility', { ...settings.preferences.accessibility, reducedMotion: value })}
-            trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.preferences.accessibility.reducedMotion ? colors.accent : colors.textTertiary}
           />
         </View>
       </View>
@@ -492,7 +622,11 @@ const PreferencesSection: React.FC<{
 // Scanning Section Component
 const ScanningSection: React.FC<{
   settings: UserSettings;
-  onSettingChange: (section: keyof UserSettings, key: string, value: any) => void;
+  onSettingChange: (
+    section: keyof UserSettings,
+    key: string,
+    value: any
+  ) => void;
 }> = ({ settings, onSettingChange }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -500,62 +634,79 @@ const ScanningSection: React.FC<{
 
   return (
     <View style={styles.sectionContent}>
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>Scanning Preferences</Text>
-      
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>
+        Scanning Preferences
+      </Text>
+
       <View style={[styles.settingGroup, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.groupTitle, { color: colors.text }]}>Analysis Settings</Text>
-        
+        <Text style={[styles.groupTitle, { color: colors.text }]}>
+          Analysis Settings
+        </Text>
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Auto-Analyze</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Auto-Analyze
+          </Text>
           <Switch
+            thumbColor={settings.scanning?.autoScan ? colors.accent : colors.textTertiary}
+            trackColor={{ false: colors.border, true: colors.accent + '40' }}
             value={settings.scanning?.autoScan || false}
             onValueChange={(value) => onSettingChange('scanning', 'autoScan', value)}
-            trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.scanning?.autoScan ? colors.accent : colors.textTertiary}
           />
         </View>
-        
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Show Detailed Analysis</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Show Detailed Analysis
+          </Text>
           <Switch
+            thumbColor={settings.scanning?.showDetailedAnalysis ? colors.accent : colors.textTertiary}
+            trackColor={{ false: colors.border, true: colors.accent + '40' }}
             value={settings.scanning?.showDetailedAnalysis || false}
             onValueChange={(value) => onSettingChange('scanning', 'showDetailedAnalysis', value)}
-            trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.scanning?.showDetailedAnalysis ? colors.accent : colors.textTertiary}
+            }
           />
         </View>
-        
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Include Alternatives</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Include Alternatives
+          </Text>
           <Switch
+            thumbColor={settings.scanning?.includeAlternatives ? colors.accent : colors.textTertiary}
+            trackColor={{ false: colors.border, true: colors.accent + '40' }}
             value={settings.scanning?.includeAlternatives || false}
             onValueChange={(value) => onSettingChange('scanning', 'includeAlternatives', value)}
-            trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.scanning?.includeAlternatives ? colors.accent : colors.textTertiary}
           />
         </View>
       </View>
 
       <View style={[styles.settingGroup, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.groupTitle, { color: colors.text }]}>Data Management</Text>
-        
+        <Text style={[styles.groupTitle, { color: colors.text }]}>
+          Data Management
+        </Text>
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Cache Results</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Cache Results
+          </Text>
           <Switch
+            thumbColor={settings.scanning?.cacheResults ? colors.accent : colors.textTertiary}
+            trackColor={{ false: colors.border, true: colors.accent + '40' }}
             value={settings.scanning?.cacheResults || false}
             onValueChange={(value) => onSettingChange('scanning', 'cacheResults', value)}
-            trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.scanning?.cacheResults ? colors.accent : colors.textTertiary}
           />
         </View>
-        
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Offline Mode</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Offline Mode
+          </Text>
           <Switch
+            thumbColor={settings.scanning?.offlineMode ? colors.accent : colors.textTertiary}
+            trackColor={{ false: colors.border, true: colors.accent + '40' }}
             value={settings.scanning?.offlineMode || false}
             onValueChange={(value) => onSettingChange('scanning', 'offlineMode', value)}
-            trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.scanning?.offlineMode ? colors.accent : colors.textTertiary}
           />
         </View>
       </View>
@@ -566,7 +717,11 @@ const ScanningSection: React.FC<{
 // Notifications Section Component
 const NotificationsSection: React.FC<{
   settings: UserSettings;
-  onSettingChange: (section: keyof UserSettings, key: string, value: any) => void;
+  onSettingChange: (
+    section: keyof UserSettings,
+    key: string,
+    value: any
+  ) => void;
 }> = ({ settings, onSettingChange }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -574,70 +729,90 @@ const NotificationsSection: React.FC<{
 
   return (
     <View style={styles.sectionContent}>
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>Notification Settings</Text>
-      
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>
+        Notification Settings
+      </Text>
+
       <View style={[styles.settingGroup, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.groupTitle, { color: colors.text }]}>Notification Types</Text>
-        
+        <Text style={[styles.groupTitle, { color: colors.text }]}>
+          Notification Types
+        </Text>
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Meal Reminders</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Meal Reminders
+          </Text>
           <Switch
+            thumbColor={settings?.preferences?.notifications?.mealReminders ? colors.accent : colors.textTertiary}
+            trackColor={{ false: colors.border, true: colors.accent + '40' }}
             value={settings?.preferences?.notifications?.mealReminders ?? true}
             onValueChange={(value) => onSettingChange('preferences', 'notifications', { 
               ...settings?.preferences?.notifications, 
               mealReminders: value 
             })}
-            trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings?.preferences?.notifications?.mealReminders ? colors.accent : colors.textTertiary}
           />
         </View>
-        
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>New Safe Foods</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            New Safe Foods
+          </Text>
           <Switch
+            thumbColor={settings?.preferences?.notifications?.newSafeFoods ? colors.accent : colors.textTertiary}
+            trackColor={{ false: colors.border, true: colors.accent + '40' }}
             value={settings?.preferences?.notifications?.newSafeFoods ?? true}
             onValueChange={(value) => onSettingChange('preferences', 'notifications', { 
               ...settings?.preferences?.notifications, 
               newSafeFoods: value 
             })}
-            trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings?.preferences?.notifications?.newSafeFoods ? colors.accent : colors.textTertiary}
+            }
           />
         </View>
-        
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Scan Reminders</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Scan Reminders
+          </Text>
           <Switch
+            thumbColor={settings?.preferences?.notifications?.scanReminders ? colors.accent : colors.textTertiary}
+            trackColor={{ false: colors.border, true: colors.accent + '40' }}
             value={settings?.preferences?.notifications?.scanReminders ?? false}
             onValueChange={(value) => onSettingChange('preferences', 'notifications', { 
               ...settings?.preferences?.notifications, 
               scanReminders: value 
             })}
-            trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings?.preferences?.notifications?.scanReminders ? colors.accent : colors.textTertiary}
+            }
           />
         </View>
-        
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Weekly Reports</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Weekly Reports
+          </Text>
           <Switch
+            thumbColor={settings?.preferences?.notifications?.weeklyReports ? colors.accent : colors.textTertiary}
+            trackColor={{ false: colors.border, true: colors.accent + '40' }}
             value={settings?.preferences?.notifications?.weeklyReports ?? true}
             onValueChange={(value) => onSettingChange('preferences', 'notifications', { 
               ...settings?.preferences?.notifications, 
               weeklyReports: value 
             })}
-            trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings?.preferences?.notifications?.weeklyReports ? colors.accent : colors.textTertiary}
           />
         </View>
       </View>
 
       <View style={[styles.settingGroup, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.groupTitle, { color: colors.text }]}>Quiet Hours</Text>
-        
+        <Text style={[styles.groupTitle, { color: colors.text }]}>
+          Quiet Hours
+        </Text>
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Enable Quiet Hours</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Enable Quiet Hours
+          </Text>
           <Switch
+            thumbColor={settings?.preferences?.notifications?.quietHours?.enabled ? colors.accent : colors.textTertiary}
+            trackColor={{ false: colors.border, true: colors.accent + '40' }}
             value={settings?.preferences?.notifications?.quietHours?.enabled ?? false}
             onValueChange={(value) => onSettingChange('preferences', 'notifications', { 
               ...settings?.preferences?.notifications, 
@@ -646,24 +821,32 @@ const NotificationsSection: React.FC<{
                 enabled: value 
               }
             })}
-            trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings?.preferences?.notifications?.quietHours?.enabled ? colors.accent : colors.textTertiary}
           />
         </View>
-        
+
         {settings?.preferences?.notifications?.quietHours?.enabled && (
           <>
             <View style={styles.settingItem}>
-              <Text style={[styles.settingLabel, { color: colors.text }]}>Start Time</Text>
-              <Text style={[styles.settingValue, { color: colors.textSecondary }]}>
-                {settings?.preferences?.notifications?.quietHours?.start || '22:00'}
+              <Text style={[styles.settingLabel, { color: colors.text }]}>
+                Start Time
+              </Text>
+              <Text
+                style={[styles.settingValue, { color: colors.textSecondary }]}
+              >
+                {settings?.preferences?.notifications?.quietHours?.start ||
+                  '22:00'}
               </Text>
             </View>
-            
+
             <View style={styles.settingItem}>
-              <Text style={[styles.settingLabel, { color: colors.text }]}>End Time</Text>
-              <Text style={[styles.settingValue, { color: colors.textSecondary }]}>
-                {settings?.preferences?.notifications?.quietHours?.end || '08:00'}
+              <Text style={[styles.settingLabel, { color: colors.text }]}>
+                End Time
+              </Text>
+              <Text
+                style={[styles.settingValue, { color: colors.textSecondary }]}
+              >
+                {settings?.preferences?.notifications?.quietHours?.end ||
+                  '08:00'}
               </Text>
             </View>
           </>
@@ -672,7 +855,9 @@ const NotificationsSection: React.FC<{
 
       <TouchableOpacity
         style={[styles.actionButton, { backgroundColor: colors.accent }]}
-        onPress={() => {/* Navigate to detailed notification settings */}}
+        onPress={() => {
+          /* Navigate to detailed notification settings */
+        }}
       >
         <Text style={[styles.actionButtonText, { color: Colors.white }]}>
           Advanced Notification Settings
@@ -685,7 +870,11 @@ const NotificationsSection: React.FC<{
 // Privacy Section Component
 const PrivacySection: React.FC<{
   settings: UserSettings;
-  onSettingChange: (section: keyof UserSettings, key: string, value: any) => void;
+  onSettingChange: (
+    section: keyof UserSettings,
+    key: string,
+    value: any
+  ) => void;
 }> = ({ settings, onSettingChange }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -693,48 +882,60 @@ const PrivacySection: React.FC<{
 
   return (
     <View style={styles.sectionContent}>
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>Privacy & Data</Text>
-      
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>
+        Privacy & Data
+      </Text>
+
       <View style={[styles.settingGroup, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.groupTitle, { color: colors.text }]}>Data Sharing</Text>
-        
+        <Text style={[styles.groupTitle, { color: colors.text }]}>
+          Data Sharing
+        </Text>
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Share Data for Research</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Share Data for Research
+          </Text>
           <Switch
+            thumbColor={settings.privacy.dataSharing ? colors.accent : colors.textTertiary}
+            trackColor={{ false: colors.border, true: colors.accent + '40' }}
             value={settings.privacy.dataSharing}
             onValueChange={(value) => onSettingChange('privacy', 'dataSharing', value)}
-            trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.privacy.dataSharing ? colors.accent : colors.textTertiary}
           />
         </View>
-        
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Analytics</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Analytics
+          </Text>
           <Switch
+            thumbColor={settings.privacy.analytics ? colors.accent : colors.textTertiary}
+            trackColor={{ false: colors.border, true: colors.accent + '40' }}
             value={settings.privacy.analytics}
             onValueChange={(value) => onSettingChange('privacy', 'analytics', value)}
-            trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.privacy.analytics ? colors.accent : colors.textTertiary}
           />
         </View>
-        
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Crash Reporting</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Crash Reporting
+          </Text>
           <Switch
+            thumbColor={settings.privacy.crashReporting ? colors.accent : colors.textTertiary}
+            trackColor={{ false: colors.border, true: colors.accent + '40' }}
             value={settings.privacy.crashReporting}
             onValueChange={(value) => onSettingChange('privacy', 'crashReporting', value)}
-            trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.privacy.crashReporting ? colors.accent : colors.textTertiary}
           />
         </View>
-        
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Personalized Ads</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Personalized Ads
+          </Text>
           <Switch
+            thumbColor={settings.privacy.personalizedAds ? colors.accent : colors.textTertiary}
+            trackColor={{ false: colors.border, true: colors.accent + '40' }}
             value={settings.privacy.personalizedAds}
             onValueChange={(value) => onSettingChange('privacy', 'personalizedAds', value)}
-            trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.privacy.personalizedAds ? colors.accent : colors.textTertiary}
           />
         </View>
       </View>
@@ -745,7 +946,11 @@ const PrivacySection: React.FC<{
 // Advanced Section Component
 const AdvancedSection: React.FC<{
   settings: UserSettings;
-  onSettingChange: (section: keyof UserSettings, key: string, value: any) => void;
+  onSettingChange: (
+    section: keyof UserSettings,
+    key: string,
+    value: any
+  ) => void;
   onExport: () => void;
   onImport: () => void;
   onReset: () => void;
@@ -756,23 +961,32 @@ const AdvancedSection: React.FC<{
 
   return (
     <View style={styles.sectionContent}>
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>Advanced Settings</Text>
-      
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>
+        Advanced Settings
+      </Text>
+
       <View style={[styles.settingGroup, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.groupTitle, { color: colors.text }]}>Debug & Logging</Text>
-        
+        <Text style={[styles.groupTitle, { color: colors.text }]}>
+          Debug & Logging
+        </Text>
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Debug Mode</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Debug Mode
+          </Text>
           <Switch
+            thumbColor={settings.advanced?.debugMode ? colors.accent : colors.textTertiary}
+            trackColor={{ false: colors.border, true: colors.accent + '40' }}
             value={settings.advanced?.debugMode || false}
             onValueChange={(value) => onSettingChange('advanced', 'debugMode', value)}
-            trackColor={{ false: colors.border, true: colors.accent + '40' }}
-            thumbColor={settings.advanced?.debugMode ? colors.accent : colors.textTertiary}
+            }
           />
         </View>
-        
+
         <View style={styles.settingItem}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>Log Level</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>
+            Log Level
+          </Text>
           <View style={styles.logLevelButtons}>
             {(['error', 'warn', 'info', 'debug'] as const).map((level) => (
               <TouchableOpacity
@@ -780,7 +994,10 @@ const AdvancedSection: React.FC<{
                 style={[
                   styles.logLevelButton,
                   {
-                    backgroundColor: settings.advanced?.logLevel === level ? colors.accent : 'transparent',
+                    backgroundColor:
+                      settings.advanced?.logLevel === level
+                        ? colors.accent
+                        : 'transparent',
                     borderColor: colors.border,
                   },
                 ]}
@@ -790,7 +1007,10 @@ const AdvancedSection: React.FC<{
                   style={[
                     styles.logLevelButtonText,
                     {
-                      color: settings.advanced?.logLevel === level ? Colors.white : colors.text,
+                      color:
+                        settings.advanced?.logLevel === level
+                          ? Colors.white
+                          : colors.text,
                       textTransform: 'uppercase',
                     },
                   ]}
@@ -804,8 +1024,10 @@ const AdvancedSection: React.FC<{
       </View>
 
       <View style={[styles.settingGroup, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.groupTitle, { color: colors.text }]}>Data Management</Text>
-        
+        <Text style={[styles.groupTitle, { color: colors.text }]}>
+          Data Management
+        </Text>
+
         <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: colors.accent }]}
           onPress={onExport}
@@ -814,16 +1036,23 @@ const AdvancedSection: React.FC<{
             Export Settings
           </Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]}
+          style={[
+            styles.actionButton,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              borderWidth: 1,
+            },
+          ]}
           onPress={onImport}
         >
           <Text style={[styles.actionButtonText, { color: colors.text }]}>
             Import Settings
           </Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: Colors.avoid }]}
           onPress={onReset}
@@ -838,8 +1067,34 @@ const AdvancedSection: React.FC<{
 };
 
 const styles = StyleSheet.create({
+  actionButton: {
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  actionButtonText: {
+    fontSize: Typography.fontSize.body,
+    fontFamily: Typography.fontFamily.semiBold,
+  },
+  backButton: {
+    padding: Spacing.sm,
+  },
+  backButtonText: {
+    fontSize: Typography.fontSize.body,
+    fontFamily: Typography.fontFamily.semiBold,
+  },
   container: {
     flex: 1,
+  },
+  content: {
+    flex: 1,
+  },
+  groupTitle: {
+    fontSize: Typography.fontSize.h4,
+    fontFamily: Typography.fontFamily.semiBold,
+    marginBottom: Spacing.md,
   },
   header: {
     flexDirection: 'row',
@@ -849,21 +1104,49 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(15, 82, 87, 0.1)',
   },
-  backButton: {
-    padding: Spacing.sm,
-  },
-  backButtonText: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.semiBold,
-  },
-  title: {
-    fontSize: Typography.fontSize.h2,
-    fontFamily: Typography.fontFamily.bold,
-    flex: 1,
-    textAlign: 'center',
-  },
   headerSpacer: {
     width: 60, // Same width as back button for centering
+  },
+  intensityButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+  },
+  intensityButtonText: {
+    fontSize: Typography.fontSize.bodySmall,
+    fontFamily: Typography.fontFamily.medium,
+  },
+  intensityButtons: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  loadingText: {
+    fontSize: Typography.fontSize.body,
+    fontFamily: Typography.fontFamily.regular,
+    textAlign: 'center',
+    marginTop: Spacing.xxl,
+  },
+  logLevelButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+  },
+  logLevelButtonText: {
+    fontSize: Typography.fontSize.bodySmall,
+    fontFamily: Typography.fontFamily.medium,
+  },
+  logLevelButtons: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  sectionContent: {
+    padding: Spacing.lg,
+  },
+  sectionIcon: {
+    fontSize: 16,
+    marginRight: Spacing.xs,
   },
   sectionNav: {
     paddingHorizontal: Spacing.lg,
@@ -879,19 +1162,9 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     marginRight: Spacing.sm,
   },
-  sectionIcon: {
-    fontSize: 16,
-    marginRight: Spacing.xs,
-  },
   sectionTabText: {
     fontSize: Typography.fontSize.bodySmall,
     fontFamily: Typography.fontFamily.semiBold,
-  },
-  content: {
-    flex: 1,
-  },
-  sectionContent: {
-    padding: Spacing.lg,
   },
   sectionTitle: {
     fontSize: Typography.fontSize.h3,
@@ -902,11 +1175,6 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     marginBottom: Spacing.lg,
-  },
-  groupTitle: {
-    fontSize: Typography.fontSize.h4,
-    fontFamily: Typography.fontFamily.semiBold,
-    marginBottom: Spacing.md,
   },
   settingItem: {
     flexDirection: 'row',
@@ -925,10 +1193,6 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.body,
     fontFamily: Typography.fontFamily.regular,
   },
-  themeButtons: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
   themeButton: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
@@ -939,49 +1203,14 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.bodySmall,
     fontFamily: Typography.fontFamily.medium,
   },
-  intensityButtons: {
+  themeButtons: {
     flexDirection: 'row',
     gap: Spacing.sm,
   },
-  intensityButton: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-  },
-  intensityButtonText: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.medium,
-  },
-  logLevelButtons: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  logLevelButton: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-  },
-  logLevelButtonText: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.medium,
-  },
-  actionButton: {
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  actionButtonText: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.semiBold,
-  },
-  loadingText: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.regular,
+  title: {
+    fontSize: Typography.fontSize.h2,
+    fontFamily: Typography.fontFamily.bold,
+    flex: 1,
     textAlign: 'center',
-    marginTop: Spacing.xxl,
   },
 });

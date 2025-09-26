@@ -5,10 +5,9 @@
  * @private
  */
 
+import type { Result, NetworkError } from '../types/comprehensive';
 import { logger } from '../utils/logger';
 import { retryUtils } from '../utils/retryUtils';
-import { errorHandler } from '../utils/errorHandler';
-import { Result, NetworkError } from '../types/comprehensive';
 
 // OpenFoodFacts API Configuration
 const OPENFOODFACTS_CONFIG = {
@@ -92,8 +91,9 @@ export interface ProductResponse {
  */
 class OpenFoodFactsService {
   private static instance: OpenFoodFactsService;
-  private cache: Map<string, { data: any; timestamp: number }> = new Map();
-  private cacheTimeout = 60 * 60 * 1000; // 1 hour
+  private readonly cache: Map<string, { data: any; timestamp: number }> =
+    new Map();
+  private readonly cacheTimeout = 60 * 60 * 1000; // 1 hour
 
   private constructor() {}
 
@@ -107,12 +107,14 @@ class OpenFoodFactsService {
   /**
    * Search for products by barcode
    */
-  async getProductByBarcode(barcode: string): Promise<Result<OpenFoodFactsProduct | null, NetworkError>> {
-    return errorHandler.withErrorHandling(async () => {
+  async getProductByBarcode(
+    barcode: string
+  ): Promise<Result<OpenFoodFactsProduct | null, NetworkError>> {
+    try {
       const cacheKey = `product_${barcode}`;
       const cached = this.getCachedData(cacheKey);
       if (cached) {
-        return cached;
+        return { success: true, data: cached as OpenFoodFactsProduct };
       }
 
       const result = await retryUtils.retryApiCall(
@@ -122,26 +124,51 @@ class OpenFoodFactsService {
       );
 
       if (result.success && result.data) {
-        this.setCachedData(cacheKey, result.data);
+        if (result.data.success && result.data.data) {
+          this.setCachedData(cacheKey, result.data.data);
+          return { success: true, data: result.data.data };
+        } else {
+          return { success: true, data: null };
+        }
+      } else {
+        return {
+          success: false,
+          error: {
+            code: 'NETWORK_ERROR',
+            message: 'Failed to fetch product from OpenFoodFacts',
+            details: { barcode },
+            timestamp: new Date(),
+          },
+        };
       }
-
-      return result;
-    }, {
-      operation: 'getProductByBarcode',
-      service: 'OpenFoodFactsService',
-      additionalData: { barcode }
-    }, 'OpenFoodFactsService');
+    } catch (error) {
+      logger.error('Error getting product by barcode', 'OpenFoodFactsService', {
+        barcode,
+        error,
+      });
+      return {
+        success: false,
+        error: {
+          code: 'NETWORK_ERROR',
+          message: 'Failed to fetch product from OpenFoodFacts',
+          details: { barcode },
+          timestamp: new Date(),
+        },
+      };
+    }
   }
 
   /**
    * Search for products by name
    */
-  async searchProducts(params: SearchParams): Promise<Result<SearchResponse, NetworkError>> {
-    return errorHandler.withErrorHandling(async () => {
+  async searchProducts(
+    params: SearchParams
+  ): Promise<Result<SearchResponse, NetworkError>> {
+    try {
       const cacheKey = `search_${JSON.stringify(params)}`;
       const cached = this.getCachedData(cacheKey);
       if (cached) {
-        return cached;
+        return { success: true, data: cached as SearchResponse };
       }
 
       const result = await retryUtils.retryApiCall(
@@ -151,26 +178,57 @@ class OpenFoodFactsService {
       );
 
       if (result.success && result.data) {
-        this.setCachedData(cacheKey, result.data);
+        if (result.data.success && result.data.data) {
+          this.setCachedData(cacheKey, result.data.data);
+          return { success: true, data: result.data.data };
+        } else {
+          return {
+            success: false,
+            error: {
+              code: 'NETWORK_ERROR',
+              message: 'Failed to search products from OpenFoodFacts',
+              details: { params },
+              timestamp: new Date(),
+            },
+          };
+        }
+      } else {
+        return {
+          success: false,
+          error: {
+            code: 'NETWORK_ERROR',
+            message: 'Failed to search products from OpenFoodFacts',
+            details: { params },
+            timestamp: new Date(),
+          },
+        };
       }
-
-      return result;
-    }, {
-      operation: 'searchProducts',
-      service: 'OpenFoodFactsService',
-      additionalData: { params }
-    }, 'OpenFoodFactsService');
+    } catch (error) {
+      logger.error('Error searching products', 'OpenFoodFactsService', {
+        params,
+        error,
+      });
+      return {
+        success: false,
+        error: {
+          code: 'NETWORK_ERROR',
+          message: 'Failed to search products from OpenFoodFacts',
+          details: { params },
+          timestamp: new Date(),
+        },
+      };
+    }
   }
 
   /**
    * Get product categories
    */
   async getCategories(): Promise<Result<string[], NetworkError>> {
-    return errorHandler.withErrorHandling(async () => {
+    try {
       const cacheKey = 'categories';
       const cached = this.getCachedData(cacheKey);
       if (cached) {
-        return cached;
+        return { success: true, data: cached as string[] };
       }
 
       const result = await retryUtils.retryApiCall(
@@ -180,26 +238,56 @@ class OpenFoodFactsService {
       );
 
       if (result.success && result.data) {
-        this.setCachedData(cacheKey, result.data);
+        if (result.data.success && result.data.data) {
+          this.setCachedData(cacheKey, result.data.data);
+          return { success: true, data: result.data.data };
+        } else {
+          return {
+            success: false,
+            error: {
+              code: 'NETWORK_ERROR',
+              message: 'Failed to fetch categories from OpenFoodFacts',
+              details: {},
+              timestamp: new Date(),
+            },
+          };
+        }
+      } else {
+        return {
+          success: false,
+          error: {
+            code: 'NETWORK_ERROR',
+            message: 'Failed to fetch categories from OpenFoodFacts',
+            details: {},
+            timestamp: new Date(),
+          },
+        };
       }
-
-      return result;
-    }, {
-      operation: 'getCategories',
-      service: 'OpenFoodFactsService',
-      additionalData: {}
-    }, 'OpenFoodFactsService');
+    } catch (error) {
+      logger.error('Error getting categories', 'OpenFoodFactsService', {
+        error,
+      });
+      return {
+        success: false,
+        error: {
+          code: 'NETWORK_ERROR',
+          message: 'Failed to fetch categories from OpenFoodFacts',
+          details: {},
+          timestamp: new Date(),
+        },
+      };
+    }
   }
 
   /**
    * Get product labels
    */
   async getLabels(): Promise<Result<string[], NetworkError>> {
-    return errorHandler.withErrorHandling(async () => {
+    try {
       const cacheKey = 'labels';
       const cached = this.getCachedData(cacheKey);
       if (cached) {
-        return cached;
+        return { success: true, data: cached as string[] };
       }
 
       const result = await retryUtils.retryApiCall(
@@ -209,29 +297,62 @@ class OpenFoodFactsService {
       );
 
       if (result.success && result.data) {
-        this.setCachedData(cacheKey, result.data);
+        if (result.data.success && result.data.data) {
+          this.setCachedData(cacheKey, result.data.data);
+          return { success: true, data: result.data.data };
+        } else {
+          return {
+            success: false,
+            error: {
+              code: 'NETWORK_ERROR',
+              message: 'Failed to fetch labels from OpenFoodFacts',
+              details: {},
+              timestamp: new Date(),
+            },
+          };
+        }
+      } else {
+        return {
+          success: false,
+          error: {
+            code: 'NETWORK_ERROR',
+            message: 'Failed to fetch labels from OpenFoodFacts',
+            details: {},
+            timestamp: new Date(),
+          },
+        };
       }
-
-      return result;
-    }, {
-      operation: 'getLabels',
-      service: 'OpenFoodFactsService',
-      additionalData: {}
-    }, 'OpenFoodFactsService');
+    } catch (error) {
+      logger.error('Error getting labels', 'OpenFoodFactsService', { error });
+      return {
+        success: false,
+        error: {
+          code: 'NETWORK_ERROR',
+          message: 'Failed to fetch labels from OpenFoodFacts',
+          details: {},
+          timestamp: new Date(),
+        },
+      };
+    }
   }
 
   /**
    * Fetch product by barcode from API
    */
-  private async fetchProductByBarcode(barcode: string): Promise<Result<OpenFoodFactsProduct | null, NetworkError>> {
+  private async fetchProductByBarcode(
+    barcode: string
+  ): Promise<Result<OpenFoodFactsProduct | null, NetworkError>> {
     try {
-      const response = await fetch(`${OPENFOODFACTS_CONFIG.baseUrl}/product/${barcode}.json`, {
-        signal: AbortSignal.timeout(OPENFOODFACTS_CONFIG.timeout),
-        headers: {
-          'User-Agent': OPENFOODFACTS_CONFIG.userAgent,
-          'Accept': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `${OPENFOODFACTS_CONFIG.baseUrl}/product/${barcode}.json`,
+        {
+          signal: AbortSignal.timeout(OPENFOODFACTS_CONFIG.timeout),
+          headers: {
+            'User-Agent': OPENFOODFACTS_CONFIG.userAgent,
+            Accept: 'application/json',
+          },
+        }
+      );
 
       if (!response.ok) {
         const networkError: NetworkError = {
@@ -241,30 +362,35 @@ class OpenFoodFactsService {
           url: response.url,
           method: 'GET',
           timestamp: new Date(),
-          details: { barcode }
+          details: { barcode },
         };
         return { success: false, error: networkError };
       }
 
       const data: ProductResponse = await response.json();
-      const product = data.status === 1 ? data.product : null;
-      
-      logger.info('OpenFoodFacts product fetched', 'OpenFoodFactsService', { 
-        barcode, 
+      const product = data.status === 1 ? data.product || null : null;
+
+      logger.info('OpenFoodFacts product fetched', 'OpenFoodFactsService', {
+        barcode,
         found: !!product,
-        status: data.status 
+        status: data.status,
       });
 
       return { success: true, data: product };
     } catch (error) {
       const networkError: NetworkError = {
         code: 'NETWORK_ERROR',
-        message: error instanceof Error ? error.message : 'Network request failed',
+        message:
+          error instanceof Error ? error.message : 'Network request failed',
         timestamp: new Date(),
-        details: { barcode, error }
+        details: { barcode, error },
       };
-      
-      logger.error('OpenFoodFacts product fetch failed', 'OpenFoodFactsService', { barcode, error });
+
+      logger.error(
+        'OpenFoodFacts product fetch failed',
+        'OpenFoodFactsService',
+        { barcode, error }
+      );
       return { success: false, error: networkError };
     }
   }
@@ -272,7 +398,9 @@ class OpenFoodFactsService {
   /**
    * Fetch search results from API
    */
-  private async fetchSearchResults(params: SearchParams): Promise<Result<SearchResponse, NetworkError>> {
+  private async fetchSearchResults(
+    params: SearchParams
+  ): Promise<Result<SearchResponse, NetworkError>> {
     try {
       const searchParams = new URLSearchParams({
         search_terms: params.search_terms,
@@ -283,13 +411,16 @@ class OpenFoodFactsService {
         sort_by: params.sort_by || 'popularity',
       });
 
-      const response = await fetch(`${OPENFOODFACTS_CONFIG.baseUrl}/cgi/search.pl?${searchParams}`, {
-        signal: AbortSignal.timeout(OPENFOODFACTS_CONFIG.timeout),
-        headers: {
-          'User-Agent': OPENFOODFACTS_CONFIG.userAgent,
-          'Accept': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `${OPENFOODFACTS_CONFIG.baseUrl}/cgi/search.pl?${searchParams}`,
+        {
+          signal: AbortSignal.timeout(OPENFOODFACTS_CONFIG.timeout),
+          headers: {
+            'User-Agent': OPENFOODFACTS_CONFIG.userAgent,
+            Accept: 'application/json',
+          },
+        }
+      );
 
       if (!response.ok) {
         const networkError: NetworkError = {
@@ -299,29 +430,33 @@ class OpenFoodFactsService {
           url: response.url,
           method: 'GET',
           timestamp: new Date(),
-          details: { params }
+          details: { params },
         };
         return { success: false, error: networkError };
       }
 
       const data: SearchResponse = await response.json();
-      
-      logger.info('OpenFoodFacts search completed', 'OpenFoodFactsService', { 
+
+      logger.info('OpenFoodFacts search completed', 'OpenFoodFactsService', {
         query: params.search_terms,
         results: data.products?.length || 0,
-        total: data.count 
+        total: data.count,
       });
 
       return { success: true, data };
     } catch (error) {
       const networkError: NetworkError = {
         code: 'NETWORK_ERROR',
-        message: error instanceof Error ? error.message : 'Network request failed',
+        message:
+          error instanceof Error ? error.message : 'Network request failed',
         timestamp: new Date(),
-        details: { params, error }
+        details: { params, error },
       };
-      
-      logger.error('OpenFoodFacts search failed', 'OpenFoodFactsService', { params, error });
+
+      logger.error('OpenFoodFacts search failed', 'OpenFoodFactsService', {
+        params,
+        error,
+      });
       return { success: false, error: networkError };
     }
   }
@@ -331,13 +466,16 @@ class OpenFoodFactsService {
    */
   private async fetchCategories(): Promise<Result<string[], NetworkError>> {
     try {
-      const response = await fetch(`${OPENFOODFACTS_CONFIG.baseUrl}/categories.json`, {
-        signal: AbortSignal.timeout(OPENFOODFACTS_CONFIG.timeout),
-        headers: {
-          'User-Agent': OPENFOODFACTS_CONFIG.userAgent,
-          'Accept': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `${OPENFOODFACTS_CONFIG.baseUrl}/categories.json`,
+        {
+          signal: AbortSignal.timeout(OPENFOODFACTS_CONFIG.timeout),
+          headers: {
+            'User-Agent': OPENFOODFACTS_CONFIG.userAgent,
+            Accept: 'application/json',
+          },
+        }
+      );
 
       if (!response.ok) {
         const networkError: NetworkError = {
@@ -347,24 +485,29 @@ class OpenFoodFactsService {
           url: response.url,
           method: 'GET',
           timestamp: new Date(),
-          details: {}
+          details: {},
         };
         return { success: false, error: networkError };
       }
 
       const data = await response.json();
       const categories = Object.keys(data.tags || {});
-      
+
       return { success: true, data: categories };
     } catch (error) {
       const networkError: NetworkError = {
         code: 'NETWORK_ERROR',
-        message: error instanceof Error ? error.message : 'Network request failed',
+        message:
+          error instanceof Error ? error.message : 'Network request failed',
         timestamp: new Date(),
-        details: { error }
+        details: { error },
       };
-      
-      logger.error('OpenFoodFacts categories fetch failed', 'OpenFoodFactsService', { error });
+
+      logger.error(
+        'OpenFoodFacts categories fetch failed',
+        'OpenFoodFactsService',
+        { error }
+      );
       return { success: false, error: networkError };
     }
   }
@@ -374,13 +517,16 @@ class OpenFoodFactsService {
    */
   private async fetchLabels(): Promise<Result<string[], NetworkError>> {
     try {
-      const response = await fetch(`${OPENFOODFACTS_CONFIG.baseUrl}/labels.json`, {
-        signal: AbortSignal.timeout(OPENFOODFACTS_CONFIG.timeout),
-        headers: {
-          'User-Agent': OPENFOODFACTS_CONFIG.userAgent,
-          'Accept': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `${OPENFOODFACTS_CONFIG.baseUrl}/labels.json`,
+        {
+          signal: AbortSignal.timeout(OPENFOODFACTS_CONFIG.timeout),
+          headers: {
+            'User-Agent': OPENFOODFACTS_CONFIG.userAgent,
+            Accept: 'application/json',
+          },
+        }
+      );
 
       if (!response.ok) {
         const networkError: NetworkError = {
@@ -390,24 +536,29 @@ class OpenFoodFactsService {
           url: response.url,
           method: 'GET',
           timestamp: new Date(),
-          details: {}
+          details: {},
         };
         return { success: false, error: networkError };
       }
 
       const data = await response.json();
       const labels = Object.keys(data.tags || {});
-      
+
       return { success: true, data: labels };
     } catch (error) {
       const networkError: NetworkError = {
         code: 'NETWORK_ERROR',
-        message: error instanceof Error ? error.message : 'Network request failed',
+        message:
+          error instanceof Error ? error.message : 'Network request failed',
         timestamp: new Date(),
-        details: { error }
+        details: { error },
       };
-      
-      logger.error('OpenFoodFacts labels fetch failed', 'OpenFoodFactsService', { error });
+
+      logger.error(
+        'OpenFoodFacts labels fetch failed',
+        'OpenFoodFactsService',
+        { error }
+      );
       return { success: false, error: networkError };
     }
   }

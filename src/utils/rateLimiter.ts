@@ -39,7 +39,7 @@ interface RateLimitEntry {
 // Rate limiter class
 export class RateLimiter {
   private static instance: RateLimiter;
-  private store: Map<string, RateLimitEntry> = new Map();
+  private readonly store: Map<string, RateLimitEntry> = new Map();
   private config: RateLimitConfig;
   private cleanupInterval: NodeJS.Timeout | null = null;
 
@@ -73,11 +73,14 @@ export class RateLimiter {
   }
 
   // Check rate limit
-  checkLimit(identifier: string, customConfig?: Partial<RateLimitConfig>): RateLimitResult {
+  checkLimit(
+    identifier: string,
+    customConfig?: Partial<RateLimitConfig>
+  ): RateLimitResult {
     const config = { ...this.config, ...customConfig };
     const now = Date.now();
     const key = `rate_limit:${identifier}`;
-    
+
     let entry = this.store.get(key);
 
     // Create new entry if it doesn't exist or window has expired
@@ -96,8 +99,10 @@ export class RateLimiter {
     entry.lastRequest = now;
 
     const remaining = Math.max(0, config.maxRequests - entry.count);
-    const retryAfter = entry.count >= config.maxRequests ? 
-      Math.ceil((entry.resetTime - now) / 1000) : undefined;
+    const retryAfter =
+      entry.count >= config.maxRequests
+        ? Math.ceil((entry.resetTime - now) / 1000)
+        : undefined;
 
     const allowed = entry.count <= config.maxRequests;
 
@@ -120,7 +125,10 @@ export class RateLimiter {
   }
 
   // Check rate limit with custom key generator
-  checkLimitWithKey(req: any, customConfig?: Partial<RateLimitConfig>): RateLimitResult {
+  checkLimitWithKey(
+    req: any,
+    customConfig?: Partial<RateLimitConfig>
+  ): RateLimitResult {
     const config = { ...this.config, ...customConfig };
     const keyGenerator = config.keyGenerator || this.defaultKeyGenerator;
     const identifier = keyGenerator(req);
@@ -136,13 +144,15 @@ export class RateLimiter {
 
   // Get client IP address
   private getClientIP(req: any): string {
-    return req.ip || 
-           req.connection?.remoteAddress || 
-           req.socket?.remoteAddress ||
-           (req.connection?.socket ? req.connection.socket.remoteAddress : null) ||
-           req.headers?.['x-forwarded-for']?.split(',')[0]?.trim() ||
-           req.headers?.['x-real-ip'] ||
-           'unknown';
+    return (
+      req.ip ||
+      req.connection?.remoteAddress ||
+      req.socket?.remoteAddress ||
+      (req.connection?.socket ? req.connection.socket.remoteAddress : null) ||
+      req.headers?.['x-forwarded-for']?.split(',')[0]?.trim() ||
+      req.headers?.['x-real-ip'] ||
+      'unknown'
+    );
   }
 
   // Reset rate limit for identifier
@@ -159,15 +169,17 @@ export class RateLimiter {
   getStatus(identifier: string): RateLimitResult | null {
     const key = `rate_limit:${identifier}`;
     const entry = this.store.get(key);
-    
+
     if (!entry) {
       return null;
     }
 
     const now = Date.now();
     const remaining = Math.max(0, this.config.maxRequests - entry.count);
-    const retryAfter = entry.count >= this.config.maxRequests ? 
-      Math.ceil((entry.resetTime - now) / 1000) : undefined;
+    const retryAfter =
+      entry.count >= this.config.maxRequests
+        ? Math.ceil((entry.resetTime - now) / 1000)
+        : undefined;
 
     return {
       allowed: entry.count <= this.config.maxRequests,
@@ -181,7 +193,7 @@ export class RateLimiter {
   // Get all rate limit entries (for monitoring)
   getAllEntries(): Array<{ identifier: string; entry: RateLimitEntry }> {
     const entries: Array<{ identifier: string; entry: RateLimitEntry }> = [];
-    
+
     this.store.forEach((entry, key) => {
       const identifier = key.replace('rate_limit:', '');
       entries.push({ identifier, entry });
@@ -198,9 +210,12 @@ export class RateLimiter {
 
   // Start cleanup interval to remove expired entries
   private startCleanupInterval(): void {
-    this.cleanupInterval = setInterval(() => {
-      this.cleanupExpiredEntries();
-    }, 5 * 60 * 1000); // Clean up every 5 minutes
+    this.cleanupInterval = setInterval(
+      () => {
+        this.cleanupExpiredEntries();
+      },
+      5 * 60 * 1000
+    ); // Clean up every 5 minutes
   }
 
   // Clean up expired entries
@@ -216,7 +231,9 @@ export class RateLimiter {
     });
 
     if (cleanedCount > 0) {
-      logger.debug('Cleaned up expired rate limit entries', 'RateLimiter', { count: cleanedCount });
+      logger.debug('Cleaned up expired rate limit entries', 'RateLimiter', {
+        count: cleanedCount,
+      });
     }
   }
 
@@ -255,7 +272,8 @@ export class RateLimiter {
       activeEntries,
       expiredEntries,
       totalRequests,
-      averageRequestsPerEntry: activeEntries > 0 ? totalRequests / activeEntries : 0,
+      averageRequestsPerEntry:
+        activeEntries > 0 ? totalRequests / activeEntries : 0,
     };
   }
 
@@ -264,7 +282,7 @@ export class RateLimiter {
     return (req: any, res: any, next: any) => {
       try {
         const result = this.checkLimitWithKey(req, customConfig);
-        
+
         // Set headers
         if (this.config.standardHeaders) {
           res.set({

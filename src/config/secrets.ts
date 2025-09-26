@@ -1,11 +1,12 @@
 /**
  * Secret Management System
  * Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
- * 
+ *
  * Centralized secret management with encryption and validation.
  */
 
 import CryptoJS from 'crypto-js';
+
 import { config } from './environment';
 
 // Secret types
@@ -110,7 +111,10 @@ class SecretManagerImpl implements SecretManager {
   /**
    * Validate a secret against security requirements
    */
-  validateSecret(secret: string, minLength: number = SECRET_VALIDATION_RULES.minLength): boolean {
+  validateSecret(
+    secret: string,
+    minLength: number = SECRET_VALIDATION_RULES.minLength
+  ): boolean {
     if (!secret || secret.length < minLength) {
       return false;
     }
@@ -203,51 +207,70 @@ export const validateSessionKey = (sessionKey: string): boolean => {
 };
 
 // Secret rotation utilities
-export const rotateSecret = (_oldSecret: string, newSecret: string): boolean => {
+export const rotateSecret = (
+  _oldSecret: string,
+  newSecret: string
+): boolean => {
   if (!secretManager.validateSecret(newSecret)) {
     return false;
   }
-  
+
   // In a real implementation, you would:
   // 1. Encrypt data with new secret
   // 2. Verify encryption works
   // 3. Update configuration
   // 4. Remove old secret
-  
+
   return true;
 };
 
 // Secret strength calculator
 export const calculateSecretStrength = (secret: string): number => {
   let strength = 0;
-  
+
   // Length bonus
   strength += Math.min(secret.length * 2, 50);
-  
+
   // Character variety bonus
   const hasLower = /[a-z]/.test(secret);
   const hasUpper = /[A-Z]/.test(secret);
   const hasNumbers = /\d/.test(secret);
   const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(secret);
-  
-  if (hasLower) strength += 10;
-  if (hasUpper) strength += 10;
-  if (hasNumbers) strength += 10;
-  if (hasSpecial) strength += 20;
-  
+
+  if (hasLower) {
+    strength += 10;
+  }
+  if (hasUpper) {
+    strength += 10;
+  }
+  if (hasNumbers) {
+    strength += 10;
+  }
+  if (hasSpecial) {
+    strength += 20;
+  }
+
   // Entropy bonus
   const uniqueChars = new Set(secret).size;
   strength += Math.min(uniqueChars * 2, 30);
-  
+
   return Math.min(strength, 100);
 };
 
 // Secret strength levels
 export const getSecretStrengthLevel = (strength: number): string => {
-  if (strength >= 80) return 'Very Strong';
-  if (strength >= 60) return 'Strong';
-  if (strength >= 40) return 'Medium';
-  if (strength >= 20) return 'Weak';
+  if (strength >= 80) {
+    return 'Very Strong';
+  }
+  if (strength >= 60) {
+    return 'Strong';
+  }
+  if (strength >= 40) {
+    return 'Medium';
+  }
+  if (strength >= 20) {
+    return 'Weak';
+  }
   return 'Very Weak';
 };
 

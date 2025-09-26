@@ -16,11 +16,13 @@ import {
   useColorScheme,
   Alert,
 } from 'react-native';
-import LinearGradient from './LinearGradientWrapper';
+
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
-import { GutSymptom } from '../types';
+import { Typography } from '../constants/typography';
+import type { GutSymptom } from '../types';
+
+import LinearGradient from './LinearGradientWrapper';
 
 interface SymptomTrackerProps {
   onLogSymptom: (symptom: Omit<GutSymptom, 'id'>) => void;
@@ -76,7 +78,9 @@ export const SymptomTracker: React.FC<SymptomTrackerProps> = ({
       description: description.trim() || '',
       duration: parseInt(duration) || 0,
       timestamp: new Date(),
-      potentialTriggers: potentialTriggers.trim() ? potentialTriggers.split(',').map(t => t.trim()) : [],
+      potentialTriggers: potentialTriggers.trim()
+        ? potentialTriggers.split(',').map((t) => t.trim())
+        : [],
       location: (location as GutSymptom['location']) || 'general',
     };
 
@@ -90,12 +94,17 @@ export const SymptomTracker: React.FC<SymptomTrackerProps> = ({
     setLocation(null);
     setPotentialTriggers('');
 
-    Alert.alert('Symptom Logged', 'Your symptom has been recorded successfully.');
+    Alert.alert(
+      'Symptom Logged',
+      'Your symptom has been recorded successfully.'
+    );
   };
 
   const renderSeveritySlider = () => (
     <View style={styles.severityContainer}>
-      <Text style={[styles.label, { color: colors.text }]}>Severity (1-10)</Text>
+      <Text style={[styles.label, { color: colors.text }]}>
+        Severity (1-10)
+      </Text>
       <View style={styles.severityButtons}>
         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
           <TouchableOpacity
@@ -103,7 +112,8 @@ export const SymptomTracker: React.FC<SymptomTrackerProps> = ({
             style={[
               styles.severityButton,
               {
-                backgroundColor: value <= severity ? Colors.primary : colors.border,
+                backgroundColor:
+                  value <= severity ? Colors.primary : colors.border,
               },
             ]}
             onPress={() => setSeverity(value)}
@@ -128,25 +138,32 @@ export const SymptomTracker: React.FC<SymptomTrackerProps> = ({
   );
 
   const getRecentSymptomColor = (severity: number): string => {
-    if (severity <= 3) return Colors.safe;
-    if (severity <= 7) return Colors.caution;
+    if (severity <= 3) {
+      return Colors.safe;
+    }
+    if (severity <= 7) {
+      return Colors.caution;
+    }
     return Colors.avoid;
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
-      <LinearGradient
-        colors={Colors.primaryGradient}
-        style={styles.header}
-      >
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
+      <LinearGradient colors={Colors.primaryGradient} style={styles.header}>
         <Text style={styles.headerTitle}>Log Gut Symptom</Text>
-        <Text style={styles.headerSubtitle}>Track your symptoms to identify patterns</Text>
+        <Text style={styles.headerSubtitle}>
+          Track your symptoms to identify patterns
+        </Text>
       </LinearGradient>
 
       <View style={[styles.content, { backgroundColor: colors.surface }]}>
         {/* Symptom Type Selection */}
         <View style={styles.section}>
-          <Text style={[styles.label, { color: colors.text }]}>Symptom Type</Text>
+          <Text style={[styles.label, { color: colors.text }]}>
+            Symptom Type
+          </Text>
           <View style={styles.symptomGrid}>
             {symptomTypes.map((symptom) => (
               <TouchableOpacity
@@ -154,8 +171,14 @@ export const SymptomTracker: React.FC<SymptomTrackerProps> = ({
                 style={[
                   styles.symptomButton,
                   {
-                    backgroundColor: selectedType === symptom.key ? Colors.primary : colors.border,
-                    borderColor: selectedType === symptom.key ? Colors.primary : colors.border,
+                    backgroundColor:
+                      selectedType === symptom.key
+                        ? Colors.primary
+                        : colors.border,
+                    borderColor:
+                      selectedType === symptom.key
+                        ? Colors.primary
+                        : colors.border,
                   },
                 ]}
                 onPress={() => setSelectedType(symptom.key)}
@@ -165,7 +188,10 @@ export const SymptomTracker: React.FC<SymptomTrackerProps> = ({
                   style={[
                     styles.symptomLabel,
                     {
-                      color: selectedType === symptom.key ? Colors.white : colors.text,
+                      color:
+                        selectedType === symptom.key
+                          ? Colors.white
+                          : colors.text,
                     },
                   ]}
                 >
@@ -181,8 +207,13 @@ export const SymptomTracker: React.FC<SymptomTrackerProps> = ({
 
         {/* Duration */}
         <View style={styles.section}>
-          <Text style={[styles.label, { color: colors.text }]}>Duration (minutes)</Text>
+          <Text style={[styles.label, { color: colors.text }]}>
+            Duration (minutes)
+          </Text>
           <TextInput
+            keyboardType="numeric"
+            placeholder="How long did it last?"
+            placeholderTextColor={colors.textTertiary}
             style={[
               styles.input,
               {
@@ -193,15 +224,14 @@ export const SymptomTracker: React.FC<SymptomTrackerProps> = ({
             ]}
             value={duration}
             onChangeText={setDuration}
-            placeholder="How long did it last?"
-            placeholderTextColor={colors.textTertiary}
-            keyboardType="numeric"
           />
         </View>
 
         {/* Location */}
         <View style={styles.section}>
-          <Text style={[styles.label, { color: colors.text }]}>Location (Optional)</Text>
+          <Text style={[styles.label, { color: colors.text }]}>
+            Location (Optional)
+          </Text>
           <View style={styles.locationGrid}>
             {locations.map((loc) => (
               <TouchableOpacity
@@ -209,8 +239,10 @@ export const SymptomTracker: React.FC<SymptomTrackerProps> = ({
                 style={[
                   styles.locationButton,
                   {
-                    backgroundColor: location === loc.key ? Colors.primary : colors.border,
-                    borderColor: location === loc.key ? Colors.primary : colors.border,
+                    backgroundColor:
+                      location === loc.key ? Colors.primary : colors.border,
+                    borderColor:
+                      location === loc.key ? Colors.primary : colors.border,
                   },
                 ]}
                 onPress={() => setLocation(loc.key)}
@@ -232,8 +264,14 @@ export const SymptomTracker: React.FC<SymptomTrackerProps> = ({
 
         {/* Description */}
         <View style={styles.section}>
-          <Text style={[styles.label, { color: colors.text }]}>Description (Optional)</Text>
+          <Text style={[styles.label, { color: colors.text }]}>
+            Description (Optional)
+          </Text>
           <TextInput
+            multiline
+            numberOfLines={3}
+            placeholder="Describe the symptom in detail..."
+            placeholderTextColor={colors.textTertiary}
             style={[
               styles.textArea,
               {
@@ -244,17 +282,17 @@ export const SymptomTracker: React.FC<SymptomTrackerProps> = ({
             ]}
             value={description}
             onChangeText={setDescription}
-            placeholder="Describe the symptom in detail..."
-            placeholderTextColor={colors.textTertiary}
-            multiline
-            numberOfLines={3}
           />
         </View>
 
         {/* Potential Triggers */}
         <View style={styles.section}>
-          <Text style={[styles.label, { color: colors.text }]}>Potential Triggers (Optional)</Text>
+          <Text style={[styles.label, { color: colors.text }]}>
+            Potential Triggers (Optional)
+          </Text>
           <TextInput
+            placeholder="Food, stress, activities... (comma separated)"
+            placeholderTextColor={colors.textTertiary}
             style={[
               styles.input,
               {
@@ -265,13 +303,12 @@ export const SymptomTracker: React.FC<SymptomTrackerProps> = ({
             ]}
             value={potentialTriggers}
             onChangeText={setPotentialTriggers}
-            placeholder="Food, stress, activities... (comma separated)"
-            placeholderTextColor={colors.textTertiary}
           />
         </View>
 
         {/* Log Button */}
         <TouchableOpacity
+          disabled={!selectedType}
           style={[
             styles.logButton,
             {
@@ -279,7 +316,6 @@ export const SymptomTracker: React.FC<SymptomTrackerProps> = ({
             },
           ]}
           onPress={handleLogSymptom}
-          disabled={!selectedType}
         >
           <Text
             style={[
@@ -296,7 +332,9 @@ export const SymptomTracker: React.FC<SymptomTrackerProps> = ({
         {/* Recent Symptoms */}
         {recentSymptoms.length > 0 && (
           <View style={styles.section}>
-            <Text style={[styles.label, { color: colors.text }]}>Recent Symptoms</Text>
+            <Text style={[styles.label, { color: colors.text }]}>
+              Recent Symptoms
+            </Text>
             <View style={styles.recentSymptomsContainer}>
               {recentSymptoms.slice(0, 5).map((symptom) => (
                 <View
@@ -307,19 +345,31 @@ export const SymptomTracker: React.FC<SymptomTrackerProps> = ({
                   ]}
                 >
                   <View style={styles.recentSymptomHeader}>
-                    <Text style={[styles.recentSymptomType, { color: colors.text }]}>
-                      {symptomTypes.find(s => s.key === symptom.type)?.emoji}{' '}
-                      {symptomTypes.find(s => s.key === symptom.type)?.label}
+                    <Text
+                      style={[styles.recentSymptomType, { color: colors.text }]}
+                    >
+                      {symptomTypes.find((s) => s.key === symptom.type)?.emoji}{' '}
+                      {symptomTypes.find((s) => s.key === symptom.type)?.label}
                     </Text>
                     <View
                       style={[
                         styles.severityIndicator,
-                        { backgroundColor: getRecentSymptomColor(symptom.severity) },
+                        {
+                          backgroundColor: getRecentSymptomColor(
+                            symptom.severity
+                          ),
+                        },
                       ]}
                     />
                   </View>
-                  <Text style={[styles.recentSymptomDetails, { color: colors.textSecondary }]}>
-                    Severity: {symptom.severity}/10 • {symptom.duration}min • {symptom.timestamp.toLocaleDateString()}
+                  <Text
+                    style={[
+                      styles.recentSymptomDetails,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
+                    Severity: {symptom.severity}/10 • {symptom.duration}min •{' '}
+                    {symptom.timestamp.toLocaleDateString()}
                   </Text>
                 </View>
               ))}
@@ -335,152 +385,152 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    padding: Spacing.lg,
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontFamily: Typography.fontFamily.bold,
-    fontSize: Typography.fontSize.h2,
-    color: Colors.white,
-    marginBottom: Spacing.xs,
-  },
-  headerSubtitle: {
-    fontFamily: Typography.fontFamily.regular,
-    fontSize: Typography.fontSize.body,
-    color: Colors.white,
-    opacity: 0.9,
-  },
   content: {
-    flex: 1,
-    padding: Spacing.lg,
     borderTopLeftRadius: BorderRadius.lg,
     borderTopRightRadius: BorderRadius.lg,
+    flex: 1,
     marginTop: -BorderRadius.lg,
+    padding: Spacing.lg,
   },
-  section: {
-    marginBottom: Spacing.lg,
+  header: {
+    alignItems: 'center',
+    padding: Spacing.lg,
+  },
+  headerSubtitle: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
+    opacity: 0.9,
+  },
+  headerTitle: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h2,
+    marginBottom: Spacing.xs,
+  },
+  input: {
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
   label: {
     fontFamily: Typography.fontFamily.semiBold,
     fontSize: Typography.fontSize.h4,
     marginBottom: Spacing.sm,
   },
-  symptomGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-  },
-  symptomButton: {
-    flex: 1,
-    minWidth: '30%',
-    padding: Spacing.md,
+  locationButton: {
     borderRadius: BorderRadius.md,
-    alignItems: 'center',
     borderWidth: 1,
-  },
-  symptomEmoji: {
-    fontSize: 24,
-    marginBottom: Spacing.xs,
-  },
-  symptomLabel: {
-    fontFamily: Typography.fontFamily.medium,
-    fontSize: Typography.fontSize.caption,
-    textAlign: 'center',
-  },
-  severityContainer: {
-    marginBottom: Spacing.lg,
-  },
-  severityButtons: {
-    flexDirection: 'row',
-    gap: Spacing.xs,
-    marginBottom: Spacing.sm,
-  },
-  severityButton: {
-    flex: 1,
-    height: 40,
-    borderRadius: BorderRadius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  severityButtonText: {
-    fontFamily: Typography.fontFamily.semiBold,
-    fontSize: Typography.fontSize.bodySmall,
-  },
-  severityLabel: {
-    fontFamily: Typography.fontFamily.medium,
-    fontSize: Typography.fontSize.caption,
-    textAlign: 'center',
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
-    fontFamily: Typography.fontFamily.regular,
-    fontSize: Typography.fontSize.body,
-  },
-  textArea: {
-    borderWidth: 1,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    fontFamily: Typography.fontFamily.regular,
-    fontSize: Typography.fontSize.body,
-    height: 80,
-    textAlignVertical: 'top',
   },
   locationGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.sm,
   },
-  locationButton: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-  },
   locationText: {
     fontFamily: Typography.fontFamily.medium,
     fontSize: Typography.fontSize.bodySmall,
   },
   logButton: {
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
     alignItems: 'center',
+    borderRadius: BorderRadius.md,
     marginTop: Spacing.lg,
+    paddingVertical: Spacing.md,
   },
   logButtonText: {
     fontFamily: Typography.fontFamily.semiBold,
     fontSize: Typography.fontSize.h4,
   },
-  recentSymptomsContainer: {
-    gap: Spacing.sm,
-  },
-  recentSymptomItem: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: 'rgba(15, 82, 87, 0.1)',
+  recentSymptomDetails: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.caption,
   },
   recentSymptomHeader: {
+    alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: Spacing.xs,
+  },
+  recentSymptomItem: {
+    borderColor: 'rgba(15, 82, 87, 0.1)',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    padding: Spacing.md,
   },
   recentSymptomType: {
     fontFamily: Typography.fontFamily.semiBold,
     fontSize: Typography.fontSize.body,
   },
-  severityIndicator: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+  recentSymptomsContainer: {
+    gap: Spacing.sm,
   },
-  recentSymptomDetails: {
-    fontFamily: Typography.fontFamily.regular,
+  section: {
+    marginBottom: Spacing.lg,
+  },
+  severityButton: {
+    alignItems: 'center',
+    borderRadius: BorderRadius.sm,
+    flex: 1,
+    height: 40,
+    justifyContent: 'center',
+  },
+  severityButtonText: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.bodySmall,
+  },
+  severityButtons: {
+    flexDirection: 'row',
+    gap: Spacing.xs,
+    marginBottom: Spacing.sm,
+  },
+  severityContainer: {
+    marginBottom: Spacing.lg,
+  },
+  severityIndicator: {
+    borderRadius: 6,
+    height: 12,
+    width: 12,
+  },
+  severityLabel: {
+    fontFamily: Typography.fontFamily.medium,
     fontSize: Typography.fontSize.caption,
+    textAlign: 'center',
+  },
+  symptomButton: {
+    alignItems: 'center',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    flex: 1,
+    minWidth: '30%',
+    padding: Spacing.md,
+  },
+  symptomEmoji: {
+    fontSize: 24,
+    marginBottom: Spacing.xs,
+  },
+  symptomGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  symptomLabel: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.caption,
+    textAlign: 'center',
+  },
+  textArea: {
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
+    height: 80,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    textAlignVertical: 'top',
   },
 });

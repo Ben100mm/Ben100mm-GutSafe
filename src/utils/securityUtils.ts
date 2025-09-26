@@ -39,8 +39,11 @@ export interface SecurityConfig {
 // Enhanced security utilities class
 export class SecurityUtils {
   private static instance: SecurityUtils;
-  private config: SecurityConfig;
-  private rateLimitStore: Map<string, { count: number; resetTime: number }> = new Map();
+  private readonly config: SecurityConfig;
+  private readonly rateLimitStore: Map<
+    string,
+    { count: number; resetTime: number }
+  > = new Map();
 
   private constructor() {
     this.config = this.initializeSecurityConfig();
@@ -89,9 +92,11 @@ export class SecurityUtils {
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
         'X-XSS-Protection': '1; mode=block',
-        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+        'Strict-Transport-Security':
+          'max-age=31536000; includeSubDomains; preload',
         'Referrer-Policy': 'strict-origin-when-cross-origin',
-        'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
+        'Permissions-Policy':
+          'camera=(), microphone=(), geolocation=(), payment=()',
         'Cross-Origin-Embedder-Policy': 'require-corp',
         'Cross-Origin-Opener-Policy': 'same-origin',
         'Cross-Origin-Resource-Policy': 'same-origin',
@@ -102,13 +107,13 @@ export class SecurityUtils {
   private getAllowedOrigins(): string[] {
     const isDevelopment = process.env.NODE_ENV === 'development';
     const isProduction = process.env.NODE_ENV === 'production';
-    
+
     const origins = [
       'https://gutsafe.app',
       'https://www.gutsafe.app',
       'https://api.gutsafe.app',
     ];
-    
+
     if (isDevelopment) {
       origins.push(
         'http://localhost:3000',
@@ -119,18 +124,23 @@ export class SecurityUtils {
         'http://127.0.0.1:3001'
       );
     }
-    
+
     // Add environment-specific origins
     if (process.env.REACT_APP_ALLOWED_ORIGINS) {
-      const envOrigins = process.env.REACT_APP_ALLOWED_ORIGINS.split(',').map(origin => origin.trim());
+      const envOrigins = process.env.REACT_APP_ALLOWED_ORIGINS.split(',').map(
+        (origin) => origin.trim()
+      );
       origins.push(...envOrigins);
     }
-    
+
     return origins;
   }
 
   // Enhanced input validation
-  validateInput(input: any, type: 'string' | 'email' | 'password' | 'uuid' | 'number' | 'boolean'): {
+  validateInput(
+    input: any,
+    type: 'string' | 'email' | 'password' | 'uuid' | 'number' | 'boolean'
+  ): {
     isValid: boolean;
     sanitized?: any;
     errors: string[];
@@ -262,13 +272,15 @@ export class SecurityUtils {
 
   // Enhanced email validation
   private isValidEmail(email: string): boolean {
-    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    const emailRegex =
+      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
     return emailRegex.test(email) && email.length <= 254;
   }
 
   // Enhanced UUID validation
   private isValidUUID(uuid: string): boolean {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     return uuidRegex.test(uuid);
   }
 
@@ -332,13 +344,16 @@ export class SecurityUtils {
   }
 
   // Enhanced rate limiting
-  checkRateLimit(identifier: string, customLimit?: number): {
+  checkRateLimit(
+    identifier: string,
+    customLimit?: number
+  ): {
     allowed: boolean;
     remaining: number;
     resetTime: number;
   } {
     const limit = customLimit || this.config.rateLimiting.maxRequests;
-    const windowMs = this.config.rateLimiting.windowMs;
+    const { windowMs } = this.config.rateLimiting;
     const now = Date.now();
     const key = `rate_limit:${identifier}`;
 
@@ -354,7 +369,11 @@ export class SecurityUtils {
     }
 
     if (rateLimit.count >= limit) {
-      logger.warn('Rate limit exceeded', 'SecurityUtils', { identifier, count: rateLimit.count, limit });
+      logger.warn('Rate limit exceeded', 'SecurityUtils', {
+        identifier,
+        count: rateLimit.count,
+        limit,
+      });
       return {
         allowed: false,
         remaining: 0,
@@ -375,7 +394,7 @@ export class SecurityUtils {
     try {
       const encryptionKey = key || this.getEncryptionKey();
       const iv = this.generateRandomBytes(16);
-      
+
       // Use Web Crypto API if available
       if (typeof crypto !== 'undefined' && crypto.subtle) {
         const keyBuffer = await crypto.subtle.importKey(
@@ -416,10 +435,12 @@ export class SecurityUtils {
   async decryptData(encryptedData: string, key?: string): Promise<string> {
     try {
       const encryptionKey = key || this.getEncryptionKey();
-      
+
       // Use Web Crypto API if available
       if (typeof crypto !== 'undefined' && crypto.subtle) {
-        const dataBuffer = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
+        const dataBuffer = Uint8Array.from(atob(encryptedData), (c) =>
+          c.charCodeAt(0)
+        );
         const iv = dataBuffer.slice(0, 16);
         const encrypted = dataBuffer.slice(16);
 
@@ -500,14 +521,16 @@ export class SecurityUtils {
         array[i] = Math.floor(Math.random() * 256);
       }
     }
-    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join(
+      ''
+    );
   }
 
   // Content Security Policy
   generateCSP(nonce?: string): string {
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'" + (nonce ? ` 'nonce-${nonce}'` : ''),
+      `script-src 'self' 'unsafe-inline'${nonce ? ` 'nonce-${nonce}'` : ''}`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https:",
       "font-src 'self' data:",
@@ -540,9 +563,13 @@ export class SecurityUtils {
       'REACT_APP_SESSION_SECRET',
     ];
 
-    const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+    const missingEnvVars = requiredEnvVars.filter(
+      (envVar) => !process.env[envVar]
+    );
     if (missingEnvVars.length > 0) {
-      issues.push(`Missing environment variables: ${missingEnvVars.join(', ')}`);
+      issues.push(
+        `Missing environment variables: ${missingEnvVars.join(', ')}`
+      );
       score -= 20;
     }
 

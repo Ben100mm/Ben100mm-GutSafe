@@ -16,16 +16,21 @@ import {
   useColorScheme,
   Alert,
 } from 'react-native';
-import LinearGradient from './LinearGradientWrapper';
+
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
-import { MedicationSupplement } from '../types';
+import { Typography } from '../constants/typography';
+import type { MedicationSupplement } from '../types';
+
+import LinearGradient from './LinearGradientWrapper';
 
 interface MedicationTrackerProps {
   onAddMedication: (medication: Omit<MedicationSupplement, 'id'>) => void;
   medications: MedicationSupplement[];
-  onUpdateMedication: (id: string, updates: Partial<MedicationSupplement>) => void;
+  onUpdateMedication: (
+    id: string,
+    updates: Partial<MedicationSupplement>
+  ) => void;
 }
 
 const medicationTypes = [
@@ -103,7 +108,10 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
     setIsGutRelated(true);
     setIsAdding(false);
 
-    Alert.alert('Medication Added', 'Your medication has been added successfully.');
+    Alert.alert(
+      'Medication Added',
+      'Your medication has been added successfully.'
+    );
   };
 
   const handleToggleActive = (id: string, isActive: boolean) => {
@@ -111,28 +119,29 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
   };
 
   const getMedicationTypeEmoji = (type: string): string => {
-    return medicationTypes.find(t => t.key === type)?.emoji || '💊';
+    return medicationTypes.find((t) => t.key === type)?.emoji || '💊';
   };
 
   const getFrequencyLabel = (freq: string): string => {
-    return frequencies.find(f => f.key === freq)?.label || freq;
+    return frequencies.find((f) => f.key === freq)?.label || freq;
   };
 
   const getCategoryLabel = (cat: string): string => {
-    return categories.find(c => c.key === cat)?.label || cat;
+    return categories.find((c) => c.key === cat)?.label || cat;
   };
 
-  const activeMedications = medications.filter(m => m.isActive);
-  const inactiveMedications = medications.filter(m => !m.isActive);
+  const activeMedications = medications.filter((m) => m.isActive);
+  const inactiveMedications = medications.filter((m) => !m.isActive);
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
-      <LinearGradient
-        colors={Colors.primaryGradient}
-        style={styles.header}
-      >
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
+      <LinearGradient colors={Colors.primaryGradient} style={styles.header}>
         <Text style={styles.headerTitle}>Medications & Supplements</Text>
-        <Text style={styles.headerSubtitle}>Track your gut-related medications and supplements</Text>
+        <Text style={styles.headerSubtitle}>
+          Track your gut-related medications and supplements
+        </Text>
       </LinearGradient>
 
       <View style={[styles.content, { backgroundColor: colors.surface }]}>
@@ -141,17 +150,28 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
           style={[styles.addButton, { borderColor: Colors.primary }]}
           onPress={() => setIsAdding(true)}
         >
-          <Text style={[styles.addButtonText, { color: Colors.primary }]}>+ Add Medication/Supplement</Text>
+          <Text style={[styles.addButtonText, { color: Colors.primary }]}>
+            + Add Medication/Supplement
+          </Text>
         </TouchableOpacity>
 
         {/* Add Medication Form */}
         {isAdding && (
-          <View style={[styles.formContainer, { backgroundColor: colors.background }]}>
-            <Text style={[styles.formTitle, { color: colors.text }]}>Add New Item</Text>
+          <View
+            style={[
+              styles.formContainer,
+              { backgroundColor: colors.background },
+            ]}
+          >
+            <Text style={[styles.formTitle, { color: colors.text }]}>
+              Add New Item
+            </Text>
 
             {/* Name */}
             <Text style={[styles.label, { color: colors.text }]}>Name *</Text>
             <TextInput
+              placeholder="Medication or supplement name"
+              placeholderTextColor={colors.textTertiary}
               style={[
                 styles.input,
                 {
@@ -162,8 +182,6 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
               ]}
               value={name}
               onChangeText={setName}
-              placeholder="Medication or supplement name"
-              placeholderTextColor={colors.textTertiary}
             />
 
             {/* Type */}
@@ -175,8 +193,10 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
                   style={[
                     styles.typeButton,
                     {
-                      backgroundColor: type === medType.key ? Colors.primary : colors.border,
-                      borderColor: type === medType.key ? Colors.primary : colors.border,
+                      backgroundColor:
+                        type === medType.key ? Colors.primary : colors.border,
+                      borderColor:
+                        type === medType.key ? Colors.primary : colors.border,
                     },
                   ]}
                   onPress={() => setType(medType.key)}
@@ -186,7 +206,8 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
                     style={[
                       styles.typeLabel,
                       {
-                        color: type === medType.key ? Colors.white : colors.text,
+                        color:
+                          type === medType.key ? Colors.white : colors.text,
                       },
                     ]}
                   >
@@ -199,6 +220,8 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
             {/* Dosage */}
             <Text style={[styles.label, { color: colors.text }]}>Dosage *</Text>
             <TextInput
+              placeholder="e.g., 500mg, 1 capsule"
+              placeholderTextColor={colors.textTertiary}
               style={[
                 styles.input,
                 {
@@ -209,12 +232,12 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
               ]}
               value={dosage}
               onChangeText={setDosage}
-              placeholder="e.g., 500mg, 1 capsule"
-              placeholderTextColor={colors.textTertiary}
             />
 
             {/* Frequency */}
-            <Text style={[styles.label, { color: colors.text }]}>Frequency *</Text>
+            <Text style={[styles.label, { color: colors.text }]}>
+              Frequency *
+            </Text>
             <View style={styles.frequencyGrid}>
               {frequencies.map((freq) => (
                 <TouchableOpacity
@@ -222,8 +245,10 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
                   style={[
                     styles.frequencyButton,
                     {
-                      backgroundColor: frequency === freq.key ? Colors.primary : colors.border,
-                      borderColor: frequency === freq.key ? Colors.primary : colors.border,
+                      backgroundColor:
+                        frequency === freq.key ? Colors.primary : colors.border,
+                      borderColor:
+                        frequency === freq.key ? Colors.primary : colors.border,
                     },
                   ]}
                   onPress={() => setFrequency(freq.key)}
@@ -232,7 +257,8 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
                     style={[
                       styles.frequencyText,
                       {
-                        color: frequency === freq.key ? Colors.white : colors.text,
+                        color:
+                          frequency === freq.key ? Colors.white : colors.text,
                       },
                     ]}
                   >
@@ -243,7 +269,9 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
             </View>
 
             {/* Category */}
-            <Text style={[styles.label, { color: colors.text }]}>Category (Optional)</Text>
+            <Text style={[styles.label, { color: colors.text }]}>
+              Category (Optional)
+            </Text>
             <View style={styles.categoryGrid}>
               {categories.map((cat) => (
                 <TouchableOpacity
@@ -251,8 +279,10 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
                   style={[
                     styles.categoryButton,
                     {
-                      backgroundColor: category === cat.key ? Colors.primary : colors.border,
-                      borderColor: category === cat.key ? Colors.primary : colors.border,
+                      backgroundColor:
+                        category === cat.key ? Colors.primary : colors.border,
+                      borderColor:
+                        category === cat.key ? Colors.primary : colors.border,
                     },
                   ]}
                   onPress={() => setCategory(cat.key)}
@@ -261,7 +291,8 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
                     style={[
                       styles.categoryText,
                       {
-                        color: category === cat.key ? Colors.white : colors.text,
+                        color:
+                          category === cat.key ? Colors.white : colors.text,
                       },
                     ]}
                   >
@@ -273,17 +304,35 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
 
             {/* Gut Related Toggle */}
             <TouchableOpacity
-              style={[styles.gutRelatedToggle, { backgroundColor: isGutRelated ? Colors.primary : colors.border }]}
+              style={[
+                styles.gutRelatedToggle,
+                {
+                  backgroundColor: isGutRelated
+                    ? Colors.primary
+                    : colors.border,
+                },
+              ]}
               onPress={() => setIsGutRelated(!isGutRelated)}
             >
-              <Text style={[styles.gutRelatedText, { color: isGutRelated ? Colors.white : colors.text }]}>
+              <Text
+                style={[
+                  styles.gutRelatedText,
+                  { color: isGutRelated ? Colors.white : colors.text },
+                ]}
+              >
                 🫀 Gut-Related: {isGutRelated ? 'Yes' : 'No'}
               </Text>
             </TouchableOpacity>
 
             {/* Notes */}
-            <Text style={[styles.label, { color: colors.text }]}>Notes (Optional)</Text>
+            <Text style={[styles.label, { color: colors.text }]}>
+              Notes (Optional)
+            </Text>
             <TextInput
+              multiline
+              numberOfLines={3}
+              placeholder="Additional notes..."
+              placeholderTextColor={colors.textTertiary}
               style={[
                 styles.textArea,
                 {
@@ -294,10 +343,6 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
               ]}
               value={notes}
               onChangeText={setNotes}
-              placeholder="Additional notes..."
-              placeholderTextColor={colors.textTertiary}
-              multiline
-              numberOfLines={3}
             />
 
             {/* Form Actions */}
@@ -306,7 +351,9 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
                 style={[styles.cancelButton, { borderColor: colors.border }]}
                 onPress={() => setIsAdding(false)}
               >
-                <Text style={[styles.cancelButtonText, { color: colors.text }]}>Cancel</Text>
+                <Text style={[styles.cancelButtonText, { color: colors.text }]}>
+                  Cancel
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.saveButton}
@@ -321,11 +368,16 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
         {/* Active Medications */}
         {activeMedications.length > 0 && (
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Active Medications & Supplements</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Active Medications & Supplements
+            </Text>
             {activeMedications.map((medication) => (
               <View
                 key={medication.id}
-                style={[styles.medicationCard, { backgroundColor: colors.background }]}
+                style={[
+                  styles.medicationCard,
+                  { backgroundColor: colors.background },
+                ]}
               >
                 <View style={styles.medicationHeader}>
                   <View style={styles.medicationInfo}>
@@ -333,32 +385,58 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
                       {getMedicationTypeEmoji(medication.type)}
                     </Text>
                     <View>
-                      <Text style={[styles.medicationName, { color: colors.text }]}>
+                      <Text
+                        style={[styles.medicationName, { color: colors.text }]}
+                      >
                         {medication.name}
                       </Text>
-                      <Text style={[styles.medicationDetails, { color: colors.textSecondary }]}>
-                        {medication.dosage} • {getFrequencyLabel(medication.frequency)}
+                      <Text
+                        style={[
+                          styles.medicationDetails,
+                          { color: colors.textSecondary },
+                        ]}
+                      >
+                        {medication.dosage} •{' '}
+                        {getFrequencyLabel(medication.frequency)}
                       </Text>
                       {medication.category && (
-                        <Text style={[styles.medicationCategory, { color: Colors.primary }]}>
+                        <Text
+                          style={[
+                            styles.medicationCategory,
+                            { color: Colors.primary },
+                          ]}
+                        >
                           {getCategoryLabel(medication.category)}
                         </Text>
                       )}
                     </View>
                   </View>
                   <TouchableOpacity
-                    style={[styles.activeToggle, { backgroundColor: Colors.safe }]}
+                    style={[
+                      styles.activeToggle,
+                      { backgroundColor: Colors.safe },
+                    ]}
                     onPress={() => handleToggleActive(medication.id, false)}
                   >
                     <Text style={styles.activeToggleText}>Active</Text>
                   </TouchableOpacity>
                 </View>
                 {medication.notes && (
-                  <Text style={[styles.medicationNotes, { color: colors.textSecondary }]}>
+                  <Text
+                    style={[
+                      styles.medicationNotes,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
                     {medication.notes}
                   </Text>
                 )}
-                <Text style={[styles.medicationStartDate, { color: colors.textTertiary }]}>
+                <Text
+                  style={[
+                    styles.medicationStartDate,
+                    { color: colors.textTertiary },
+                  ]}
+                >
                   Started: {medication.startDate.toLocaleDateString()}
                 </Text>
               </View>
@@ -369,11 +447,17 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
         {/* Inactive Medications */}
         {inactiveMedications.length > 0 && (
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Inactive Items</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Inactive Items
+            </Text>
             {inactiveMedications.map((medication) => (
               <View
                 key={medication.id}
-                style={[styles.medicationCard, styles.inactiveCard, { backgroundColor: colors.background }]}
+                style={[
+                  styles.medicationCard,
+                  styles.inactiveCard,
+                  { backgroundColor: colors.background },
+                ]}
               >
                 <View style={styles.medicationHeader}>
                   <View style={styles.medicationInfo}>
@@ -381,19 +465,41 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
                       {getMedicationTypeEmoji(medication.type)}
                     </Text>
                     <View>
-                      <Text style={[styles.medicationName, styles.inactiveText, { color: colors.textTertiary }]}>
+                      <Text
+                        style={[
+                          styles.medicationName,
+                          styles.inactiveText,
+                          { color: colors.textTertiary },
+                        ]}
+                      >
                         {medication.name}
                       </Text>
-                      <Text style={[styles.medicationDetails, { color: colors.textTertiary }]}>
-                        {medication.dosage} • {getFrequencyLabel(medication.frequency)}
+                      <Text
+                        style={[
+                          styles.medicationDetails,
+                          { color: colors.textTertiary },
+                        ]}
+                      >
+                        {medication.dosage} •{' '}
+                        {getFrequencyLabel(medication.frequency)}
                       </Text>
                     </View>
                   </View>
                   <TouchableOpacity
-                    style={[styles.activeToggle, { backgroundColor: colors.border }]}
+                    style={[
+                      styles.activeToggle,
+                      { backgroundColor: colors.border },
+                    ]}
                     onPress={() => handleToggleActive(medication.id, true)}
                   >
-                    <Text style={[styles.activeToggleText, { color: colors.textTertiary }]}>Inactive</Text>
+                    <Text
+                      style={[
+                        styles.activeToggleText,
+                        { color: colors.textTertiary },
+                      ]}
+                    >
+                      Inactive
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -405,9 +511,14 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
         {medications.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyEmoji}>💊</Text>
-            <Text style={[styles.emptyTitle, { color: colors.text }]}>No Medications Yet</Text>
-            <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-              Add your medications and supplements to track their effects on your gut health
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>
+              No Medications Yet
+            </Text>
+            <Text
+              style={[styles.emptySubtitle, { color: colors.textSecondary }]}
+            >
+              Add your medications and supplements to track their effects on
+              your gut health
             </Text>
           </View>
         )}
@@ -417,120 +528,44 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  activeToggle: {
+    borderRadius: BorderRadius.sm,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
   },
-  header: {
-    padding: Spacing.lg,
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontFamily: Typography.fontFamily.bold,
-    fontSize: Typography.fontSize.h2,
+  activeToggleText: {
     color: Colors.white,
-    marginBottom: Spacing.xs,
-  },
-  headerSubtitle: {
-    fontFamily: Typography.fontFamily.regular,
-    fontSize: Typography.fontSize.body,
-    color: Colors.white,
-    opacity: 0.9,
-    textAlign: 'center',
-  },
-  content: {
-    flex: 1,
-    padding: Spacing.lg,
-    borderTopLeftRadius: BorderRadius.lg,
-    borderTopRightRadius: BorderRadius.lg,
-    marginTop: -BorderRadius.lg,
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.caption,
   },
   addButton: {
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
+    alignItems: 'center',
     borderRadius: BorderRadius.md,
     borderWidth: 2,
-    alignItems: 'center',
     marginBottom: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
   },
   addButtonText: {
     fontFamily: Typography.fontFamily.semiBold,
     fontSize: Typography.fontSize.h4,
   },
-  formContainer: {
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.lg,
+  cancelButton: {
+    alignItems: 'center',
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: 'rgba(15, 82, 87, 0.1)',
+    flex: 1,
+    paddingVertical: Spacing.md,
   },
-  formTitle: {
-    fontFamily: Typography.fontFamily.bold,
-    fontSize: Typography.fontSize.h3,
-    marginBottom: Spacing.lg,
-  },
-  label: {
+  cancelButtonText: {
     fontFamily: Typography.fontFamily.semiBold,
     fontSize: Typography.fontSize.body,
-    marginBottom: Spacing.sm,
   },
-  input: {
+  categoryButton: {
+    borderRadius: BorderRadius.sm,
     borderWidth: 1,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    fontFamily: Typography.fontFamily.regular,
-    fontSize: Typography.fontSize.body,
-    marginBottom: Spacing.md,
-  },
-  textArea: {
-    borderWidth: 1,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    fontFamily: Typography.fontFamily.regular,
-    fontSize: Typography.fontSize.body,
-    height: 80,
-    textAlignVertical: 'top',
-    marginBottom: Spacing.md,
-  },
-  typeGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  typeButton: {
-    flex: 1,
-    minWidth: '30%',
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-    borderWidth: 1,
-  },
-  typeEmoji: {
-    fontSize: 20,
-    marginBottom: Spacing.xs,
-  },
-  typeLabel: {
-    fontFamily: Typography.fontFamily.medium,
-    fontSize: Typography.fontSize.caption,
-    textAlign: 'center',
-  },
-  frequencyGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  frequencyButton: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-  },
-  frequencyText: {
-    fontFamily: Typography.fontFamily.medium,
-    fontSize: Typography.fontSize.bodySmall,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
   },
   categoryGrid: {
     flexDirection: 'row',
@@ -538,54 +573,177 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     marginBottom: Spacing.md,
   },
-  categoryButton: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-  },
   categoryText: {
     fontFamily: Typography.fontFamily.medium,
     fontSize: Typography.fontSize.caption,
   },
-  gutRelatedToggle: {
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
+  container: {
+    flex: 1,
+  },
+  content: {
+    borderTopLeftRadius: BorderRadius.lg,
+    borderTopRightRadius: BorderRadius.lg,
+    flex: 1,
+    marginTop: -BorderRadius.lg,
+    padding: Spacing.lg,
+  },
+  emptyEmoji: {
+    fontSize: 48,
     marginBottom: Spacing.md,
   },
-  gutRelatedText: {
-    fontFamily: Typography.fontFamily.semiBold,
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: Spacing.xl,
+  },
+  emptySubtitle: {
+    fontFamily: Typography.fontFamily.regular,
     fontSize: Typography.fontSize.body,
+    lineHeight: 24,
+    textAlign: 'center',
+  },
+  emptyTitle: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h3,
+    marginBottom: Spacing.sm,
   },
   formActions: {
     flexDirection: 'row',
     gap: Spacing.md,
     marginTop: Spacing.lg,
   },
-  cancelButton: {
-    flex: 1,
-    paddingVertical: Spacing.md,
+  formContainer: {
+    borderColor: 'rgba(15, 82, 87, 0.1)',
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    marginBottom: Spacing.lg,
+    padding: Spacing.lg,
+  },
+  formTitle: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h3,
+    marginBottom: Spacing.lg,
+  },
+  frequencyButton: {
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
-  cancelButtonText: {
+  frequencyGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  frequencyText: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.bodySmall,
+  },
+  gutRelatedText: {
     fontFamily: Typography.fontFamily.semiBold,
     fontSize: Typography.fontSize.body,
+  },
+  gutRelatedToggle: {
+    alignItems: 'center',
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  header: {
+    alignItems: 'center',
+    padding: Spacing.lg,
+  },
+  headerSubtitle: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
+    opacity: 0.9,
+    textAlign: 'center',
+  },
+  headerTitle: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h2,
+    marginBottom: Spacing.xs,
+  },
+  inactiveCard: {
+    opacity: 0.6,
+  },
+  inactiveText: {
+    textDecorationLine: 'line-through',
+  },
+  input: {
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
+    marginBottom: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  label: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+    marginBottom: Spacing.sm,
+  },
+  medicationCard: {
+    borderColor: 'rgba(15, 82, 87, 0.1)',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    marginBottom: Spacing.sm,
+    padding: Spacing.md,
+  },
+  medicationCategory: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.caption,
+  },
+  medicationDetails: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.caption,
+    marginBottom: Spacing.xs,
+  },
+  medicationEmoji: {
+    fontSize: 24,
+    marginRight: Spacing.md,
+  },
+  medicationHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  medicationInfo: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flex: 1,
+  },
+  medicationName: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+    marginBottom: Spacing.xs,
+  },
+  medicationNotes: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.bodySmall,
+    fontStyle: 'italic',
+    marginTop: Spacing.sm,
+  },
+  medicationStartDate: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.caption,
+    marginTop: Spacing.sm,
   },
   saveButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
     flex: 1,
     paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
   },
   saveButtonText: {
+    color: Colors.white,
     fontFamily: Typography.fontFamily.semiBold,
     fontSize: Typography.fontSize.body,
-    color: Colors.white,
   },
   section: {
     marginBottom: Spacing.lg,
@@ -595,85 +753,38 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.h3,
     marginBottom: Spacing.md,
   },
-  medicationCard: {
-    padding: Spacing.md,
+  textArea: {
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: 'rgba(15, 82, 87, 0.1)',
-    marginBottom: Spacing.sm,
-  },
-  inactiveCard: {
-    opacity: 0.6,
-  },
-  medicationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  medicationInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  medicationEmoji: {
-    fontSize: 24,
-    marginRight: Spacing.md,
-  },
-  medicationName: {
-    fontFamily: Typography.fontFamily.semiBold,
+    fontFamily: Typography.fontFamily.regular,
     fontSize: Typography.fontSize.body,
-    marginBottom: Spacing.xs,
+    height: 80,
+    marginBottom: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    textAlignVertical: 'top',
   },
-  medicationDetails: {
-    fontFamily: Typography.fontFamily.regular,
-    fontSize: Typography.fontSize.caption,
-    marginBottom: Spacing.xs,
-  },
-  medicationCategory: {
-    fontFamily: Typography.fontFamily.medium,
-    fontSize: Typography.fontSize.caption,
-  },
-  inactiveText: {
-    textDecorationLine: 'line-through',
-  },
-  activeToggle: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.sm,
-  },
-  activeToggleText: {
-    fontFamily: Typography.fontFamily.semiBold,
-    fontSize: Typography.fontSize.caption,
-    color: Colors.white,
-  },
-  medicationNotes: {
-    fontFamily: Typography.fontFamily.regular,
-    fontSize: Typography.fontSize.bodySmall,
-    marginTop: Spacing.sm,
-    fontStyle: 'italic',
-  },
-  medicationStartDate: {
-    fontFamily: Typography.fontFamily.regular,
-    fontSize: Typography.fontSize.caption,
-    marginTop: Spacing.sm,
-  },
-  emptyState: {
+  typeButton: {
     alignItems: 'center',
-    paddingVertical: Spacing.xl,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    flex: 1,
+    minWidth: '30%',
+    padding: Spacing.md,
   },
-  emptyEmoji: {
-    fontSize: 48,
+  typeEmoji: {
+    fontSize: 20,
+    marginBottom: Spacing.xs,
+  },
+  typeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
     marginBottom: Spacing.md,
   },
-  emptyTitle: {
-    fontFamily: Typography.fontFamily.bold,
-    fontSize: Typography.fontSize.h3,
-    marginBottom: Spacing.sm,
-  },
-  emptySubtitle: {
-    fontFamily: Typography.fontFamily.regular,
-    fontSize: Typography.fontSize.body,
+  typeLabel: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.caption,
     textAlign: 'center',
-    lineHeight: 24,
   },
 });

@@ -59,10 +59,10 @@ const webAsyncStorage = {
 
   async multiGet(keys: string[]): Promise<[string, string | null][]> {
     try {
-      return keys.map(key => [key, localStorage.getItem(key)]);
+      return keys.map((key) => [key, localStorage.getItem(key)]);
     } catch (error) {
       console.warn('AsyncStorage.multiGet failed:', error);
-      return keys.map(key => [key, null]);
+      return keys.map((key) => [key, null]);
     }
   },
 
@@ -79,14 +79,14 @@ const webAsyncStorage = {
 
   async multiRemove(keys: string[]): Promise<void> {
     try {
-      keys.forEach(key => {
+      keys.forEach((key) => {
         localStorage.removeItem(key);
       });
     } catch (error) {
       console.warn('AsyncStorage.multiRemove failed:', error);
       throw error;
     }
-  }
+  },
 };
 
 // Native implementation
@@ -94,13 +94,15 @@ let nativeAsyncStorage: any = null;
 
 if (Platform.OS !== 'web') {
   try {
-    nativeAsyncStorage = require('@react-native-async-storage/async-storage').default;
+    nativeAsyncStorage =
+      require('@react-native-async-storage/async-storage').default;
   } catch (error) {
     console.warn('Failed to load native AsyncStorage:', error);
   }
 }
 
 // Export the appropriate implementation
-const AsyncStorage = Platform.OS === 'web' ? webAsyncStorage : nativeAsyncStorage;
+const AsyncStorage =
+  Platform.OS === 'web' ? webAsyncStorage : nativeAsyncStorage;
 
 export default AsyncStorage;

@@ -7,11 +7,12 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
+import { Typography } from '../constants/typography';
+import type { AppError } from '../types/comprehensive';
 import { errorHandler, ErrorSeverity } from '../utils/errorHandler';
-import { AppError } from '../types/comprehensive';
 
 interface ErrorMessageProps {
   error: AppError | Error;
@@ -30,10 +31,13 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
   context,
   style,
 }) => {
-  const appError = error instanceof Error 
-    ? errorHandler.handleError(error, { ...(context && { operation: context }) })
-    : error;
-  
+  const appError =
+    error instanceof Error
+      ? errorHandler.handleError(error, {
+          ...(context && { operation: context }),
+        })
+      : error;
+
   const userFriendlyError = errorHandler.getUserFriendlyError(appError);
 
   const handleRetry = () => {
@@ -90,7 +94,9 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
     <View style={[styles.container, style]}>
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.icon}>{getSeverityIcon(userFriendlyError.severity)}</Text>
+          <Text style={styles.icon}>
+            {getSeverityIcon(userFriendlyError.severity)}
+          </Text>
           <View style={styles.textContainer}>
             <Text style={styles.title}>{userFriendlyError.title}</Text>
             <Text style={styles.message}>{userFriendlyError.message}</Text>
@@ -98,10 +104,12 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
         </View>
 
         <View style={styles.severityContainer}>
-          <View style={[
-            styles.severityBadge,
-            { backgroundColor: getSeverityColor(userFriendlyError.severity) }
-          ]}>
+          <View
+            style={[
+              styles.severityBadge,
+              { backgroundColor: getSeverityColor(userFriendlyError.severity) },
+            ]}
+          >
             <Text style={styles.severityText}>
               {userFriendlyError.severity} - {userFriendlyError.category}
             </Text>
@@ -129,14 +137,17 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
               </Text>
             </TouchableOpacity>
           )}
-          
+
           {onDismiss && (
             <TouchableOpacity style={styles.dismissButton} onPress={onDismiss}>
               <Text style={styles.dismissButtonText}>Dismiss</Text>
             </TouchableOpacity>
           )}
-          
-          <TouchableOpacity style={styles.supportButton} onPress={handleContactSupport}>
+
+          <TouchableOpacity
+            style={styles.supportButton}
+            onPress={handleContactSupport}
+          >
             <Text style={styles.supportButtonText}>Contact Support</Text>
           </TouchableOpacity>
         </View>
@@ -146,9 +157,15 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
 };
 
 const styles = StyleSheet.create({
+  actionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
   container: {
     backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.md,
+    elevation: 2,
     margin: Spacing.md,
     shadowColor: Colors.light.shadow,
     shadowOffset: {
@@ -157,118 +174,112 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
   },
   content: {
     padding: Spacing.lg,
   },
+  detailsContainer: {
+    backgroundColor: Colors.light.background,
+    borderRadius: BorderRadius.sm,
+    marginBottom: Spacing.md,
+    padding: Spacing.md,
+  },
+  detailsText: {
+    color: Colors.light.textSecondary,
+    fontFamily: 'monospace',
+    fontSize: Typography.fontSize.caption,
+    marginBottom: Spacing.xs,
+  },
+  detailsTitle: {
+    color: Colors.light.text,
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.caption,
+    marginBottom: Spacing.sm,
+  },
+  dismissButton: {
+    backgroundColor: Colors.light.surface,
+    borderColor: Colors.light.border,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    flex: 1,
+    minWidth: 100,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  dismissButtonText: {
+    color: Colors.light.text,
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.button,
+    textAlign: 'center',
+  },
   header: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
+    flexDirection: 'row',
     marginBottom: Spacing.md,
   },
   icon: {
     fontSize: 24,
     marginRight: Spacing.md,
   },
-  textContainer: {
-    flex: 1,
-  },
-  title: {
-    fontSize: Typography.fontSize.h3,
-    fontFamily: Typography.fontFamily.semiBold,
-    lineHeight: Typography.lineHeight.h3,
-    color: Colors.light.text,
-    marginBottom: Spacing.sm,
-  },
   message: {
-    fontSize: Typography.fontSize.body,
+    color: Colors.light.textSecondary,
     fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
     lineHeight: Typography.lineHeight.body,
-    color: Colors.light.textSecondary,
-  },
-  severityContainer: {
-    marginBottom: Spacing.md,
-  },
-  severityBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.sm,
-  },
-  severityText: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.medium,
-    color: Colors.white,
-  },
-  detailsContainer: {
-    backgroundColor: Colors.light.background,
-    borderRadius: BorderRadius.sm,
-    padding: Spacing.md,
-    marginBottom: Spacing.md,
-  },
-  detailsTitle: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.medium,
-    color: Colors.light.text,
-    marginBottom: Spacing.sm,
-  },
-  detailsText: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: 'monospace',
-    color: Colors.light.textSecondary,
-    marginBottom: Spacing.xs,
-  },
-  actionsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
   },
   retryButton: {
     backgroundColor: Colors.primary,
     borderRadius: BorderRadius.sm,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
     flex: 1,
     minWidth: 100,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
   retryButtonText: {
-    fontSize: Typography.fontSize.button,
-    fontFamily: Typography.fontFamily.medium,
     color: Colors.white,
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.button,
     textAlign: 'center',
   },
-  dismissButton: {
-    backgroundColor: Colors.light.surface,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
+  severityBadge: {
+    alignSelf: 'flex-start',
     borderRadius: BorderRadius.sm,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
-    flex: 1,
-    minWidth: 100,
   },
-  dismissButtonText: {
-    fontSize: Typography.fontSize.button,
+  severityContainer: {
+    marginBottom: Spacing.md,
+  },
+  severityText: {
+    color: Colors.white,
     fontFamily: Typography.fontFamily.medium,
-    color: Colors.light.text,
-    textAlign: 'center',
+    fontSize: Typography.fontSize.caption,
   },
   supportButton: {
     backgroundColor: 'transparent',
-    borderWidth: 1,
     borderColor: Colors.primary,
     borderRadius: BorderRadius.sm,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+    borderWidth: 1,
     flex: 1,
     minWidth: 100,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
   supportButtonText: {
-    fontSize: Typography.fontSize.button,
-    fontFamily: Typography.fontFamily.medium,
     color: Colors.primary,
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: Typography.fontSize.button,
     textAlign: 'center',
+  },
+  textContainer: {
+    flex: 1,
+  },
+  title: {
+    color: Colors.light.text,
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.h3,
+    lineHeight: Typography.lineHeight.h3,
+    marginBottom: Spacing.sm,
   },
 });
 

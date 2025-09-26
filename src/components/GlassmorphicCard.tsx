@@ -5,13 +5,11 @@
  * @private
  */
 
-import React from 'react';
-import {
-  View,
-  StyleSheet,
-  ViewStyle,
-} from 'react-native';
 import { BlurView } from '@react-native-community/blur';
+import React from 'react';
+import type { ViewStyle } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+
 import { Colors } from '../constants/colors';
 import { BorderRadius, Shadows } from '../constants/spacing';
 
@@ -31,33 +29,31 @@ export const GlassmorphicCard: React.FC<GlassmorphicCardProps> = ({
   return (
     <View style={[styles.container, style]}>
       <BlurView
-        style={styles.blur}
-        blurType={tint}
         blurAmount={intensity}
+        blurType={tint}
         reducedTransparencyFallbackColor={Colors.white}
+        style={styles.blur}
       >
-        <View style={styles.content}>
-          {children}
-        </View>
+        <View style={styles.content}>{children}</View>
       </BlurView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  blur: {
+    flex: 1,
+  },
   container: {
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',
     ...Shadows.lg,
   },
-  blur: {
-    flex: 1,
-  },
   content: {
-    flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    flex: 1,
   },
 });

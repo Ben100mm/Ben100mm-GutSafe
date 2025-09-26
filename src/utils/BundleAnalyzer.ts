@@ -11,8 +11,8 @@
  */
 class BundleAnalyzer {
   private static instance: BundleAnalyzer;
-  private bundleData: Map<string, number> = new Map();
-  private dependencies: Map<string, string> = new Map();
+  private readonly bundleData: Map<string, number> = new Map();
+  private readonly dependencies: Map<string, string> = new Map();
 
   private constructor() {}
 
@@ -32,26 +32,29 @@ class BundleAnalyzer {
     recommendations: string[];
     optimizationScore: number;
   } {
-    const totalSize = Array.from(this.bundleData.values()).reduce((sum, size) => sum + size, 0);
-    
+    const totalSize = Array.from(this.bundleData.values()).reduce(
+      (sum, size) => sum + size,
+      0
+    );
+
     const chunks = Array.from(this.bundleData.entries())
       .map(([name, size]) => ({
         name,
         size,
-        percentage: (size / totalSize) * 100
+        percentage: (size / totalSize) * 100,
       }))
       .sort((a, b) => b.size - a.size);
 
     const largestChunks = chunks.slice(0, 10);
-    
+
     const recommendations = this.generateRecommendations(chunks);
     const optimizationScore = this.calculateOptimizationScore(chunks);
-    
+
     return {
       totalSize,
       largestChunks,
       recommendations,
-      optimizationScore
+      optimizationScore,
     };
   }
 
@@ -86,7 +89,7 @@ class BundleAnalyzer {
       services: 0,
       utils: 0,
       assets: 0,
-      vendor: 0
+      vendor: 0,
     };
 
     for (const [name, size] of this.bundleData.entries()) {
@@ -117,7 +120,7 @@ class BundleAnalyzer {
     totalSize: number;
   }> {
     const dependencyMap = new Map<string, string[]>();
-    
+
     for (const [name, version] of this.dependencies.entries()) {
       if (!dependencyMap.has(name)) {
         dependencyMap.set(name, []);
@@ -130,7 +133,7 @@ class BundleAnalyzer {
       .map(([name, versions]) => ({
         name,
         versions: [...new Set(versions)],
-        totalSize: this.bundleData.get(name) || 0
+        totalSize: this.bundleData.get(name) || 0,
       }));
 
     return duplicates;
@@ -141,10 +144,11 @@ class BundleAnalyzer {
    */
   getUnusedDependencies(): string[] {
     const unused: string[] = [];
-    
+
     for (const [name] of this.dependencies.entries()) {
       const bundleSize = this.bundleData.get(name);
-      if (!bundleSize || bundleSize < 1000) { // Less than 1KB
+      if (!bundleSize || bundleSize < 1000) {
+        // Less than 1KB
         unused.push(name);
       }
     }
@@ -155,37 +159,49 @@ class BundleAnalyzer {
   /**
    * Generate optimization recommendations
    */
-  private generateRecommendations(chunks: Array<{ name: string; size: number; percentage: number }>): string[] {
+  private generateRecommendations(
+    chunks: Array<{ name: string; size: number; percentage: number }>
+  ): string[] {
     const recommendations: string[] = [];
-    
+
     // Check for large chunks
-    const largeChunks = chunks.filter(chunk => chunk.percentage > 20);
+    const largeChunks = chunks.filter((chunk) => chunk.percentage > 20);
     if (largeChunks.length > 0) {
-      recommendations.push(`Consider code splitting for large chunks: ${largeChunks.map(c => c.name).join(', ')}`);
+      recommendations.push(
+        `Consider code splitting for large chunks: ${largeChunks.map((c) => c.name).join(', ')}`
+      );
     }
 
     // Check for many small chunks
-    const smallChunks = chunks.filter(chunk => chunk.size < 10000);
+    const smallChunks = chunks.filter((chunk) => chunk.size < 10000);
     if (smallChunks.length > 20) {
-      recommendations.push('Consider bundling small chunks together to reduce HTTP requests');
+      recommendations.push(
+        'Consider bundling small chunks together to reduce HTTP requests'
+      );
     }
 
     // Check for vendor bundle size
-    const vendorChunks = chunks.filter(chunk => chunk.name.includes('vendor') || chunk.name.includes('node_modules'));
+    const vendorChunks = chunks.filter(
+      (chunk) =>
+        chunk.name.includes('vendor') || chunk.name.includes('node_modules')
+    );
     const vendorSize = vendorChunks.reduce((sum, chunk) => sum + chunk.size, 0);
     const totalSize = chunks.reduce((sum, chunk) => sum + chunk.size, 0);
-    
+
     if (vendorSize / totalSize > 0.6) {
-      recommendations.push('Vendor bundle is too large - consider tree shaking and removing unused dependencies');
+      recommendations.push(
+        'Vendor bundle is too large - consider tree shaking and removing unused dependencies'
+      );
     }
 
     // Check for assets
-    const assetChunks = chunks.filter(chunk => 
-      chunk.name.includes('assets') || 
-      chunk.name.includes('images') || 
-      chunk.name.includes('fonts')
+    const assetChunks = chunks.filter(
+      (chunk) =>
+        chunk.name.includes('assets') ||
+        chunk.name.includes('images') ||
+        chunk.name.includes('fonts')
     );
-    
+
     if (assetChunks.length > 0) {
       recommendations.push('Consider optimizing images and using WebP format');
     }
@@ -196,28 +212,32 @@ class BundleAnalyzer {
   /**
    * Calculate optimization score (0-100)
    */
-  private calculateOptimizationScore(chunks: Array<{ name: string; size: number; percentage: number }>): number {
+  private calculateOptimizationScore(
+    chunks: Array<{ name: string; size: number; percentage: number }>
+  ): number {
     let score = 100;
-    
+
     // Penalize large chunks
-    const largeChunks = chunks.filter(chunk => chunk.percentage > 20);
+    const largeChunks = chunks.filter((chunk) => chunk.percentage > 20);
     score -= largeChunks.length * 10;
-    
+
     // Penalize too many small chunks
-    const smallChunks = chunks.filter(chunk => chunk.size < 10000);
+    const smallChunks = chunks.filter((chunk) => chunk.size < 10000);
     if (smallChunks.length > 20) {
       score -= 15;
     }
-    
+
     // Penalize large vendor bundle
-    const vendorChunks = chunks.filter(chunk => chunk.name.includes('vendor'));
+    const vendorChunks = chunks.filter((chunk) =>
+      chunk.name.includes('vendor')
+    );
     const vendorSize = vendorChunks.reduce((sum, chunk) => sum + chunk.size, 0);
     const totalSize = chunks.reduce((sum, chunk) => sum + chunk.size, 0);
-    
+
     if (vendorSize / totalSize > 0.6) {
       score -= 20;
     }
-    
+
     return Math.max(0, score);
   }
 
@@ -229,7 +249,7 @@ class BundleAnalyzer {
     const categories = this.getBundleByCategory();
     const duplicates = this.findDuplicateDependencies();
     const unused = this.getUnusedDependencies();
-    
+
     const report = [
       '# Bundle Analysis Report',
       '',
@@ -251,19 +271,23 @@ class BundleAnalyzer {
       `- **Vendor**: ${this.formatBytes(categories.vendor)} (${this.getPercentage(categories.vendor, analysis.totalSize)}%)`,
       '',
       '### Largest Chunks',
-      ''
+      '',
     ];
 
     analysis.largestChunks.forEach((chunk, index) => {
-      report.push(`${index + 1}. **${chunk.name}**: ${this.formatBytes(chunk.size)} (${chunk.percentage.toFixed(1)}%)`);
+      report.push(
+        `${index + 1}. **${chunk.name}**: ${this.formatBytes(chunk.size)} (${chunk.percentage.toFixed(1)}%)`
+      );
     });
 
     if (duplicates.length > 0) {
       report.push('');
       report.push('## Duplicate Dependencies');
       report.push('');
-      duplicates.forEach(dup => {
-        report.push(`- **${dup.name}**: ${dup.versions.join(', ')} (${this.formatBytes(dup.totalSize)})`);
+      duplicates.forEach((dup) => {
+        report.push(
+          `- **${dup.name}**: ${dup.versions.join(', ')} (${this.formatBytes(dup.totalSize)})`
+        );
       });
     }
 
@@ -271,7 +295,7 @@ class BundleAnalyzer {
       report.push('');
       report.push('## Potentially Unused Dependencies');
       report.push('');
-      unused.forEach(dep => {
+      unused.forEach((dep) => {
         report.push(`- ${dep}`);
       });
     }
@@ -292,20 +316,24 @@ class BundleAnalyzer {
    * Format bytes to human readable string
    */
   private formatBytes(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
-    
+    if (bytes === 0) {
+      return '0 Bytes';
+    }
+
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   }
 
   /**
    * Get percentage of value relative to total
    */
   private getPercentage(value: number, total: number): string {
-    if (total === 0) return '0.0';
+    if (total === 0) {
+      return '0.0';
+    }
     return ((value / total) * 100).toFixed(1);
   }
 
@@ -321,13 +349,17 @@ class BundleAnalyzer {
    * Export data as JSON
    */
   exportData(): string {
-    return JSON.stringify({
-      bundleData: Object.fromEntries(this.bundleData),
-      dependencies: Object.fromEntries(this.dependencies),
-      analysis: this.analyzeBundle(),
-      categories: this.getBundleByCategory(),
-      timestamp: new Date().toISOString()
-    }, null, 2);
+    return JSON.stringify(
+      {
+        bundleData: Object.fromEntries(this.bundleData),
+        dependencies: Object.fromEntries(this.dependencies),
+        analysis: this.analyzeBundle(),
+        categories: this.getBundleByCategory(),
+        timestamp: new Date().toISOString(),
+      },
+      null,
+      2
+    );
   }
 }
 

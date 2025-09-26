@@ -6,24 +6,25 @@
  */
 
 import React, { useRef, useEffect } from 'react';
+import type { ViewStyle, TextStyle } from 'react-native';
 import {
   TouchableOpacity,
   Text,
   StyleSheet,
-  ViewStyle,
-  TextStyle,
   Animated,
   ActivityIndicator,
   View,
   Platform,
 } from 'react-native';
-import LinearGradient from './LinearGradientWrapper';
+
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
-import { HapticFeedback } from '../utils/haptics';
-import { AnimationPresets, TransformUtils } from '../utils/animations';
+import { Typography } from '../constants/typography';
 import AccessibilityService from '../utils/accessibility';
+import { AnimationPresets, TransformUtils } from '../utils/animations';
+import { HapticFeedback } from '../utils/haptics';
+
+import LinearGradient from './LinearGradientWrapper';
 
 interface AnimatedButtonProps {
   title: string;
@@ -65,9 +66,9 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   useEffect(() => {
     // Initialize 3D animations if enabled
     if (enable3D) {
-      const initialAnimation = AnimationPresets.scale3D({ 
-        duration: 300, 
-        useNativeDriver: Platform.OS !== 'web' 
+      const initialAnimation = AnimationPresets.scale3D({
+        duration: 300,
+        useNativeDriver: Platform.OS !== 'web',
       });
       initialAnimation.start();
     }
@@ -75,7 +76,7 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
 
   const handlePressIn = () => {
     HapticFeedback.trigger(hapticType);
-    
+
     const animations = [
       Animated.spring(scaleAnim, {
         toValue: 0.95,
@@ -167,38 +168,42 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   };
 
   // 3D transform styles
-  const transform3DStyle = enable3D ? {
-    transform: [
-      { scale: scaleAnim },
-      { translateZ: translateZAnim },
-      ...TransformUtils.createRotation3D(rotateAnim, 'y'),
-    ],
-    ...TransformUtils.createPerspective(1000),
-  } : {
-    transform: [{ scale: scaleAnim }],
-  };
+  const transform3DStyle = enable3D
+    ? {
+        transform: [
+          { scale: scaleAnim },
+          { translateZ: translateZAnim },
+          ...TransformUtils.createRotation3D(rotateAnim, 'y'),
+        ],
+        ...TransformUtils.createPerspective(1000),
+      }
+    : {
+        transform: [{ scale: scaleAnim }],
+      };
 
   // Shadow style for 3D effect
-  const shadowStyle = enable3D ? {
-    shadowOpacity: shadowAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0.1, 0.3],
-    }),
-    shadowRadius: shadowAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [4, 12],
-    }),
-    shadowOffset: {
-      width: shadowAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, 4],
-      }),
-      height: shadowAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [2, 8],
-      }),
-    },
-  } : {};
+  const shadowStyle = enable3D
+    ? {
+        shadowOpacity: shadowAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.1, 0.3],
+        }),
+        shadowRadius: shadowAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [4, 12],
+        }),
+        shadowOffset: {
+          width: shadowAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, 4],
+          }),
+          height: shadowAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [2, 8],
+          }),
+        },
+      }
+    : {};
 
   // Accessibility config
   const accessibilityConfig = AccessibilityService.createButtonConfig(
@@ -212,15 +217,17 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
     return (
       <Animated.View style={[transform3DStyle, shadowStyle]}>
         <TouchableOpacity
+          disabled={disabled || loading}
+          style={[buttonStyle, { overflow: 'hidden' }]}
           onPress={handlePress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
-          disabled={disabled || loading}
-          style={[buttonStyle, { overflow: 'hidden' }]}
           {...accessibilityConfig}
         >
           <LinearGradient
-            colors={disabled ? [Colors.body, Colors.body] : Colors.primaryGradient}
+            colors={
+              disabled ? [Colors.body, Colors.body] : Colors.primaryGradient
+            }
             style={styles.gradient}
           >
             <Animated.View style={[styles.glow, glowStyle]} />
@@ -243,17 +250,17 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   return (
     <Animated.View style={[transform3DStyle, shadowStyle]}>
       <TouchableOpacity
+        disabled={disabled || loading}
+        style={buttonStyle}
         onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        disabled={disabled || loading}
-        style={buttonStyle}
         {...accessibilityConfig}
       >
         {loading ? (
-          <ActivityIndicator 
-            color={variant === 'outline' ? Colors.primary : Colors.white} 
-            size="small" 
+          <ActivityIndicator
+            color={variant === 'outline' ? Colors.primary : Colors.white}
+            size="small"
           />
         ) : (
           <>
@@ -268,84 +275,84 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
+    alignItems: 'center',
     borderRadius: BorderRadius.md,
-    alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-  },
-  gradient: {
-    flex: 1,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  glow: {
-    position: 'absolute',
-    top: -2,
-    left: -2,
-    right: -2,
-    bottom: -2,
-    borderRadius: BorderRadius.md + 2,
-    backgroundColor: Colors.primaryLight,
-    opacity: 0.3,
   },
   content: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
     justifyContent: 'center',
-  },
-  icon: {
-    marginRight: Spacing.sm,
-  },
-  outline: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: Colors.primary,
-  },
-  glass: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   disabled: {
     opacity: 0.5,
   },
-  small: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    minHeight: 36,
+  disabledText: {
+    color: Colors.body,
   },
-  medium: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    minHeight: 48,
-  },
-  large: {
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.lg,
-    minHeight: 56,
-  },
-  text: {
-    fontFamily: Typography.fontFamily.semiBold,
-    textAlign: 'center',
-  },
-  smallText: {
-    fontSize: Typography.fontSize.bodySmall,
-  },
-  mediumText: {
-    fontSize: Typography.fontSize.body,
-  },
-  largeText: {
-    fontSize: Typography.fontSize.h3,
-  },
-  outlineText: {
-    color: Colors.primary,
+  glass: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderWidth: 1,
   },
   glassText: {
     color: Colors.white,
   },
-  disabledText: {
-    color: Colors.body,
+  glow: {
+    backgroundColor: Colors.primaryLight,
+    borderRadius: BorderRadius.md + 2,
+    bottom: -2,
+    left: -2,
+    opacity: 0.3,
+    position: 'absolute',
+    right: -2,
+    top: -2,
+  },
+  gradient: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    position: 'relative',
+    width: '100%',
+  },
+  icon: {
+    marginRight: Spacing.sm,
+  },
+  large: {
+    minHeight: 56,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.lg,
+  },
+  largeText: {
+    fontSize: Typography.fontSize.h3,
+  },
+  medium: {
+    minHeight: 48,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  mediumText: {
+    fontSize: Typography.fontSize.body,
+  },
+  outline: {
+    backgroundColor: 'transparent',
+    borderColor: Colors.primary,
+    borderWidth: 2,
+  },
+  outlineText: {
+    color: Colors.primary,
+  },
+  small: {
+    minHeight: 36,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  smallText: {
+    fontSize: Typography.fontSize.bodySmall,
+  },
+  text: {
+    fontFamily: Typography.fontFamily.semiBold,
+    textAlign: 'center',
   },
 });

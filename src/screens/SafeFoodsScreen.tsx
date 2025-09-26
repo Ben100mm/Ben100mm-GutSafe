@@ -5,6 +5,7 @@
  * @private
  */
 
+import { useNavigation } from '@react-navigation/native';
 import React, { useState, useMemo } from 'react';
 import {
   View,
@@ -19,11 +20,11 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
-import { SafeFood } from '../types';
+import { Typography } from '../constants/typography';
+import type { SafeFood } from '../types';
 
 // Mock safe foods data
 const mockSafeFoods: SafeFood[] = [
@@ -35,7 +36,10 @@ const mockSafeFoods: SafeFood[] = [
       brand: 'Chobani',
       category: 'Dairy',
       barcode: '1234567890123',
-      ingredients: ['Cultured pasteurized grade A milk', 'Live active cultures'],
+      ingredients: [
+        'Cultured pasteurized grade A milk',
+        'Live active cultures',
+      ],
       allergens: ['Milk'],
       additives: [],
       fodmapLevel: 'low',
@@ -80,7 +84,7 @@ const mockSafeFoods: SafeFood[] = [
     foodItem: {
       id: '3',
       name: 'Quinoa',
-      brand: 'Bob\'s Red Mill',
+      brand: "Bob's Red Mill",
       category: 'Grains',
       barcode: '1234567890127',
       ingredients: ['Quinoa'],
@@ -113,20 +117,24 @@ export const SafeFoodsScreen: React.FC = () => {
   const [sortBy, setSortBy] = useState<'recent' | 'usage' | 'name'>('recent');
 
   const filteredAndSortedFoods = useMemo(() => {
-    let filtered = safeFoods.filter(food =>
-      food.foodItem.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (food.foodItem.brand && food.foodItem.brand.toLowerCase().includes(searchQuery.toLowerCase()))
+    const filtered = safeFoods.filter(
+      (food) =>
+        food.foodItem.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (food.foodItem.brand &&
+          food.foodItem.brand.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
     switch (sortBy) {
       case 'recent':
-        return filtered.sort((a, b) => 
-          (b.lastUsed?.getTime() || 0) - (a.lastUsed?.getTime() || 0)
+        return filtered.sort(
+          (a, b) => (b.lastUsed?.getTime() || 0) - (a.lastUsed?.getTime() || 0)
         );
       case 'usage':
         return filtered.sort((a, b) => b.usageCount - a.usageCount);
       case 'name':
-        return filtered.sort((a, b) => a.foodItem.name.localeCompare(b.foodItem.name));
+        return filtered.sort((a, b) =>
+          a.foodItem.name.localeCompare(b.foodItem.name)
+        );
       default:
         return filtered;
     }
@@ -150,7 +158,7 @@ export const SafeFoodsScreen: React.FC = () => {
           text: 'Remove',
           style: 'destructive',
           onPress: () => {
-            setSafeFoods(prev => prev.filter(food => food.id !== foodId));
+            setSafeFoods((prev) => prev.filter((food) => food.id !== foodId));
           },
         },
       ]
@@ -158,8 +166,10 @@ export const SafeFoodsScreen: React.FC = () => {
   };
 
   const handleAddNote = (foodId: string) => {
-    const food = safeFoods.find(f => f.id === foodId);
-    if (!food) return;
+    const food = safeFoods.find((f) => f.id === foodId);
+    if (!food) {
+      return;
+    }
 
     Alert.prompt(
       'Add Note',
@@ -170,10 +180,8 @@ export const SafeFoodsScreen: React.FC = () => {
           text: 'Save',
           onPress: (note) => {
             if (note) {
-              setSafeFoods(prev =>
-                prev.map(f =>
-                  f.id === foodId ? { ...f, notes: note } : f
-                )
+              setSafeFoods((prev) =>
+                prev.map((f) => (f.id === foodId ? { ...f, notes: note } : f))
               );
             }
           },
@@ -186,48 +194,68 @@ export const SafeFoodsScreen: React.FC = () => {
 
   const getSortIcon = (sort: string) => {
     switch (sort) {
-      case 'recent': return '🕒';
-      case 'usage': return '📊';
-      case 'name': return '🔤';
-      default: return '';
+      case 'recent':
+        return '🕒';
+      case 'usage':
+        return '📊';
+      case 'name':
+        return '🔤';
+      default:
+        return '';
     }
   };
 
   const formatLastUsed = (date?: Date) => {
-    if (!date) return 'Never used';
+    if (!date) {
+      return 'Never used';
+    }
     const now = new Date();
     const diffTime = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+
+    if (diffDays === 0) {
+      return 'Today';
+    }
+    if (diffDays === 1) {
+      return 'Yesterday';
+    }
+    if (diffDays < 7) {
+      return `${diffDays} days ago`;
+    }
+    if (diffDays < 30) {
+      return `${Math.floor(diffDays / 7)} weeks ago`;
+    }
     return `${Math.floor(diffDays / 30)} months ago`;
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={[styles.backButtonText, { color: colors.accent }]}>‹ Back</Text>
+          <Text style={[styles.backButtonText, { color: colors.accent }]}>
+            ‹ Back
+          </Text>
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>Safe Foods</Text>
         <View style={styles.headerRight} />
       </View>
 
       {/* Search Bar */}
-      <View style={[styles.searchContainer, { backgroundColor: colors.surface }]}>
+      <View
+        style={[styles.searchContainer, { backgroundColor: colors.surface }]}
+      >
         <TextInput
-          style={[styles.searchInput, { color: colors.text }]}
           placeholder="Search safe foods..."
           placeholderTextColor={colors.textTertiary}
+          style={[styles.searchInput, { color: colors.text }]}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
@@ -247,7 +275,8 @@ export const SafeFoodsScreen: React.FC = () => {
               style={[
                 styles.sortButton,
                 {
-                  backgroundColor: sortBy === option.key ? colors.accent : colors.surface,
+                  backgroundColor:
+                    sortBy === option.key ? colors.accent : colors.surface,
                 },
               ]}
               onPress={() => setSortBy(option.key as any)}
@@ -270,12 +299,12 @@ export const SafeFoodsScreen: React.FC = () => {
 
       {/* Safe Foods List */}
       <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
+        showsVerticalScrollIndicator={false}
+        style={styles.scrollView}
       >
         {filteredAndSortedFoods.length === 0 ? (
           <View style={styles.emptyState}>
@@ -283,7 +312,9 @@ export const SafeFoodsScreen: React.FC = () => {
             <Text style={[styles.emptyTitle, { color: colors.text }]}>
               {searchQuery ? 'No matching safe foods' : 'No safe foods yet'}
             </Text>
-            <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+            <Text
+              style={[styles.emptySubtitle, { color: colors.textSecondary }]}
+            >
               {searchQuery
                 ? 'Try adjusting your search terms'
                 : 'Add foods to your safe foods list from scan results'}
@@ -301,11 +332,18 @@ export const SafeFoodsScreen: React.FC = () => {
                     {safeFood.foodItem.name}
                   </Text>
                   {safeFood.foodItem.brand && (
-                    <Text style={[styles.foodBrand, { color: colors.textSecondary }]}>
+                    <Text
+                      style={[
+                        styles.foodBrand,
+                        { color: colors.textSecondary },
+                      ]}
+                    >
                       {safeFood.foodItem.brand}
                     </Text>
                   )}
-                  <Text style={[styles.dataSource, { color: colors.textTertiary }]}>
+                  <Text
+                    style={[styles.dataSource, { color: colors.textTertiary }]}
+                  >
                     Source: {safeFood.foodItem.dataSource}
                   </Text>
                 </View>
@@ -326,8 +364,15 @@ export const SafeFoodsScreen: React.FC = () => {
               </View>
 
               {safeFood.notes && (
-                <View style={[styles.notesContainer, { backgroundColor: colors.background }]}>
-                  <Text style={[styles.notesText, { color: colors.textSecondary }]}>
+                <View
+                  style={[
+                    styles.notesContainer,
+                    { backgroundColor: colors.background },
+                  ]}
+                >
+                  <Text
+                    style={[styles.notesText, { color: colors.textSecondary }]}
+                  >
                     💭 {safeFood.notes}
                   </Text>
                 </View>
@@ -338,7 +383,9 @@ export const SafeFoodsScreen: React.FC = () => {
                   <Text style={[styles.statValue, { color: colors.text }]}>
                     {safeFood.usageCount}
                   </Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                  <Text
+                    style={[styles.statLabel, { color: colors.textSecondary }]}
+                  >
                     Uses
                   </Text>
                 </View>
@@ -346,7 +393,9 @@ export const SafeFoodsScreen: React.FC = () => {
                   <Text style={[styles.statValue, { color: colors.text }]}>
                     {formatLastUsed(safeFood.lastUsed)}
                   </Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                  <Text
+                    style={[styles.statLabel, { color: colors.textSecondary }]}
+                  >
                     Last Used
                   </Text>
                 </View>
@@ -354,7 +403,9 @@ export const SafeFoodsScreen: React.FC = () => {
                   <Text style={[styles.statValue, { color: colors.text }]}>
                     {safeFood.foodItem.fodmapLevel || 'N/A'}
                   </Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                  <Text
+                    style={[styles.statLabel, { color: colors.textSecondary }]}
+                  >
                     FODMAP
                   </Text>
                 </View>
@@ -368,164 +419,164 @@ export const SafeFoodsScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
-  backButton: {
-    padding: Spacing.xs,
-  },
-  backButtonText: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.semiBold,
-  },
-  title: {
-    fontSize: Typography.fontSize.h2,
-    fontFamily: Typography.fontFamily.bold,
-  },
-  headerRight: {
-    width: 60,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.regular,
-    paddingVertical: Spacing.sm,
-  },
-  searchIcon: {
-    fontSize: 16,
-    marginLeft: Spacing.sm,
-  },
-  sortContainer: {
-    paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
-  },
-  sortButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: 20,
-    marginRight: Spacing.sm,
-  },
-  sortIcon: {
-    fontSize: 14,
-    marginRight: Spacing.xs,
-  },
-  sortButtonText: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.semiBold,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: Spacing.xxl,
-  },
-  foodCard: {
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-  },
-  foodHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.sm,
-  },
-  foodInfo: {
-    flex: 1,
-  },
-  foodName: {
-    fontSize: Typography.fontSize.h3,
-    fontFamily: Typography.fontFamily.bold,
-    marginBottom: 2,
-  },
-  foodBrand: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.regular,
-    marginBottom: 2,
-  },
-  dataSource: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
-  },
-  foodActions: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
   actionButton: {
     padding: Spacing.xs,
   },
   actionIcon: {
     fontSize: 16,
   },
-  notesContainer: {
-    marginTop: Spacing.sm,
-    padding: Spacing.sm,
-    borderRadius: BorderRadius.sm,
+  backButton: {
+    padding: Spacing.xs,
   },
-  notesText: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.regular,
-    fontStyle: 'italic',
-  },
-  foodStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: Spacing.md,
-    paddingTop: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.1)',
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statValue: {
+  backButtonText: {
+    fontFamily: Typography.fontFamily.semiBold,
     fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.bold,
-    marginBottom: 2,
   },
-  statLabel: {
-    fontSize: Typography.fontSize.caption,
+  container: {
+    flex: 1,
+  },
+  dataSource: {
     fontFamily: Typography.fontFamily.regular,
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.xxl,
-    paddingHorizontal: Spacing.xl,
+    fontSize: Typography.fontSize.caption,
   },
   emptyIcon: {
     fontSize: 48,
     marginBottom: Spacing.md,
   },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.xxl,
+  },
+  emptySubtitle: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
+    lineHeight: Typography.lineHeight.body,
+    textAlign: 'center',
+  },
   emptyTitle: {
-    fontSize: Typography.fontSize.h3,
     fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h3,
     marginBottom: Spacing.sm,
     textAlign: 'center',
   },
-  emptySubtitle: {
-    fontSize: Typography.fontSize.body,
+  foodActions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  foodBrand: {
     fontFamily: Typography.fontFamily.regular,
-    textAlign: 'center',
-    lineHeight: Typography.lineHeight.body,
+    fontSize: Typography.fontSize.body,
+    marginBottom: 2,
+  },
+  foodCard: {
+    borderRadius: BorderRadius.lg,
+    marginBottom: Spacing.md,
+    marginHorizontal: Spacing.lg,
+    padding: Spacing.lg,
+  },
+  foodHeader: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
+  },
+  foodInfo: {
+    flex: 1,
+  },
+  foodName: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h3,
+    marginBottom: 2,
+  },
+  foodStats: {
+    borderTopColor: 'rgba(0,0,0,0.1)',
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+  },
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  headerRight: {
+    width: 60,
+  },
+  notesContainer: {
+    borderRadius: BorderRadius.sm,
+    marginTop: Spacing.sm,
+    padding: Spacing.sm,
+  },
+  notesText: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.bodySmall,
+    fontStyle: 'italic',
+  },
+  scrollContent: {
+    paddingBottom: Spacing.xxl,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  searchContainer: {
+    alignItems: 'center',
+    borderRadius: BorderRadius.lg,
+    flexDirection: 'row',
+    marginBottom: Spacing.md,
+    marginHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  searchIcon: {
+    fontSize: 16,
+    marginLeft: Spacing.sm,
+  },
+  searchInput: {
+    flex: 1,
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
+    paddingVertical: Spacing.sm,
+  },
+  sortButton: {
+    alignItems: 'center',
+    borderRadius: 20,
+    flexDirection: 'row',
+    marginRight: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  sortButtonText: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.bodySmall,
+  },
+  sortContainer: {
+    marginBottom: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+  },
+  sortIcon: {
+    fontSize: 14,
+    marginRight: Spacing.xs,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statLabel: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.caption,
+  },
+  statValue: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.body,
+    marginBottom: 2,
+  },
+  title: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h2,
   },
 });

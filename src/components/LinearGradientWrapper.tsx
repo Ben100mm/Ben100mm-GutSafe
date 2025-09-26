@@ -8,10 +8,18 @@
 import { Platform, View } from 'react-native';
 
 // Simple fallback LinearGradient that uses solid colors
-const FallbackLinearGradient = ({ colors, style, children, start, end, locations, ...props }: any) => {
+const FallbackLinearGradient = ({
+  colors,
+  style,
+  children,
+  start,
+  end,
+  locations,
+  ...props
+}: any) => {
   // Use the first color as a solid background
   const backgroundColor = colors && colors.length > 0 ? colors[0] : '#000000';
-  
+
   return (
     <View style={[{ backgroundColor }, style]} {...props}>
       {children}
@@ -30,6 +38,7 @@ if (Platform.OS !== 'web') {
 }
 
 // Export the appropriate component - use fallback for web to avoid CSS issues
-const LinearGradient = Platform.OS === 'web' ? FallbackLinearGradient : NativeLinearGradient;
+const LinearGradient =
+  Platform.OS === 'web' ? FallbackLinearGradient : NativeLinearGradient;
 
 export default LinearGradient;

@@ -15,12 +15,12 @@ import {
   useColorScheme,
   ScrollView,
 } from 'react-native';
-import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
-import { Spacing } from '../constants/spacing';
-import { TrendAnalysis } from '../types';
 import Svg, { Path } from 'react-native-svg';
 
+import { Colors } from '../constants/colors';
+import { Spacing } from '../constants/spacing';
+import { Typography } from '../constants/typography';
+import type { TrendAnalysis } from '../types';
 
 interface TrendChartProps {
   data: TrendAnalysis;
@@ -41,11 +41,10 @@ export const TrendChart: React.FC<TrendChartProps> = ({
   showInsights: _showInsights = true,
   showRecommendations: _showRecommendations = false,
 }) => {
-
   // Simple line chart implementation
   return (
     <Svg height="200" width="300">
-      <Path d="M0 200 L100 100 L200 150 L300 50" stroke="blue" fill="none" />
+      <Path d="M0 200 L100 100 L200 150 L300 50" fill="none" stroke="blue" />
     </Svg>
   );
 };
@@ -73,11 +72,11 @@ export const MultiTrendChart: React.FC<MultiTrendChartProps> = ({
           {charts.map((chart, index) => (
             <TrendChart
               key={index}
-              data={chart}
-              title={chart.title}
               color={chart.color}
+              data={chart}
               height={height}
               showInsights={false}
+              title={chart.title}
             />
           ))}
         </View>
@@ -118,7 +117,10 @@ export const PeriodSelector: React.FC<PeriodSelectorProps> = ({
             style={[
               styles.periodButton,
               {
-                backgroundColor: selectedPeriod === period.key ? colors.accent : colors.background,
+                backgroundColor:
+                  selectedPeriod === period.key
+                    ? colors.accent
+                    : colors.background,
               },
             ]}
             onPress={() => onPeriodChange(period.key as any)}
@@ -127,7 +129,8 @@ export const PeriodSelector: React.FC<PeriodSelectorProps> = ({
               style={[
                 styles.periodButtonText,
                 {
-                  color: selectedPeriod === period.key ? Colors.white : colors.text,
+                  color:
+                    selectedPeriod === period.key ? Colors.white : colors.text,
                 },
               ]}
             >
@@ -141,66 +144,65 @@ export const PeriodSelector: React.FC<PeriodSelectorProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginHorizontal: Spacing.lg,
-    marginVertical: Spacing.sm,
-    borderRadius: 16,
-    padding: Spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.md,
-  },
-  title: {
-    fontSize: Typography.fontSize.title3,
-    fontWeight: Typography.fontWeight.bold,
-    marginBottom: 4,
-  },
-  subtitle: {
+  changeText: {
     fontSize: Typography.fontSize.body,
-    fontWeight: Typography.fontWeight.regular,
+    fontWeight: Typography.fontWeight.bold,
   },
-  trendIndicator: {
+  chartArea: {
     alignItems: 'center',
-  },
-  trendIcon: {
-    fontSize: 20,
-    marginBottom: 2,
-  },
-  trendText: {
-    fontSize: Typography.fontSize.caption,
-    fontWeight: Typography.fontWeight.semiBold,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderRadius: 8,
+    flex: 1,
+    justifyContent: 'center',
+    padding: Spacing.lg,
   },
   chartContainer: {
     marginBottom: Spacing.md,
   },
-  chartArea: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    borderRadius: 8,
-    padding: Spacing.lg,
+  chartDescription: {
+    fontSize: Typography.fontSize.body,
+    marginBottom: Spacing.xs,
+    textAlign: 'center',
   },
   chartPlaceholder: {
     fontSize: Typography.fontSize.h3,
     marginBottom: Spacing.sm,
   },
-  chartDescription: {
-    fontSize: Typography.fontSize.body,
-    textAlign: 'center',
+  chartsRow: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  container: {
+    borderRadius: 16,
+    elevation: 3,
+    marginHorizontal: Spacing.lg,
+    marginVertical: Spacing.sm,
+    padding: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  header: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+  },
+  insightBullet: {
+    fontSize: 16,
+    marginRight: Spacing.sm,
+    marginTop: 2,
+  },
+  insightItem: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
     marginBottom: Spacing.xs,
   },
-  changeText: {
-    fontSize: Typography.fontSize.body,
-    fontWeight: Typography.fontWeight.bold,
+  insightText: {
+    flex: 1,
+    fontSize: Typography.fontSize.bodySmall,
+    lineHeight: 20,
   },
   insightsContainer: {
     marginTop: Spacing.md,
@@ -210,17 +212,62 @@ const styles = StyleSheet.create({
     fontWeight: Typography.fontWeight.semiBold,
     marginBottom: Spacing.sm,
   },
-  insightItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.xs,
+  multiContainer: {
+    borderRadius: 16,
+    elevation: 3,
+    marginHorizontal: Spacing.lg,
+    marginVertical: Spacing.sm,
+    padding: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
-  insightBullet: {
+  multiTitle: {
+    fontSize: Typography.fontSize.title3,
+    fontWeight: Typography.fontWeight.bold,
+    marginBottom: Spacing.md,
+  },
+  periodButton: {
+    borderRadius: 8,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  periodButtonText: {
+    fontSize: Typography.fontSize.bodySmall,
+    fontWeight: Typography.fontWeight.semiBold,
+  },
+  periodButtons: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  periodSelector: {
+    borderRadius: 16,
+    elevation: 3,
+    marginHorizontal: Spacing.lg,
+    marginVertical: Spacing.sm,
+    padding: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  periodTitle: {
+    fontSize: Typography.fontSize.body,
+    fontWeight: Typography.fontWeight.semiBold,
+    marginBottom: Spacing.sm,
+  },
+  recommendationBullet: {
     fontSize: 16,
     marginRight: Spacing.sm,
     marginTop: 2,
   },
-  insightText: {
+  recommendationItem: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    marginBottom: Spacing.xs,
+  },
+  recommendationText: {
     flex: 1,
     fontSize: Typography.fontSize.bodySmall,
     lineHeight: 20,
@@ -233,68 +280,24 @@ const styles = StyleSheet.create({
     fontWeight: Typography.fontWeight.semiBold,
     marginBottom: Spacing.sm,
   },
-  recommendationItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.xs,
+  subtitle: {
+    fontSize: Typography.fontSize.body,
+    fontWeight: Typography.fontWeight.regular,
   },
-  recommendationBullet: {
-    fontSize: 16,
-    marginRight: Spacing.sm,
-    marginTop: 2,
-  },
-  recommendationText: {
-    flex: 1,
-    fontSize: Typography.fontSize.bodySmall,
-    lineHeight: 20,
-  },
-  multiContainer: {
-    marginHorizontal: Spacing.lg,
-    marginVertical: Spacing.sm,
-    borderRadius: 16,
-    padding: Spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  multiTitle: {
+  title: {
     fontSize: Typography.fontSize.title3,
     fontWeight: Typography.fontWeight.bold,
-    marginBottom: Spacing.md,
+    marginBottom: 4,
   },
-  chartsRow: {
-    flexDirection: 'row',
-    gap: Spacing.md,
+  trendIcon: {
+    fontSize: 20,
+    marginBottom: 2,
   },
-  periodSelector: {
-    marginHorizontal: Spacing.lg,
-    marginVertical: Spacing.sm,
-    borderRadius: 16,
-    padding: Spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+  trendIndicator: {
+    alignItems: 'center',
   },
-  periodTitle: {
-    fontSize: Typography.fontSize.body,
-    fontWeight: Typography.fontWeight.semiBold,
-    marginBottom: Spacing.sm,
-  },
-  periodButtons: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  periodButton: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: 8,
-  },
-  periodButtonText: {
-    fontSize: Typography.fontSize.bodySmall,
+  trendText: {
+    fontSize: Typography.fontSize.caption,
     fontWeight: Typography.fontWeight.semiBold,
   },
 });

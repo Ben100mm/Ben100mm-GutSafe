@@ -6,15 +6,16 @@
  */
 
 import * as CryptoJS from 'crypto-js';
-import { logger } from './logger';
+
 import { healthDataEncryption } from './encryption';
+import { logger } from './logger';
 
 // Data classification levels
 export enum DataClassification {
   PUBLIC = 'public',
   INTERNAL = 'internal',
   CONFIDENTIAL = 'confidential',
-  RESTRICTED = 'restricted'
+  RESTRICTED = 'restricted',
 }
 
 // Data retention policies
@@ -64,9 +65,12 @@ interface EncryptionConfig {
  */
 export class DataProtectionService {
   private static instance: DataProtectionService;
-  private encryptionConfig: EncryptionConfig;
-  private retentionPolicies: Map<DataClassification, DataRetentionPolicy>;
-  private consentRegistry: Map<string, GDPRConsent>;
+  private readonly encryptionConfig: EncryptionConfig;
+  private readonly retentionPolicies: Map<
+    DataClassification,
+    DataRetentionPolicy
+  >;
+  private readonly consentRegistry: Map<string, GDPRConsent>;
 
   private constructor() {
     this.encryptionConfig = {
@@ -74,9 +78,9 @@ export class DataProtectionService {
       keySize: 256,
       mode: 'CBC',
       padding: 'Pkcs7',
-      iterations: 10000
+      iterations: 10000,
     };
-    
+
     this.retentionPolicies = new Map();
     this.consentRegistry = new Map();
     this.initializeRetentionPolicies();
@@ -98,7 +102,7 @@ export class DataProtectionService {
       retentionDays: 365,
       autoDelete: false,
       encryptAtRest: false,
-      encryptInTransit: false
+      encryptInTransit: false,
     });
 
     this.retentionPolicies.set(DataClassification.INTERNAL, {
@@ -107,7 +111,7 @@ export class DataProtectionService {
       autoDelete: true,
       anonymizeAfterDays: 90,
       encryptAtRest: true,
-      encryptInTransit: true
+      encryptInTransit: true,
     });
 
     this.retentionPolicies.set(DataClassification.CONFIDENTIAL, {
@@ -116,7 +120,7 @@ export class DataProtectionService {
       autoDelete: true,
       anonymizeAfterDays: 30,
       encryptAtRest: true,
-      encryptInTransit: true
+      encryptInTransit: true,
     });
 
     this.retentionPolicies.set(DataClassification.RESTRICTED, {
@@ -124,14 +128,14 @@ export class DataProtectionService {
       retentionDays: 30,
       autoDelete: true,
       encryptAtRest: true,
-      encryptInTransit: true
+      encryptInTransit: true,
     });
   }
 
   /**
    * Classify data based on content and context
    */
-  classifyData(data: any, context?: string): DataClassification {
+  classifyData(data: any, _context?: string): DataClassification {
     // Health data is always restricted
     if (this.containsHealthData(data)) {
       return DataClassification.RESTRICTED;
@@ -156,10 +160,16 @@ export class DataProtectionService {
    */
   private containsHealthData(data: any): boolean {
     const healthFields = [
-      'symptoms', 'medications', 'healthConditions', 'medicalHistory',
-      'gutProfile', 'symptomHistory', 'medicationHistory', 'scanHistory'
+      'symptoms',
+      'medications',
+      'healthConditions',
+      'medicalHistory',
+      'gutProfile',
+      'symptomHistory',
+      'medicationHistory',
+      'scanHistory',
     ];
-    
+
     return this.containsFields(data, healthFields);
   }
 
@@ -168,10 +178,17 @@ export class DataProtectionService {
    */
   private containsPersonalIdentifiers(data: any): boolean {
     const identifierFields = [
-      'email', 'name', 'phone', 'address', 'userId', 'deviceId',
-      'location', 'ipAddress', 'browserFingerprint'
+      'email',
+      'name',
+      'phone',
+      'address',
+      'userId',
+      'deviceId',
+      'location',
+      'ipAddress',
+      'browserFingerprint',
     ];
-    
+
     return this.containsFields(data, identifierFields);
   }
 
@@ -180,10 +197,16 @@ export class DataProtectionService {
    */
   private containsAnalyticsData(data: any): boolean {
     const analyticsFields = [
-      'analytics', 'usage', 'performance', 'metrics', 'events',
-      'tracking', 'cookies', 'sessionData'
+      'analytics',
+      'usage',
+      'performance',
+      'metrics',
+      'events',
+      'tracking',
+      'cookies',
+      'sessionData',
     ];
-    
+
     return this.containsFields(data, analyticsFields);
   }
 
@@ -191,35 +214,42 @@ export class DataProtectionService {
    * Helper to check if data contains any of the specified fields
    */
   private containsFields(data: any, fields: string[]): boolean {
-    if (!data || typeof data !== 'object') return false;
-    
+    if (!data || typeof data !== 'object') {
+      return false;
+    }
+
     const dataStr = JSON.stringify(data).toLowerCase();
-    return fields.some(field => dataStr.includes(field.toLowerCase()));
+    return fields.some((field) => dataStr.includes(field.toLowerCase()));
   }
 
   /**
    * Encrypt data based on classification
    */
-  async encryptData(data: any, classification: DataClassification): Promise<any> {
+  async encryptData(
+    data: any,
+    classification: DataClassification
+  ): Promise<any> {
     const policy = this.retentionPolicies.get(classification);
-    
+
     if (!policy?.encryptAtRest) {
       return data;
     }
 
     try {
       // Use existing encryption service for sensitive fields
-      if (classification === DataClassification.RESTRICTED || 
-          classification === DataClassification.CONFIDENTIAL) {
+      if (
+        classification === DataClassification.RESTRICTED ||
+        classification === DataClassification.CONFIDENTIAL
+      ) {
         return healthDataEncryption.encryptSensitiveData(data);
       }
 
       // For internal data, encrypt the entire object
       return this.encryptObject(data);
     } catch (error) {
-      logger.error('Data encryption failed', 'DataProtectionService', { 
-        classification, 
-        error 
+      logger.error('Data encryption failed', 'DataProtectionService', {
+        classification,
+        error,
       });
       throw new Error('Data encryption failed');
     }
@@ -228,26 +258,31 @@ export class DataProtectionService {
   /**
    * Decrypt data based on classification
    */
-  async decryptData(data: any, classification: DataClassification): Promise<any> {
+  async decryptData(
+    data: any,
+    classification: DataClassification
+  ): Promise<any> {
     const policy = this.retentionPolicies.get(classification);
-    
+
     if (!policy?.encryptAtRest) {
       return data;
     }
 
     try {
       // Use existing decryption service for sensitive fields
-      if (classification === DataClassification.RESTRICTED || 
-          classification === DataClassification.CONFIDENTIAL) {
+      if (
+        classification === DataClassification.RESTRICTED ||
+        classification === DataClassification.CONFIDENTIAL
+      ) {
         return healthDataEncryption.decryptSensitiveData(data);
       }
 
       // For internal data, decrypt the entire object
       return this.decryptObject(data);
     } catch (error) {
-      logger.error('Data decryption failed', 'DataProtectionService', { 
-        classification, 
-        error 
+      logger.error('Data decryption failed', 'DataProtectionService', {
+        classification,
+        error,
       });
       throw new Error('Data decryption failed');
     }
@@ -261,9 +296,9 @@ export class DataProtectionService {
       const jsonString = JSON.stringify(obj);
       const iv = CryptoJS.lib.WordArray.random(16);
       const key = this.generateEncryptionKey();
-      
+
       const encrypted = CryptoJS.AES.encrypt(jsonString, key, {
-        iv: iv,
+        iv,
         mode: CryptoJS.mode.CBC,
         padding: CryptoJS.pad.Pkcs7,
       });
@@ -273,7 +308,7 @@ export class DataProtectionService {
         data: encrypted.toString(),
         iv: iv.toString(CryptoJS.enc.Hex),
         timestamp: Date.now(),
-        classification: 'internal'
+        classification: 'internal',
       };
     } catch (error) {
       logger.error('Object encryption failed', 'DataProtectionService', error);
@@ -292,9 +327,9 @@ export class DataProtectionService {
 
       const key = this.generateEncryptionKey();
       const iv = CryptoJS.enc.Hex.parse(encryptedObj.iv);
-      
+
       const decrypted = CryptoJS.AES.decrypt(encryptedObj.data, key, {
-        iv: iv,
+        iv,
         mode: CryptoJS.mode.CBC,
         padding: CryptoJS.pad.Pkcs7,
       });
@@ -312,10 +347,11 @@ export class DataProtectionService {
    */
   private generateEncryptionKey(): string {
     // In production, this should use a proper key derivation function
-    const masterKey = process.env.ENCRYPTION_MASTER_KEY || 'gutsafe-master-key-2024';
+    const masterKey =
+      process.env['ENCRYPTION_MASTER_KEY'] || 'gutsafe-master-key-2024';
     return CryptoJS.PBKDF2(masterKey, 'gutsafe-salt', {
       keySize: this.encryptionConfig.keySize / 32,
-      iterations: this.encryptionConfig.iterations
+      iterations: this.encryptionConfig.iterations,
     }).toString();
   }
 
@@ -329,7 +365,7 @@ export class DataProtectionService {
 
     // Remove or hash personal identifiers
     const personalFields = ['userId', 'email', 'name', 'deviceId', 'ipAddress'];
-    personalFields.forEach(field => {
+    personalFields.forEach((field) => {
       if (anonymizedData[field]) {
         anonymizedData[field] = this.hashIdentifier(anonymizedData[field]);
         fieldsAnonymized.push(field);
@@ -344,7 +380,9 @@ export class DataProtectionService {
 
     // Anonymize timestamps (round to hour)
     if (anonymizedData.timestamp) {
-      anonymizedData.timestamp = this.anonymizeTimestamp(anonymizedData.timestamp);
+      anonymizedData.timestamp = this.anonymizeTimestamp(
+        anonymizedData.timestamp
+      );
       fieldsAnonymized.push('timestamp');
     }
 
@@ -359,7 +397,7 @@ export class DataProtectionService {
       anonymizedId,
       classification,
       anonymizedAt: new Date(),
-      fieldsAnonymized
+      fieldsAnonymized,
     };
   }
 
@@ -374,7 +412,9 @@ export class DataProtectionService {
    * Hash identifier for anonymization
    */
   private hashIdentifier(identifier: string): string {
-    return CryptoJS.SHA256(identifier + 'gutsafe-salt').toString().substring(0, 16);
+    return CryptoJS.SHA256(`${identifier}gutsafe-salt`)
+      .toString()
+      .substring(0, 16);
   }
 
   /**
@@ -388,10 +428,10 @@ export class DataProtectionService {
     // Round to ~1km precision
     const lat = Math.round(location.latitude * 100) / 100;
     const lng = Math.round(location.longitude * 100) / 100;
-    
+
     return {
       region: `${lat},${lng}`,
-      precision: '1km'
+      precision: '1km',
     };
   }
 
@@ -410,17 +450,20 @@ export class DataProtectionService {
    */
   private anonymizeSymptoms(symptoms: any): any {
     if (Array.isArray(symptoms)) {
-      return symptoms.map(symptom => ({
+      return symptoms.map((symptom) => ({
         type: symptom.type,
         severity: Math.round(symptom.severity / 2) * 2, // Round to even numbers
-        duration: Math.round(symptom.duration / 15) * 15 // Round to 15-minute intervals
+        duration: Math.round(symptom.duration / 15) * 15, // Round to 15-minute intervals
       }));
     }
-    
+
     return {
       count: symptoms.length || 0,
       types: [...new Set(symptoms.map((s: any) => s.type))],
-      averageSeverity: Math.round(symptoms.reduce((sum: number, s: any) => sum + s.severity, 0) / symptoms.length)
+      averageSeverity: Math.round(
+        symptoms.reduce((sum: number, s: any) => sum + s.severity, 0) /
+          symptoms.length
+      ),
     };
   }
 
@@ -433,9 +476,10 @@ export class DataProtectionService {
       return false;
     }
 
-    const dataAge = Date.now() - new Date(data.createdAt || data.timestamp).getTime();
+    const dataAge =
+      Date.now() - new Date(data.createdAt || data.timestamp).getTime();
     const retentionMs = policy.retentionDays * 24 * 60 * 60 * 1000;
-    
+
     return dataAge > retentionMs;
   }
 
@@ -448,9 +492,10 @@ export class DataProtectionService {
       return false;
     }
 
-    const dataAge = Date.now() - new Date(data.createdAt || data.timestamp).getTime();
+    const dataAge =
+      Date.now() - new Date(data.createdAt || data.timestamp).getTime();
     const anonymizeMs = policy.anonymizeAfterDays * 24 * 60 * 60 * 1000;
-    
+
     return dataAge > anonymizeMs;
   }
 
@@ -467,12 +512,15 @@ export class DataProtectionService {
       dataRetention: consent.dataRetention || false,
       consentDate: new Date(),
       lastUpdated: new Date(),
-      version: '1.0'
+      version: '1.0',
     };
 
     this.consentRegistry.set(userId, fullConsent);
-    logger.info('GDPR consent registered', 'DataProtectionService', { userId, consent: fullConsent });
-    
+    logger.info('GDPR consent registered', 'DataProtectionService', {
+      userId,
+      consent: fullConsent,
+    });
+
     return fullConsent;
   }
 
@@ -486,7 +534,10 @@ export class DataProtectionService {
   /**
    * GDPR: Update user consent
    */
-  updateConsent(userId: string, updates: Partial<GDPRConsent>): GDPRConsent | null {
+  updateConsent(
+    userId: string,
+    updates: Partial<GDPRConsent>
+  ): GDPRConsent | null {
     const existingConsent = this.consentRegistry.get(userId);
     if (!existingConsent) {
       return null;
@@ -495,19 +546,28 @@ export class DataProtectionService {
     const updatedConsent: GDPRConsent = {
       ...existingConsent,
       ...updates,
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
     };
 
     this.consentRegistry.set(userId, updatedConsent);
-    logger.info('GDPR consent updated', 'DataProtectionService', { userId, updates });
-    
+    logger.info('GDPR consent updated', 'DataProtectionService', {
+      userId,
+      updates,
+    });
+
     return updatedConsent;
   }
 
   /**
    * GDPR: Check if data processing is allowed
    */
-  canProcessData(userId: string, purpose: keyof Omit<GDPRConsent, 'userId' | 'consentDate' | 'lastUpdated' | 'version'>): boolean {
+  canProcessData(
+    userId: string,
+    purpose: keyof Omit<
+      GDPRConsent,
+      'userId' | 'consentDate' | 'lastUpdated' | 'version'
+    >
+  ): boolean {
     const consent = this.consentRegistry.get(userId);
     if (!consent) {
       return false;
@@ -529,8 +589,8 @@ export class DataProtectionService {
       userId,
       exportDate: new Date(),
       dataCount: data.length,
-      data: data.map(item => this.decryptData(item, this.classifyData(item))),
-      consent: consent
+      data: data.map((item) => this.decryptData(item, this.classifyData(item))),
+      consent,
     };
   }
 
@@ -545,8 +605,10 @@ export class DataProtectionService {
 
     // Remove from consent registry
     this.consentRegistry.delete(userId);
-    
-    logger.info('User data deletion requested', 'DataProtectionService', { userId });
+
+    logger.info('User data deletion requested', 'DataProtectionService', {
+      userId,
+    });
     return true;
   }
 
@@ -555,16 +617,17 @@ export class DataProtectionService {
    */
   getAuditReport(): any {
     const totalConsents = this.consentRegistry.size;
-    const activeConsents = Array.from(this.consentRegistry.values())
-      .filter(consent => consent.dataProcessing).length;
+    const activeConsents = Array.from(this.consentRegistry.values()).filter(
+      (consent) => consent.dataProcessing
+    ).length;
 
     return {
       timestamp: new Date(),
       totalUsers: totalConsents,
-      activeConsents: activeConsents,
+      activeConsents,
       retentionPolicies: Array.from(this.retentionPolicies.entries()),
       encryptionConfig: this.encryptionConfig,
-      complianceScore: this.calculateComplianceScore()
+      complianceScore: this.calculateComplianceScore(),
     };
   }
 
@@ -573,12 +636,18 @@ export class DataProtectionService {
    */
   private calculateComplianceScore(): number {
     let score = 100;
-    
+
     // Deduct points for missing features
-    if (this.retentionPolicies.size < 4) score -= 20;
-    if (this.consentRegistry.size === 0) score -= 30;
-    if (!this.encryptionConfig.algorithm) score -= 25;
-    
+    if (this.retentionPolicies.size < 4) {
+      score -= 20;
+    }
+    if (this.consentRegistry.size === 0) {
+      score -= 30;
+    }
+    if (!this.encryptionConfig.algorithm) {
+      score -= 25;
+    }
+
     return Math.max(0, score);
   }
 
@@ -596,25 +665,25 @@ export class DataProtectionService {
 
     for (const data of dataArray) {
       const classification = this.classifyData(data);
-      
+
       if (this.shouldDeleteData(data, classification)) {
         deleted++;
         continue;
       }
-      
+
       if (this.shouldAnonymizeData(data, classification)) {
         this.anonymizeData(data, classification);
         anonymized++;
         continue;
       }
-      
+
       retained++;
     }
 
-    logger.info('Data cleanup completed', 'DataProtectionService', { 
-      deleted, 
-      anonymized, 
-      retained 
+    logger.info('Data cleanup completed', 'DataProtectionService', {
+      deleted,
+      anonymized,
+      retained,
     });
 
     return { deleted, anonymized, retained };

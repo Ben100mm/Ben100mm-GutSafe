@@ -5,12 +5,12 @@
  * @private
  */
 
-import { 
-  GutHealthMetrics, 
-  FoodTrendData, 
-  TrendAnalysis, 
+import type {
+  GutHealthMetrics,
+  FoodTrendData,
+  TrendAnalysis,
   ChartDataPoint,
-  ScanHistory 
+  ScanHistory,
 } from '../types';
 
 /**
@@ -36,9 +36,9 @@ export class AnalyticsUtils {
 
     return Math.round(
       safeFoodsScore * weights.safeFoods +
-      symptomsScore * weights.symptoms +
-      energyScore * weights.energy +
-      sleepScore * weights.sleep
+        symptomsScore * weights.symptoms +
+        energyScore * weights.energy +
+        sleepScore * weights.sleep
     );
   }
 
@@ -68,11 +68,13 @@ export class AnalyticsUtils {
 
     const firstScore = dataPoints[0]?.y;
     const lastScore = dataPoints[dataPoints.length - 1]?.y;
-    const changePercentage = firstScore && lastScore ? ((lastScore - firstScore) / firstScore) * 100 : 0;
+    const changePercentage =
+      firstScore && lastScore
+        ? ((lastScore - firstScore) / firstScore) * 100
+        : 0;
 
-    const trend: 'up' | 'down' | 'stable' = 
-      changePercentage > 5 ? 'up' : 
-      changePercentage < -5 ? 'down' : 'stable';
+    const trend: 'up' | 'down' | 'stable' =
+      changePercentage > 5 ? 'up' : changePercentage < -5 ? 'down' : 'stable';
 
     const insights = this.generateInsights(metrics, changePercentage);
     const recommendations = this.generateRecommendations(metrics, trend);
@@ -91,17 +93,20 @@ export class AnalyticsUtils {
    * Process scan history to generate food trend data
    */
   static processFoodTrends(scanHistory: ScanHistory[]): FoodTrendData[] {
-    const foodMap = new Map<string, {
-      totalScans: number;
-      safeCount: number;
-      cautionCount: number;
-      avoidCount: number;
-      lastScanned: Date;
-      timestamps: Date[];
-    }>();
+    const foodMap = new Map<
+      string,
+      {
+        totalScans: number;
+        safeCount: number;
+        cautionCount: number;
+        avoidCount: number;
+        lastScanned: Date;
+        timestamps: Date[];
+      }
+    >();
 
     // Process each scan
-    scanHistory.forEach(scan => {
+    scanHistory.forEach((scan) => {
       const foodName = scan.foodItem.name;
       const existing = foodMap.get(foodName) || {
         totalScans: 0,
@@ -114,7 +119,10 @@ export class AnalyticsUtils {
 
       existing.totalScans++;
       existing.timestamps.push(scan.timestamp);
-      existing.lastScanned = scan.timestamp > existing.lastScanned ? scan.timestamp : existing.lastScanned;
+      existing.lastScanned =
+        scan.timestamp > existing.lastScanned
+          ? scan.timestamp
+          : existing.lastScanned;
 
       switch (scan.analysis.overallSafety) {
         case 'safe':
@@ -133,8 +141,16 @@ export class AnalyticsUtils {
 
     // Convert to FoodTrendData array
     return Array.from(foodMap.entries()).map(([foodName, data]) => {
-      const trend = this.calculateFoodTrend(data.timestamps, data.safeCount, data.totalScans);
-      const confidence = this.calculateConfidence(data.totalScans, data.safeCount, data.avoidCount);
+      const trend = this.calculateFoodTrend(
+        data.timestamps,
+        data.safeCount,
+        data.totalScans
+      );
+      const confidence = this.calculateConfidence(
+        data.totalScans,
+        data.safeCount,
+        data.avoidCount
+      );
 
       return {
         foodName,
@@ -153,20 +169,26 @@ export class AnalyticsUtils {
    * Calculate food trend based on recent scans
    */
   private static calculateFoodTrend(
-    timestamps: Date[],
+    _timestamps: Date[],
     safeCount: number,
     totalScans: number
   ): 'improving' | 'stable' | 'declining' {
-    if (totalScans < 3) return 'stable';
+    if (totalScans < 3) {
+      return 'stable';
+    }
 
     // const recentScans = timestamps
     //   .sort((a, b) => b.getTime() - a.getTime())
     //   .slice(0, Math.min(5, totalScans));
 
     const recentSafeRatio = safeCount / totalScans;
-    
-    if (recentSafeRatio > 0.7) return 'improving';
-    if (recentSafeRatio < 0.3) return 'declining';
+
+    if (recentSafeRatio > 0.7) {
+      return 'improving';
+    }
+    if (recentSafeRatio < 0.3) {
+      return 'declining';
+    }
     return 'stable';
   }
 
@@ -178,24 +200,31 @@ export class AnalyticsUtils {
     safeCount: number,
     avoidCount: number
   ): number {
-    if (totalScans === 0) return 0;
+    if (totalScans === 0) {
+      return 0;
+    }
 
     const consistency = 1 - Math.abs(safeCount - avoidCount) / totalScans;
     const sampleSize = Math.min(totalScans / 10, 1); // More scans = higher confidence
-    
+
     return Math.round((consistency * 0.7 + sampleSize * 0.3) * 100) / 100;
   }
 
   /**
    * Generate insights based on metrics
    */
-  private static generateInsights(metrics: GutHealthMetrics[], changePercentage: number): string[] {
+  private static generateInsights(
+    metrics: GutHealthMetrics[],
+    changePercentage: number
+  ): string[] {
     const insights = [];
-    
+
     if (changePercentage > 10) {
-      insights.push('Excellent progress! Your gut health is improving significantly');
+      insights.push(
+        'Excellent progress! Your gut health is improving significantly'
+      );
     } else if (changePercentage > 5) {
-      insights.push('Great job! You\'re making steady improvements');
+      insights.push("Great job! You're making steady improvements");
     } else if (changePercentage < -10) {
       insights.push('Consider reviewing your recent food choices');
     } else if (changePercentage < -5) {
@@ -205,16 +234,20 @@ export class AnalyticsUtils {
     }
 
     // Add specific insights based on data
-    const avgSymptoms = metrics.reduce((sum, m) => sum + m.symptomsReported, 0) / metrics.length;
+    const avgSymptoms =
+      metrics.reduce((sum, m) => sum + m.symptomsReported, 0) / metrics.length;
     if (avgSymptoms < 2) {
-      insights.push('Low symptom levels - you\'re managing your triggers well');
+      insights.push("Low symptom levels - you're managing your triggers well");
     } else if (avgSymptoms > 6) {
       insights.push('High symptom levels - consider identifying trigger foods');
     }
 
-    const avgEnergy = metrics.reduce((sum, m) => sum + m.energyLevel, 0) / metrics.length;
+    const avgEnergy =
+      metrics.reduce((sum, m) => sum + m.energyLevel, 0) / metrics.length;
     if (avgEnergy > 8) {
-      insights.push('High energy levels - your diet is supporting your wellbeing');
+      insights.push(
+        'High energy levels - your diet is supporting your wellbeing'
+      );
     }
 
     return insights;
@@ -224,24 +257,34 @@ export class AnalyticsUtils {
    * Generate recommendations based on trends
    */
   private static generateRecommendations(
-    metrics: GutHealthMetrics[],
+    _metrics: GutHealthMetrics[],
     trend: 'up' | 'down' | 'stable'
   ): string[] {
     const recommendations = [];
 
     switch (trend) {
       case 'up':
-        recommendations.push('Continue your current approach - it\'s working well');
+        recommendations.push(
+          "Continue your current approach - it's working well"
+        );
         recommendations.push('Consider adding more variety to your safe foods');
         break;
       case 'down':
-        recommendations.push('Review your recent food choices for potential triggers');
-        recommendations.push('Consider keeping a detailed food and symptom diary');
-        recommendations.push('Consult with a healthcare provider if symptoms persist');
+        recommendations.push(
+          'Review your recent food choices for potential triggers'
+        );
+        recommendations.push(
+          'Consider keeping a detailed food and symptom diary'
+        );
+        recommendations.push(
+          'Consult with a healthcare provider if symptoms persist'
+        );
         break;
       case 'stable':
         recommendations.push('Maintain consistency in your dietary choices');
-        recommendations.push('Consider experimenting with new gut-friendly foods');
+        recommendations.push(
+          'Consider experimenting with new gut-friendly foods'
+        );
         break;
     }
 
@@ -258,11 +301,11 @@ export class AnalyticsUtils {
   static generateMockData(days: number = 30) {
     const now = new Date();
     const metrics: GutHealthMetrics[] = [];
-    
+
     for (let i = 0; i < days; i++) {
       const date = new Date(now);
       date.setDate(date.getDate() - (days - 1 - i));
-      
+
       metrics.push({
         date,
         overallScore: 70 + Math.random() * 20,

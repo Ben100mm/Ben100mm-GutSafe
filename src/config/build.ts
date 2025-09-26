@@ -1,13 +1,16 @@
 /**
  * Build Configuration System
  * Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
- * 
+ *
  * Environment-specific build configurations and optimizations.
  */
 
-
 // Build environment types
-export type BuildEnvironment = 'development' | 'staging' | 'production' | 'test';
+export type BuildEnvironment =
+  | 'development'
+  | 'staging'
+  | 'production'
+  | 'test';
 
 // Build configuration interface
 export interface BuildConfig {
@@ -83,7 +86,7 @@ export const buildConfigs: Record<BuildEnvironment, BuildConfig> = {
       logging: true,
     },
   },
-  
+
   staging: {
     environment: 'staging',
     optimization: {
@@ -119,7 +122,7 @@ export const buildConfigs: Record<BuildEnvironment, BuildConfig> = {
       logging: true,
     },
   },
-  
+
   production: {
     environment: 'production',
     optimization: {
@@ -155,7 +158,7 @@ export const buildConfigs: Record<BuildEnvironment, BuildConfig> = {
       logging: false,
     },
   },
-  
+
   test: {
     environment: 'test',
     optimization: {
@@ -194,7 +197,9 @@ export const buildConfigs: Record<BuildEnvironment, BuildConfig> = {
 };
 
 // Get build configuration for current environment
-export const getBuildConfig = (environment: BuildEnvironment = 'development'): BuildConfig => {
+export const getBuildConfig = (
+  environment: BuildEnvironment = 'development'
+): BuildConfig => {
   return buildConfigs[environment];
 };
 
@@ -203,26 +208,28 @@ export const getOptimizationSettings = (config: BuildConfig) => {
   return {
     // Webpack optimization
     minimize: config.optimization.minify,
-    splitChunks: config.optimization.codeSplitting ? {
-      chunks: 'all',
-      cacheGroups: {
-        vendor: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendors',
+    splitChunks: config.optimization.codeSplitting
+      ? {
           chunks: 'all',
-        },
-        common: {
-          name: 'common',
-          minChunks: 2,
-          chunks: 'all',
-          enforce: true,
-        },
-      },
-    } : false,
-    
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+            },
+            common: {
+              name: 'common',
+              minChunks: 2,
+              chunks: 'all',
+              enforce: true,
+            },
+          },
+        }
+      : false,
+
     // Source maps
     devtool: config.optimization.sourceMaps ? 'source-map' : false,
-    
+
     // Tree shaking
     usedExports: config.optimization.treeShaking,
     sideEffects: config.optimization.treeShaking,
@@ -231,8 +238,10 @@ export const getOptimizationSettings = (config: BuildConfig) => {
 
 // Security headers configuration
 export const getSecurityHeaders = (config: BuildConfig) => {
-  if (!config.security.contentSecurityPolicy) return {};
-  
+  if (!config.security.contentSecurityPolicy) {
+    return {};
+  }
+
   return {
     'Content-Security-Policy': [
       "default-src 'self'",
@@ -245,8 +254,12 @@ export const getSecurityHeaders = (config: BuildConfig) => {
     ].join('; '),
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': config.security.frameOptions ? 'DENY' : undefined,
-    'X-XSS-Protection': config.security.xssProtection ? '1; mode=block' : undefined,
-    'Strict-Transport-Security': config.security.hsts ? 'max-age=31536000; includeSubDomains' : undefined,
+    'X-XSS-Protection': config.security.xssProtection
+      ? '1; mode=block'
+      : undefined,
+    'Strict-Transport-Security': config.security.hsts
+      ? 'max-age=31536000; includeSubDomains'
+      : undefined,
   };
 };
 
@@ -255,19 +268,21 @@ export const getPerformanceSettings = (config: BuildConfig) => {
   return {
     // Bundle analysis
     analyzeBundle: config.performance.bundleAnalysis,
-    
+
     // Compression
     gzip: config.performance.compression,
     brotli: config.performance.compression,
-    
+
     // Caching
-    cacheControl: config.performance.caching ? {
-      'static/**/*': 'public, max-age=31536000, immutable',
-      '**/*.js': 'public, max-age=31536000',
-      '**/*.css': 'public, max-age=31536000',
-      '**/*.html': 'public, max-age=3600',
-    } : {},
-    
+    cacheControl: config.performance.caching
+      ? {
+          'static/**/*': 'public, max-age=31536000, immutable',
+          '**/*.js': 'public, max-age=31536000',
+          '**/*.css': 'public, max-age=31536000',
+          '**/*.html': 'public, max-age=3600',
+        }
+      : {},
+
     // Lazy loading
     lazyLoading: config.performance.lazyLoading,
   };
@@ -290,20 +305,20 @@ export const getFeatureFlags = (config: BuildConfig) => {
 // Build environment detection
 export const detectBuildEnvironment = (): BuildEnvironment => {
   const nodeEnv = process.env['NODE_ENV'] as BuildEnvironment;
-  
+
   if (nodeEnv && buildConfigs[nodeEnv]) {
     return nodeEnv;
   }
-  
+
   // Fallback detection
   if (process.env['NODE_ENV'] === 'production') {
     return 'production';
   }
-  
+
   if (process.env['NODE_ENV'] === 'test') {
     return 'test';
   }
-  
+
   return 'development';
 };
 
@@ -314,46 +329,48 @@ export const validateBuildConfig = (config: BuildConfig): boolean => {
     console.error('Invalid build environment');
     return false;
   }
-  
+
   // Validate optimization settings
   if (config.optimization.minify && !config.optimization.compress) {
     console.warn('Minification enabled but compression disabled');
   }
-  
+
   // Validate security settings
   if (config.security.hsts && !config.security.contentSecurityPolicy) {
     console.warn('HSTS enabled but CSP disabled');
   }
-  
+
   // Validate monitoring settings
   if (config.monitoring.analytics && !config.monitoring.errorTracking) {
     console.warn('Analytics enabled but error tracking disabled');
   }
-  
+
   return true;
 };
 
 // Build script generation
 export const generateBuildScripts = (config: BuildConfig) => {
   const scripts: Record<string, string> = {};
-  
+
   // Base scripts
   scripts['build'] = `cross-env NODE_ENV=${config.environment} craco build`;
   scripts['start'] = `cross-env NODE_ENV=${config.environment} craco start`;
-  
+
   // Environment-specific scripts
   if (config.optimization.bundleAnalysis) {
-    scripts['build:analyze'] = `npm run build && npx webpack-bundle-analyzer build/static/js/*.js`;
+    scripts['build:analyze'] =
+      `npm run build && npx webpack-bundle-analyzer build/static/js/*.js`;
   }
-  
+
   if (config.performance.compression) {
-    scripts['build:compress'] = `npm run build && npx gzip-cli build/static/**/*.{js,css,html}`;
+    scripts['build:compress'] =
+      `npm run build && npx gzip-cli build/static/**/*.{js,css,html}`;
   }
-  
+
   if (config.monitoring.errorTracking) {
     scripts['build:monitor'] = `npm run build && npm run monitor:deploy`;
   }
-  
+
   return scripts;
 };
 
@@ -361,8 +378,10 @@ export const generateBuildScripts = (config: BuildConfig) => {
 export const currentBuildConfig = getBuildConfig(detectBuildEnvironment());
 
 // Build configuration helpers
-export const isDevelopment = () => currentBuildConfig.environment === 'development';
-export const isProduction = () => currentBuildConfig.environment === 'production';
+export const isDevelopment = () =>
+  currentBuildConfig.environment === 'development';
+export const isProduction = () =>
+  currentBuildConfig.environment === 'production';
 export const isStaging = () => currentBuildConfig.environment === 'staging';
 export const isTest = () => currentBuildConfig.environment === 'test';
 
@@ -371,10 +390,14 @@ export const isFeatureEnabled = (feature: keyof BuildConfig['features']) => {
   return currentBuildConfig.features[feature];
 };
 
-export const isMonitoringEnabled = (monitor: keyof BuildConfig['monitoring']) => {
+export const isMonitoringEnabled = (
+  monitor: keyof BuildConfig['monitoring']
+) => {
   return currentBuildConfig.monitoring[monitor];
 };
 
-export const isOptimizationEnabled = (optimization: keyof BuildConfig['optimization']) => {
+export const isOptimizationEnabled = (
+  optimization: keyof BuildConfig['optimization']
+) => {
   return currentBuildConfig.optimization[optimization];
 };

@@ -1,12 +1,13 @@
 /**
  * Base Repository
  * Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
- * 
+ *
  * Base repository class with common database operations.
  */
 
+import type { z } from 'zod';
+
 import { databaseManager } from '../connection';
-import { z } from 'zod';
 
 export abstract class BaseRepository<T> {
   protected tableName: string;
@@ -21,12 +22,17 @@ export abstract class BaseRepository<T> {
     return databaseManager.getConnection();
   }
 
-  protected async executeQuery<R>(query: string, parameters: any[] = []): Promise<R[]> {
+  protected async executeQuery<R>(
+    query: string,
+    parameters: any[] = []
+  ): Promise<R[]> {
     const connection = this.getConnection();
     return connection.executeQuery<R>(query, parameters);
   }
 
-  protected async executeTransaction<R>(callback: (connection: any) => Promise<R>): Promise<R> {
+  protected async executeTransaction<R>(
+    callback: (connection: any) => Promise<R>
+  ): Promise<R> {
     const connection = this.getConnection();
     return connection.executeTransaction(callback);
   }
@@ -53,13 +59,13 @@ export abstract class BaseRepository<T> {
     }
 
     const results = await this.executeQuery<T>(query, parameters);
-    return results.map(item => this.schema.parse(item));
+    return results.map((item) => this.schema.parse(item));
   }
 
   async findByField(field: string, value: any): Promise<T[]> {
     const query = `SELECT * FROM ${this.tableName} WHERE ${field} = ?`;
     const results = await this.executeQuery<T>(query, [value]);
-    return results.map(item => this.schema.parse(item));
+    return results.map((item) => this.schema.parse(item));
   }
 
   async findOneByField(field: string, value: any): Promise<T | null> {
@@ -71,38 +77,41 @@ export abstract class BaseRepository<T> {
   async create(data: Omit<T, 'id' | 'createdAt' | 'updatedAt'>): Promise<T> {
     const id = this.generateId();
     const now = new Date().toISOString();
-    
+
     const fields = Object.keys(data).concat(['id', 'created_at', 'updated_at']);
     const placeholders = fields.map(() => '?').join(', ');
     const values = Object.values(data).concat([id, now, now]);
 
     const query = `INSERT INTO ${this.tableName} (${fields.join(', ')}) VALUES (${placeholders})`;
-    
+
     await this.executeQuery(query, values);
-    
+
     const created = await this.findById(id);
     if (!created) {
       throw new Error('Failed to create record');
     }
-    
+
     return created;
   }
 
-  async update(id: string, data: Partial<Omit<T, 'id' | 'createdAt' | 'updatedAt'>>): Promise<T> {
+  async update(
+    id: string,
+    data: Partial<Omit<T, 'id' | 'createdAt' | 'updatedAt'>>
+  ): Promise<T> {
     const now = new Date().toISOString();
     const fields = Object.keys(data).concat(['updated_at']);
     const values = Object.values(data).concat([now]);
-    
-    const setClause = fields.map(field => `${field} = ?`).join(', ');
+
+    const setClause = fields.map((field) => `${field} = ?`).join(', ');
     const query = `UPDATE ${this.tableName} SET ${setClause} WHERE id = ?`;
-    
+
     await this.executeQuery(query, [...values, id]);
-    
+
     const updated = await this.findById(id);
     if (!updated) {
       throw new Error('Record not found');
     }
-    
+
     return updated;
   }
 
@@ -137,103 +146,132 @@ export abstract class BaseRepository<T> {
   }
 
   // Batch operations
-  async createMany(data: Omit<T, 'id' | 'createdAt' | 'updatedAt'>[]): Promise<T[]> {
-    if (data.length === 0) return [];
+  async createMany(
+    data: Omit<T, 'id' | 'createdAt' | 'updatedAt'>[]
+  ): Promise<T[]> {
+    if (data.length === 0) {
+      return [];
+    }
 
     // Generate unique ID for each item
     const now = new Date().toISOString();
-    
+
     return this.executeTransaction(async (connection) => {
       const results: T[] = [];
-      
+
       for (const item of data) {
         const itemId = this.generateId();
-        const fields = Object.keys(item).concat(['id', 'created_at', 'updated_at']);
+        const fields = Object.keys(item).concat([
+          'id',
+          'created_at',
+          'updated_at',
+        ]);
         const placeholders = fields.map(() => '?').join(', ');
         const values = Object.values(item).concat([itemId, now, now]);
 
         const query = `INSERT INTO ${this.tableName} (${fields.join(', ')}) VALUES (${placeholders})`;
         await connection.executeQuery(query, values);
-        
+
         const created = await this.findById(itemId);
         if (created) {
           results.push(created);
         }
       }
-      
+
       return results;
     });
   }
 
-  async updateMany(updates: { id: string; data: Partial<Omit<T, 'id' | 'createdAt' | 'updatedAt'>> }[]): Promise<T[]> {
-    if (updates.length === 0) return [];
+  async updateMany(
+    updates: {
+      id: string;
+      data: Partial<Omit<T, 'id' | 'createdAt' | 'updatedAt'>>;
+    }[]
+  ): Promise<T[]> {
+    if (updates.length === 0) {
+      return [];
+    }
 
     return this.executeTransaction(async (connection) => {
       const results: T[] = [];
-      
+
       for (const { id, data } of updates) {
         const now = new Date().toISOString();
         const fields = Object.keys(data).concat(['updated_at']);
         const values = Object.values(data).concat([now]);
-        
-        const setClause = fields.map(field => `${field} = ?`).join(', ');
+
+        const setClause = fields.map((field) => `${field} = ?`).join(', ');
         const query = `UPDATE ${this.tableName} SET ${setClause} WHERE id = ?`;
-        
+
         await connection.executeQuery(query, [...values, id]);
-        
+
         const updated = await this.findById(id);
         if (updated) {
           results.push(updated);
         }
       }
-      
+
       return results;
     });
   }
 
   async deleteMany(ids: string[]): Promise<boolean> {
-    if (ids.length === 0) return true;
+    if (ids.length === 0) {
+      return true;
+    }
 
     const placeholders = ids.map(() => '?').join(', ');
     const query = `DELETE FROM ${this.tableName} WHERE id IN (${placeholders})`;
-    
+
     await this.executeQuery(query, ids);
     return true;
   }
 
   // Search and filtering
-  async search(searchTerm: string, fields: string[], limit?: number, offset?: number): Promise<T[]> {
-    const conditions = fields.map(field => `${field} LIKE ?`).join(' OR ');
+  async search(
+    searchTerm: string,
+    fields: string[],
+    limit?: number,
+    offset?: number
+  ): Promise<T[]> {
+    const conditions = fields.map((field) => `${field} LIKE ?`).join(' OR ');
     const searchPattern = `%${searchTerm}%`;
     const parameters = fields.map(() => searchPattern);
-    
+
     let query = `SELECT * FROM ${this.tableName} WHERE ${conditions}`;
-    
+
     if (limit) {
       query += ' LIMIT ?';
       parameters.push(limit.toString());
     }
-    
+
     if (offset) {
       query += ' OFFSET ?';
       parameters.push(offset.toString());
     }
-    
+
     const results = await this.executeQuery<T>(query, parameters);
-    return results.map(item => this.schema.parse(item));
+    return results.map((item) => this.schema.parse(item));
   }
 
-  async findByDateRange(dateField: string, startDate: Date, endDate: Date): Promise<T[]> {
+  async findByDateRange(
+    dateField: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<T[]> {
     const query = `SELECT * FROM ${this.tableName} WHERE ${dateField} BETWEEN ? AND ?`;
-    const results = await this.executeQuery<T>(query, [startDate.toISOString(), endDate.toISOString()]);
-    return results.map(item => this.schema.parse(item));
+    const results = await this.executeQuery<T>(query, [
+      startDate.toISOString(),
+      endDate.toISOString(),
+    ]);
+    return results.map((item) => this.schema.parse(item));
   }
 
   // Utility methods
   protected generateId(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      const r = Math.random() * 16 | 0;
-      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
       return v.toString(16);
     });
   }

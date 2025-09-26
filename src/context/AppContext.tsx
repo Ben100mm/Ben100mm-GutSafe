@@ -5,8 +5,10 @@
  * @private
  */
 
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import { ScanHistory, GutProfile } from '../types';
+import type { ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect } from 'react';
+
+import type { ScanHistory, GutProfile } from '../types';
 import { logger } from '../utils/logger';
 
 // App State Interface
@@ -15,11 +17,11 @@ interface AppState {
   scanHistory: ScanHistory[];
   selectedScans: Set<string>;
   isSelectionMode: boolean;
-  
+
   // User Profile
   gutProfile: GutProfile | null;
   userSettings: any | null;
-  
+
   // UI State
   isLoading: boolean;
   error: string | null;
@@ -33,7 +35,10 @@ interface AppState {
 type AppAction =
   | { type: 'ADD_SCAN'; payload: ScanHistory }
   | { type: 'REMOVE_SCAN'; payload: string }
-  | { type: 'UPDATE_SCAN'; payload: { scanId: string; updates: Partial<ScanHistory> } }
+  | {
+      type: 'UPDATE_SCAN';
+      payload: { scanId: string; updates: Partial<ScanHistory> };
+    }
   | { type: 'CLEAR_SCAN_HISTORY' }
   | { type: 'TOGGLE_SCAN_SELECTION'; payload: string }
   | { type: 'SELECT_ALL_SCANS' }
@@ -45,7 +50,10 @@ type AppAction =
   | { type: 'UPDATE_USER_SETTINGS'; payload: Partial<any> }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'SET_NETWORK_STATUS'; payload: { isOnline: boolean; quality: number } }
+  | {
+      type: 'SET_NETWORK_STATUS';
+      payload: { isOnline: boolean; quality: number };
+    }
   | { type: 'RESET' };
 
 // Initial State
@@ -75,15 +83,19 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case 'REMOVE_SCAN':
       return {
         ...state,
-        scanHistory: state.scanHistory.filter(scan => scan.id !== action.payload),
-        selectedScans: new Set([...state.selectedScans].filter(id => id !== action.payload)),
+        scanHistory: state.scanHistory.filter(
+          (scan) => scan.id !== action.payload
+        ),
+        selectedScans: new Set(
+          [...state.selectedScans].filter((id) => id !== action.payload)
+        ),
       };
 
     case 'UPDATE_SCAN':
       return {
         ...state,
-        scanHistory: state.scanHistory.map(scan =>
-          scan.id === action.payload.scanId 
+        scanHistory: state.scanHistory.map((scan) =>
+          scan.id === action.payload.scanId
             ? { ...scan, ...action.payload.updates }
             : scan
         ),
@@ -111,7 +123,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case 'SELECT_ALL_SCANS':
       return {
         ...state,
-        selectedScans: new Set(state.scanHistory.map(scan => scan.id)),
+        selectedScans: new Set(state.scanHistory.map((scan) => scan.id)),
       };
 
     case 'CLEAR_SELECTION':
@@ -136,7 +148,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case 'UPDATE_GUT_PROFILE':
       return {
         ...state,
-        gutProfile: state.gutProfile 
+        gutProfile: state.gutProfile
           ? { ...state.gutProfile, ...action.payload, updatedAt: new Date() }
           : null,
       };
@@ -150,7 +162,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case 'UPDATE_USER_SETTINGS':
       return {
         ...state,
-        userSettings: state.userSettings 
+        userSettings: state.userSettings
           ? { ...state.userSettings, ...action.payload }
           : null,
       };
@@ -201,7 +213,7 @@ export function AppProvider({ children }: AppProviderProps) {
     const initializeApp = async () => {
       try {
         dispatch({ type: 'SET_LOADING', payload: true });
-        
+
         // Load scan history from storage
         // This would load from actual storage in a real implementation
         const savedScanHistory = localStorage.getItem('gut_safe_scan_history');
@@ -220,7 +232,9 @@ export function AppProvider({ children }: AppProviderProps) {
         }
 
         // Load user settings from storage
-        const savedUserSettings = localStorage.getItem('gut_safe_user_settings');
+        const savedUserSettings = localStorage.getItem(
+          'gut_safe_user_settings'
+        );
         if (savedUserSettings) {
           const userSettings = JSON.parse(savedUserSettings);
           dispatch({ type: 'SET_USER_SETTINGS', payload: userSettings });
@@ -241,7 +255,10 @@ export function AppProvider({ children }: AppProviderProps) {
   // Save state to storage when it changes
   useEffect(() => {
     try {
-      localStorage.setItem('gut_safe_scan_history', JSON.stringify(state.scanHistory));
+      localStorage.setItem(
+        'gut_safe_scan_history',
+        JSON.stringify(state.scanHistory)
+      );
     } catch (error) {
       logger.error('Failed to save scan history', 'AppContext', error);
     }
@@ -250,7 +267,10 @@ export function AppProvider({ children }: AppProviderProps) {
   useEffect(() => {
     try {
       if (state.gutProfile) {
-        localStorage.setItem('gut_safe_gut_profile', JSON.stringify(state.gutProfile));
+        localStorage.setItem(
+          'gut_safe_gut_profile',
+          JSON.stringify(state.gutProfile)
+        );
       }
     } catch (error) {
       logger.error('Failed to save gut profile', 'AppContext', error);
@@ -260,7 +280,10 @@ export function AppProvider({ children }: AppProviderProps) {
   useEffect(() => {
     try {
       if (state.userSettings) {
-        localStorage.setItem('gut_safe_user_settings', JSON.stringify(state.userSettings));
+        localStorage.setItem(
+          'gut_safe_user_settings',
+          JSON.stringify(state.userSettings)
+        );
       }
     } catch (error) {
       logger.error('Failed to save user settings', 'AppContext', error);
@@ -327,7 +350,7 @@ export function useNetworkStatus() {
 // Action hooks
 export function useScanActions() {
   const { dispatch } = useApp();
-  
+
   return {
     addScan: (scan: ScanHistory) => {
       dispatch({ type: 'ADD_SCAN', payload: scan });
@@ -350,7 +373,7 @@ export function useScanActions() {
 
 export function useSelectionActions() {
   const { dispatch } = useApp();
-  
+
   return {
     toggleScanSelection: (scanId: string) => {
       dispatch({ type: 'TOGGLE_SCAN_SELECTION', payload: scanId });
@@ -369,7 +392,7 @@ export function useSelectionActions() {
 
 export function useProfileActions() {
   const { dispatch } = useApp();
-  
+
   return {
     setGutProfile: (profile: GutProfile) => {
       dispatch({ type: 'SET_GUT_PROFILE', payload: profile });
@@ -384,7 +407,7 @@ export function useProfileActions() {
 
 export function useSettingsActions() {
   const { dispatch } = useApp();
-  
+
   return {
     setUserSettings: (settings: any) => {
       dispatch({ type: 'SET_USER_SETTINGS', payload: settings });
@@ -399,7 +422,7 @@ export function useSettingsActions() {
 
 export function useUIActions() {
   const { dispatch } = useApp();
-  
+
   return {
     setLoading: (loading: boolean) => {
       dispatch({ type: 'SET_LOADING', payload: loading });
@@ -412,7 +435,10 @@ export function useUIActions() {
     },
     setNetworkStatus: (isOnline: boolean, quality: number) => {
       dispatch({ type: 'SET_NETWORK_STATUS', payload: { isOnline, quality } });
-      logger.info('Network status updated', 'AppContext', { isOnline, quality });
+      logger.info('Network status updated', 'AppContext', {
+        isOnline,
+        quality,
+      });
     },
   };
 }

@@ -5,6 +5,8 @@
  * @private
  */
 
+import { useNavigation } from '@react-navigation/native';
+import { Camera } from 'expo-camera';
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
@@ -17,40 +19,39 @@ import {
   Modal,
   Platform,
 } from 'react-native';
-import { Camera } from 'expo-camera';
-import LinearGradient from '../components/LinearGradientWrapper';
-import { useNavigation } from '@react-navigation/native';
-import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
-import { Spacing, BorderRadius } from '../constants/spacing';
+
 import { AnimatedButton } from '../components/AnimatedButton';
 import { GlassmorphicCard } from '../components/GlassmorphicCard';
-import { StatusIndicator } from '../components/StatusIndicator';
+import LinearGradient from '../components/LinearGradientWrapper';
 import { OfflineScanner } from '../components/OfflineScanner';
-import { HapticFeedback } from '../utils/haptics';
-import AccessibilityService from '../utils/accessibility';
-import { ScanResult, ScanHistory } from '../types';
+import { StatusIndicator } from '../components/StatusIndicator';
+import { Colors } from '../constants/colors';
+import { Spacing, BorderRadius } from '../constants/spacing';
+import { Typography } from '../constants/typography';
 import DataService from '../services/DataService';
-import OfflineService from '../services/OfflineService';
 import NetworkService from '../services/NetworkService';
+import OfflineService from '../services/OfflineService';
+import type { ScanResult, ScanHistory } from '../types';
+import AccessibilityService from '../utils/accessibility';
+import { HapticFeedback } from '../utils/haptics';
 
 export const ScannerScreen: React.FC = () => {
   const navigation = useNavigation();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = isDark ? Colors.dark : Colors.light;
-  
+
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [isOnline, setIsOnline] = useState(true);
   const [showOfflineScanner, setShowOfflineScanner] = useState(false);
   const [networkQuality, setNetworkQuality] = useState(0);
-  
+
   const dataService = DataService.getInstance();
   const offlineService = OfflineService.getInstance();
   const networkService = NetworkService.getInstance();
-  
+
   const scanLineAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -60,11 +61,11 @@ export const ScannerScreen: React.FC = () => {
   useEffect(() => {
     // Initialize accessibility
     AccessibilityService.initialize();
-    
+
     // Initialize services
     dataService.initialize();
     offlineService.initialize();
-    
+
     // Check network status
     const updateNetworkStatus = async () => {
       const online = networkService.isOnline();
@@ -74,7 +75,7 @@ export const ScannerScreen: React.FC = () => {
     };
 
     updateNetworkStatus();
-    
+
     // Listen for network changes
     const handleNetworkChange = () => {
       updateNetworkStatus();
@@ -82,7 +83,7 @@ export const ScannerScreen: React.FC = () => {
 
     networkService.on('online', handleNetworkChange);
     networkService.on('offline', handleNetworkChange);
-    
+
     // Animate scanning line
     const scanAnimation = Animated.loop(
       Animated.sequence([
@@ -145,14 +146,17 @@ export const ScannerScreen: React.FC = () => {
   const handleOfflineScanComplete = (scan: ScanHistory) => {
     setShowOfflineScanner(false);
     setScanResult(scan.analysis.overallSafety);
-    
+
     // Show result
     Alert.alert(
       'Offline Scan Complete',
       `Food: ${scan.foodItem.name}\nResult: ${scan.analysis.overallSafety.toUpperCase()}\n\nThis scan will be synced when online.`,
       [
         { text: 'OK', onPress: () => setScanned(false) },
-        { text: 'View History', onPress: () => (navigation as any).navigate('ScanHistory') }
+        {
+          text: 'View History',
+          onPress: () => (navigation as any).navigate('ScanHistory'),
+        },
       ]
     );
   };
@@ -161,7 +165,7 @@ export const ScannerScreen: React.FC = () => {
     HapticFeedback.buttonPress();
     setScanned(false);
     setScanResult(null);
-    
+
     // Reset animations
     Animated.parallel([
       Animated.spring(scaleAnim, {
@@ -187,16 +191,19 @@ export const ScannerScreen: React.FC = () => {
             <View style={styles.permissionIconContainer}>
               <Text style={styles.permissionIcon}>📷</Text>
             </View>
-            <Text style={styles.permissionTitle}>Camera Permission Required</Text>
+            <Text style={styles.permissionTitle}>
+              Camera Permission Required
+            </Text>
             <Text style={styles.permissionText}>
-              GutSafe needs camera access to scan barcodes and menus for your gut health.
+              GutSafe needs camera access to scan barcodes and menus for your
+              gut health.
             </Text>
             <AnimatedButton
-              title="Grant Permission"
-              onPress={requestCameraPermission}
               size="large"
-              variant="primary"
               style={styles.permissionButton}
+              title="Grant Permission"
+              variant="primary"
+              onPress={requestCameraPermission}
             />
           </GlassmorphicCard>
         </LinearGradient>
@@ -217,14 +224,15 @@ export const ScannerScreen: React.FC = () => {
             </View>
             <Text style={styles.permissionTitle}>Camera Access Denied</Text>
             <Text style={styles.permissionText}>
-              Please enable camera access in your device settings to use the scanner.
+              Please enable camera access in your device settings to use the
+              scanner.
             </Text>
             <AnimatedButton
-              title="Try Again"
-              onPress={requestCameraPermission}
               size="large"
-              variant="outline"
               style={styles.permissionButton}
+              title="Try Again"
+              variant="outline"
+              onPress={requestCameraPermission}
             />
           </GlassmorphicCard>
         </LinearGradient>
@@ -243,17 +251,22 @@ export const ScannerScreen: React.FC = () => {
           >
             <View style={styles.topHeader}>
               <TouchableOpacity
-                style={[styles.closeButton, { backgroundColor: colors.surface }]}
+                style={[
+                  styles.closeButton,
+                  { backgroundColor: colors.surface },
+                ]}
                 onPress={() => navigation.goBack()}
               >
-                <Text style={[styles.closeButtonText, { color: colors.text }]}>✕</Text>
+                <Text style={[styles.closeButtonText, { color: colors.text }]}>
+                  ✕
+                </Text>
               </TouchableOpacity>
             </View>
             <Text style={styles.overlayTitle}>Scan Barcode</Text>
             <Text style={styles.overlaySubtitle}>
               Point your camera at a barcode or menu item
             </Text>
-            
+
             {/* Network Status */}
             <View style={styles.networkStatusContainer}>
               <Text style={styles.networkStatusText}>
@@ -263,7 +276,7 @@ export const ScannerScreen: React.FC = () => {
                 Quality: {networkQuality}%
               </Text>
             </View>
-            
+
             <View style={styles.buttonRow}>
               <TouchableOpacity
                 style={styles.historyButton}
@@ -271,7 +284,7 @@ export const ScannerScreen: React.FC = () => {
               >
                 <Text style={styles.historyButtonText}>View History</Text>
               </TouchableOpacity>
-              
+
               {!isOnline && (
                 <TouchableOpacity
                   style={styles.offlineButton}
@@ -289,7 +302,7 @@ export const ScannerScreen: React.FC = () => {
             <View style={[styles.scanFrameCorner, styles.topRight]} />
             <View style={[styles.scanFrameCorner, styles.bottomLeft]} />
             <View style={[styles.scanFrameCorner, styles.bottomRight]} />
-            
+
             {/* Animated scanning line */}
             <Animated.View
               style={[
@@ -314,36 +327,48 @@ export const ScannerScreen: React.FC = () => {
             style={styles.bottomOverlay}
           >
             <View style={styles.scanButtonContainer}>
-              <Animated.View style={{ 
-                transform: [
-                  { scale: Animated.multiply(pulseAnim, scaleAnim) },
-                  { rotateY: rotateAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: ['0deg', '360deg'],
-                  })}
-                ]
-              }}>
+              <Animated.View
+                style={{
+                  transform: [
+                    { scale: Animated.multiply(pulseAnim, scaleAnim) },
+                    {
+                      rotateY: rotateAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: ['0deg', '360deg'],
+                      }),
+                    },
+                  ],
+                }}
+              >
                 <TouchableOpacity
+                  disabled={!scanned}
                   style={styles.scanButton}
                   onPress={resetScanner}
-                  disabled={!scanned}
                   {...AccessibilityService.createButtonConfig(
                     scanned ? 'Scan Again Button' : 'Scanning in Progress',
-                    scanned ? 'Start a new scan' : 'Camera is ready to scan barcodes',
+                    scanned
+                      ? 'Start a new scan'
+                      : 'Camera is ready to scan barcodes',
                     !scanned,
                     false
                   )}
                 >
                   <LinearGradient
-                    colors={scanned ? Colors.primaryGradient : [Colors.body, Colors.body]}
+                    colors={
+                      scanned
+                        ? Colors.primaryGradient
+                        : [Colors.body, Colors.body]
+                    }
                     style={styles.scanButtonGradient}
                   >
-                    <Animated.View style={{
-                      opacity: glowAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [1, 0.8],
-                      })
-                    }}>
+                    <Animated.View
+                      style={{
+                        opacity: glowAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [1, 0.8],
+                        }),
+                      }}
+                    >
                       <Text style={styles.scanButtonText}>
                         {scanned ? 'Scan Again' : 'Scanning...'}
                       </Text>
@@ -361,26 +386,26 @@ export const ScannerScreen: React.FC = () => {
         <View style={styles.resultContainer}>
           <StatusIndicator
             result={scanResult}
-            title={scanResult === 'safe' ? 'Safe to Eat' : 'Use Caution'}
             subtitle={
               scanResult === 'safe'
                 ? 'This food appears safe for your gut health profile.'
                 : 'This food may contain ingredients that could trigger symptoms.'
             }
+            title={scanResult === 'safe' ? 'Safe to Eat' : 'Use Caution'}
           />
         </View>
       )}
 
       {/* Offline Scanner Modal */}
       <Modal
-        visible={showOfflineScanner}
         animationType="slide"
         presentationStyle="pageSheet"
+        visible={showOfflineScanner}
         onRequestClose={() => setShowOfflineScanner(false)}
       >
         <OfflineScanner
-          onScanComplete={handleOfflineScanComplete}
           onClose={() => setShowOfflineScanner(false)}
+          onScanComplete={handleOfflineScanComplete}
         />
       </Modal>
     </View>
@@ -388,200 +413,190 @@ export const ScannerScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
+  bottomLeft: {
+    borderBottomLeftRadius: BorderRadius.sm,
+    borderRightWidth: 0,
+    borderTopWidth: 0,
+    bottom: 0,
+    left: 0,
   },
-  gradientContainer: {
-    flex: 1,
+  bottomOverlay: {
+    bottom: 0,
+    left: 0,
+    paddingBottom: 50,
+    paddingHorizontal: Spacing.lg,
+    position: 'absolute',
+    right: 0,
+  },
+  bottomRight: {
+    borderBottomRightRadius: BorderRadius.sm,
+    borderLeftWidth: 0,
+    borderTopWidth: 0,
+    bottom: 0,
+    right: 0,
+  },
+  buttonIcon: {
+    fontSize: 16,
+    marginRight: Spacing.sm,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
     justifyContent: 'center',
-    alignItems: 'center',
   },
   camera: {
     flex: 1,
   },
+  closeButton: {
+    alignItems: 'center',
+    borderRadius: 16,
+    height: 32,
+    justifyContent: 'center',
+    width: 32,
+  },
+  closeButtonText: {
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.body,
+  },
+  container: {
+    backgroundColor: Colors.background,
+    flex: 1,
+  },
+  gradientContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  historyButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  historyButtonText: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.bodySmall,
+    textAlign: 'center',
+  },
+  networkQualityText: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.caption,
+    opacity: 0.8,
+  },
+  networkStatusContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    justifyContent: 'center',
+    marginBottom: Spacing.md,
+  },
+  networkStatusText: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.bodySmall,
+  },
+  offlineButton: {
+    backgroundColor: 'rgba(255, 165, 0, 0.3)',
+    borderColor: 'rgba(255, 165, 0, 0.5)',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  offlineButtonText: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.semiBold,
+    fontSize: Typography.fontSize.bodySmall,
+    textAlign: 'center',
+  },
   overlay: {
     flex: 1,
   },
-  topOverlay: {
-    paddingTop: 60,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xl,
-  },
-  topHeader: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginBottom: Spacing.lg,
-  },
-  closeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  closeButtonText: {
+  overlaySubtitle: {
+    color: Colors.white,
+    fontFamily: Typography.fontFamily.regular,
     fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.semiBold,
+    marginBottom: Spacing.md,
+    opacity: 0.9,
+    textAlign: 'center',
   },
   overlayTitle: {
-    fontSize: Typography.fontSize.h2,
-    fontFamily: Typography.fontFamily.bold,
     color: Colors.white,
-    textAlign: 'center',
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h2,
     marginBottom: Spacing.sm,
+    textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
-  overlaySubtitle: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.white,
-    textAlign: 'center',
-    opacity: 0.9,
-    marginBottom: Spacing.md,
+  permissionButton: {
+    minWidth: 200,
   },
-  networkStatusContainer: {
-    flexDirection: 'row',
+  permissionCard: {
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
+    margin: Spacing.lg,
+    padding: Spacing.xl,
   },
-  networkStatusText: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.semiBold,
-    color: Colors.white,
+  permissionIcon: {
+    fontSize: 32,
   },
-  networkQualityText: {
-    fontSize: Typography.fontSize.caption,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.white,
-    opacity: 0.8,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: Spacing.sm,
-  },
-  historyButton: {
+  permissionIconContainer: {
+    alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
+    borderRadius: 40,
+    height: 80,
+    justifyContent: 'center',
+    marginBottom: Spacing.lg,
+    width: 80,
   },
-  historyButtonText: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.semiBold,
+  permissionText: {
     color: Colors.white,
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: Typography.fontSize.body,
+    lineHeight: Typography.lineHeight.body,
+    marginBottom: Spacing.lg,
+    opacity: 0.8,
     textAlign: 'center',
   },
-  offlineButton: {
-    backgroundColor: 'rgba(255, 165, 0, 0.3)',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 165, 0, 0.5)',
-  },
-  offlineButtonText: {
-    fontSize: Typography.fontSize.bodySmall,
-    fontFamily: Typography.fontFamily.semiBold,
+  permissionTitle: {
     color: Colors.white,
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: Typography.fontSize.h2,
+    marginBottom: Spacing.md,
     textAlign: 'center',
   },
-  scanFrame: {
+  resultContainer: {
+    bottom: 200,
+    left: Spacing.lg,
     position: 'absolute',
-    top: '50%',
-    left: '50%',
-    marginTop: -100,
-    marginLeft: -100,
-    width: 200,
-    height: 200,
+    right: Spacing.lg,
   },
-  scanFrameCorner: {
-    position: 'absolute',
-    width: 30,
-    height: 30,
-    borderColor: Colors.primary,
-    borderWidth: 3,
-    ...(Platform.OS === 'web' ? {
-      boxShadow: `0 0 4px ${Colors.primary}80`,
-    } : {
-      shadowColor: Colors.primary,
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.8,
-      shadowRadius: 4,
-      elevation: 4,
-    }),
-  },
-  topRight: {
-    top: 0,
-    right: 0,
-    borderTopRightRadius: BorderRadius.sm,
-    borderLeftWidth: 0,
-    borderBottomWidth: 0,
-  },
-  bottomLeft: {
-    bottom: 0,
-    left: 0,
-    borderBottomLeftRadius: BorderRadius.sm,
-    borderTopWidth: 0,
-    borderRightWidth: 0,
-  },
-  bottomRight: {
-    bottom: 0,
-    right: 0,
-    borderBottomRightRadius: BorderRadius.sm,
-    borderTopWidth: 0,
-    borderLeftWidth: 0,
-  },
-  scanLine: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: 2,
-    backgroundColor: Colors.primary,
-    ...(Platform.OS === 'web' ? {
-      boxShadow: `0 0 4px ${Colors.primary}`,
-    } : {
-      shadowColor: Colors.primary,
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 1,
-      shadowRadius: 4,
-      elevation: 4,
-    }),
-  },
-  bottomOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingBottom: 50,
-    paddingHorizontal: Spacing.lg,
+  scanButton: {
+    borderRadius: 60,
+    height: 120,
+    overflow: 'hidden',
+    width: 120,
+    ...(Platform.OS === 'web'
+      ? {
+          boxShadow: `0 8px 16px ${Colors.primary}4D`,
+        }
+      : {
+          shadowColor: Colors.primary,
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.3,
+          shadowRadius: 16,
+          elevation: 8,
+        }),
   },
   scanButtonContainer: {
     alignItems: 'center',
   },
-  scanButton: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    overflow: 'hidden',
-    ...(Platform.OS === 'web' ? {
-      boxShadow: `0 8px 16px ${Colors.primary}4D`,
-    } : {
-      shadowColor: Colors.primary,
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.3,
-      shadowRadius: 16,
-      elevation: 8,
-    }),
-  },
   scanButtonGradient: {
-    flex: 1,
     alignItems: 'center',
+    flex: 1,
     justifyContent: 'center',
   },
   scanButtonIcon: {
@@ -589,55 +604,71 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
   },
   scanButtonText: {
-    fontSize: Typography.fontSize.bodySmall,
+    color: Colors.white,
     fontFamily: Typography.fontFamily.semiBold,
-    color: Colors.white,
+    fontSize: Typography.fontSize.bodySmall,
     textAlign: 'center',
   },
-  permissionCard: {
-    margin: Spacing.lg,
-    alignItems: 'center',
-    padding: Spacing.xl,
-  },
-  permissionIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.lg,
-  },
-  permissionIcon: {
-    fontSize: 32,
-  },
-  permissionTitle: {
-    fontSize: Typography.fontSize.h2,
-    fontFamily: Typography.fontFamily.bold,
-    color: Colors.white,
-    textAlign: 'center',
-    marginBottom: Spacing.md,
-  },
-  permissionText: {
-    fontSize: Typography.fontSize.body,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.white,
-    textAlign: 'center',
-    lineHeight: Typography.lineHeight.body,
-    marginBottom: Spacing.lg,
-    opacity: 0.8,
-  },
-  permissionButton: {
-    minWidth: 200,
-  },
-  buttonIcon: {
-    fontSize: 16,
-    marginRight: Spacing.sm,
-  },
-  resultContainer: {
+  scanFrame: {
+    height: 200,
+    left: '50%',
+    marginLeft: -100,
+    marginTop: -100,
     position: 'absolute',
-    bottom: 200,
-    left: Spacing.lg,
-    right: Spacing.lg,
+    top: '50%',
+    width: 200,
+  },
+  scanFrameCorner: {
+    borderColor: Colors.primary,
+    borderWidth: 3,
+    height: 30,
+    position: 'absolute',
+    width: 30,
+    ...(Platform.OS === 'web'
+      ? {
+          boxShadow: `0 0 4px ${Colors.primary}80`,
+        }
+      : {
+          shadowColor: Colors.primary,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.8,
+          shadowRadius: 4,
+          elevation: 4,
+        }),
+  },
+  scanLine: {
+    backgroundColor: Colors.primary,
+    height: 2,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    ...(Platform.OS === 'web'
+      ? {
+          boxShadow: `0 0 4px ${Colors.primary}`,
+        }
+      : {
+          shadowColor: Colors.primary,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 1,
+          shadowRadius: 4,
+          elevation: 4,
+        }),
+  },
+  topHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: Spacing.lg,
+  },
+  topOverlay: {
+    paddingBottom: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: 60,
+  },
+  topRight: {
+    borderBottomWidth: 0,
+    borderLeftWidth: 0,
+    borderTopRightRadius: BorderRadius.sm,
+    right: 0,
+    top: 0,
   },
 });

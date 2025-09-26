@@ -34,8 +34,16 @@ describe.skip('GutSafe App E2E Tests', () => {
       await element(by.text('Next')).tap();
 
       // Set severity levels
-      await element(by.id('severity-slider-ibs-fodmap')).swipe('right', 'fast', 0.5);
-      await element(by.id('severity-slider-gluten')).swipe('right', 'fast', 0.7);
+      await element(by.id('severity-slider-ibs-fodmap')).swipe(
+        'right',
+        'fast',
+        0.5
+      );
+      await element(by.id('severity-slider-gluten')).swipe(
+        'right',
+        'fast',
+        0.7
+      );
       await element(by.text('Next')).tap();
 
       // Add known triggers
@@ -115,14 +123,14 @@ describe.skip('GutSafe App E2E Tests', () => {
     it('should handle barcode scanning', async () => {
       // Mock barcode scan
       await element(by.id('scan-button')).tap();
-      
+
       // Simulate barcode detection
       await device.sendUserNotification({
         trigger: {
-          type: 'push'
+          type: 'push',
         },
         title: 'Barcode Detected',
-        body: '123456789'
+        body: '123456789',
       });
 
       // Wait for scan processing
@@ -138,7 +146,7 @@ describe.skip('GutSafe App E2E Tests', () => {
 
     it('should handle manual food entry', async () => {
       await element(by.text('Manual Entry')).tap();
-      
+
       await element(by.id('food-name-input')).typeText('Greek Yogurt');
       await element(by.id('brand-input')).typeText('Chobani');
       await element(by.text('Analyze')).tap();
@@ -152,10 +160,10 @@ describe.skip('GutSafe App E2E Tests', () => {
     it('should show scan history after scanning', async () => {
       // Perform a scan
       await element(by.id('scan-button')).tap();
-      
+
       // Navigate to history
       await element(by.text('View History')).tap();
-      
+
       // Verify history screen
       await waitFor(element(by.text('Scan History')))
         .toBeVisible()
@@ -173,16 +181,20 @@ describe.skip('GutSafe App E2E Tests', () => {
 
     it('should update gut conditions', async () => {
       await element(by.text('Conditions')).tap();
-      
+
       // Toggle a condition
       await element(by.id('condition-toggle-lactose')).tap();
-      
+
       // Set severity
-      await element(by.id('severity-slider-lactose')).swipe('right', 'fast', 0.6);
-      
+      await element(by.id('severity-slider-lactose')).swipe(
+        'right',
+        'fast',
+        0.6
+      );
+
       // Save changes
       await element(by.text('Save Changes')).tap();
-      
+
       // Verify success message
       await waitFor(element(by.text('Profile Updated')))
         .toBeVisible()
@@ -191,17 +203,17 @@ describe.skip('GutSafe App E2E Tests', () => {
 
     it('should log symptoms', async () => {
       await element(by.text('Symptoms')).tap();
-      
+
       // Add new symptom
       await element(by.text('Add Symptom')).tap();
-      
+
       await element(by.id('symptom-type-picker')).tap();
       await element(by.text('Bloating')).tap();
-      
+
       await element(by.id('severity-slider')).swipe('right', 'fast', 0.5);
-      
+
       await element(by.text('Save Symptom')).tap();
-      
+
       // Verify symptom was added
       await waitFor(element(by.text('Bloating')))
         .toBeVisible()
@@ -210,15 +222,15 @@ describe.skip('GutSafe App E2E Tests', () => {
 
     it('should manage medications', async () => {
       await element(by.text('Medications')).tap();
-      
+
       // Add new medication
       await element(by.text('Add Medication')).tap();
-      
+
       await element(by.id('medication-name-input')).typeText('Probiotics');
       await element(by.id('dosage-input')).typeText('1 capsule daily');
-      
+
       await element(by.text('Save Medication')).tap();
-      
+
       // Verify medication was added
       await waitFor(element(by.text('Probiotics')))
         .toBeVisible()
@@ -234,22 +246,22 @@ describe.skip('GutSafe App E2E Tests', () => {
 
     it('should update notification settings', async () => {
       await element(by.text('Notifications')).tap();
-      
+
       // Toggle meal reminders
       await element(by.id('meal-reminders-switch')).tap();
-      
+
       // Set quiet hours
       await element(by.id('quiet-hours-switch')).tap();
-      
+
       await element(by.id('quiet-hours-start')).tap();
       await element(by.text('22:00')).tap();
-      
+
       await element(by.id('quiet-hours-end')).tap();
       await element(by.text('08:00')).tap();
-      
+
       // Save settings
       await element(by.text('Save Settings')).tap();
-      
+
       // Verify success
       await waitFor(element(by.text('Settings Saved')))
         .toBeVisible()
@@ -258,19 +270,19 @@ describe.skip('GutSafe App E2E Tests', () => {
 
     it('should update accessibility settings', async () => {
       await element(by.text('Accessibility')).tap();
-      
+
       // Enable large text
       await element(by.id('large-text-switch')).tap();
-      
+
       // Enable high contrast
       await element(by.id('high-contrast-switch')).tap();
-      
+
       // Enable reduced motion
       await element(by.id('reduced-motion-switch')).tap();
-      
+
       // Save settings
       await element(by.text('Save Settings')).tap();
-      
+
       // Verify success
       await waitFor(element(by.text('Settings Saved')))
         .toBeVisible()
@@ -289,12 +301,12 @@ describe.skip('GutSafe App E2E Tests', () => {
     it('should search scan history', async () => {
       // Enter search query
       await element(by.id('search-input')).typeText('yogurt');
-      
+
       // Wait for search results
       await waitFor(element(by.text('Search Results')))
         .toBeVisible()
         .withTimeout(3000);
-      
+
       // Verify results contain search term
       await waitFor(element(by.text('Greek Yogurt')))
         .toBeVisible()
@@ -304,15 +316,15 @@ describe.skip('GutSafe App E2E Tests', () => {
     it('should filter by safety level', async () => {
       // Filter by safe foods
       await element(by.text('Safe')).tap();
-      
+
       // Verify only safe foods are shown
       await waitFor(element(by.text('Safe Foods Only')))
         .toBeVisible()
         .withTimeout(3000);
-      
+
       // Filter by caution foods
       await element(by.text('Caution')).tap();
-      
+
       // Verify only caution foods are shown
       await waitFor(element(by.text('Caution Foods Only')))
         .toBeVisible()
@@ -322,19 +334,19 @@ describe.skip('GutSafe App E2E Tests', () => {
     it('should sort scan history', async () => {
       // Open sort options
       await element(by.text('Sort')).tap();
-      
+
       // Sort by date
       await element(by.text('Date')).tap();
-      
+
       // Verify sorting
       await waitFor(element(by.text('Sorted by Date')))
         .toBeVisible()
         .withTimeout(3000);
-      
+
       // Sort by name
       await element(by.text('Sort')).tap();
       await element(by.text('Name')).tap();
-      
+
       // Verify sorting
       await waitFor(element(by.text('Sorted by Name')))
         .toBeVisible()
@@ -346,26 +358,26 @@ describe.skip('GutSafe App E2E Tests', () => {
     it('should work offline', async () => {
       // Disable network
       await device.disableSynchronization();
-      
+
       // Navigate to scan screen
       await element(by.text('Scan')).tap();
-      
+
       // Verify offline mode is indicated
       await waitFor(element(by.text('Offline Mode')))
         .toBeVisible()
         .withTimeout(3000);
-      
+
       // Test offline scanning
       await element(by.text('Offline Search')).tap();
-      
+
       await element(by.id('offline-search-input')).typeText('banana');
       await element(by.text('Search')).tap();
-      
+
       // Verify offline search results
       await waitFor(element(by.text('Offline Results')))
         .toBeVisible()
         .withTimeout(3000);
-      
+
       // Re-enable network
       await device.enableSynchronization();
     });
@@ -375,28 +387,28 @@ describe.skip('GutSafe App E2E Tests', () => {
     it('should handle network errors gracefully', async () => {
       // Simulate network error
       await device.disableSynchronization();
-      
+
       await element(by.text('Scan')).tap();
       await element(by.id('scan-button')).tap();
-      
+
       // Verify error handling
       await waitFor(element(by.text('Network Error')))
         .toBeVisible()
         .withTimeout(5000);
-      
+
       // Verify retry option
       await element(by.text('Retry')).tap();
-      
+
       // Re-enable network
       await device.enableSynchronization();
     });
 
     it('should handle invalid barcode gracefully', async () => {
       await element(by.text('Scan')).tap();
-      
+
       // Simulate invalid barcode
       await element(by.id('scan-button')).tap();
-      
+
       // Verify error message
       await waitFor(element(by.text('Barcode Not Found')))
         .toBeVisible()
@@ -407,13 +419,13 @@ describe.skip('GutSafe App E2E Tests', () => {
   describe('Performance', () => {
     it('should load app within acceptable time', async () => {
       const startTime = Date.now();
-      
+
       await device.launchApp();
-      
+
       await waitFor(element(by.text('Dashboard')))
         .toBeVisible()
         .withTimeout(5000);
-      
+
       const loadTime = Date.now() - startTime;
       expect(loadTime).toBeLessThan(3000); // Should load within 3 seconds
     });
@@ -426,7 +438,7 @@ describe.skip('GutSafe App E2E Tests', () => {
         await element(by.text('History')).tap();
         await element(by.text('Profile')).tap();
       }
-      
+
       // Verify app is still responsive
       await waitFor(element(by.text('Profile')))
         .toBeVisible()
@@ -438,10 +450,10 @@ describe.skip('GutSafe App E2E Tests', () => {
     it('should work with screen reader', async () => {
       // Enable screen reader
       await device.setOrientation('portrait');
-      
+
       // Navigate through app with screen reader
       await element(by.text('Dashboard')).tap();
-      
+
       // Verify accessibility labels are present
       await waitFor(element(by.label('Gut Health Overview')))
         .toBeVisible()
@@ -451,15 +463,15 @@ describe.skip('GutSafe App E2E Tests', () => {
     it('should support large text', async () => {
       // Enable large text
       await device.setOrientation('portrait');
-      
+
       // Navigate to settings
       await element(by.text('Profile')).tap();
       await element(by.text('Settings')).tap();
       await element(by.text('Accessibility')).tap();
-      
+
       // Enable large text
       await element(by.id('large-text-switch')).tap();
-      
+
       // Verify large text is applied
       await waitFor(element(by.text('Large Text Enabled')))
         .toBeVisible()

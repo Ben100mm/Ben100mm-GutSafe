@@ -16,7 +16,9 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 
 function App() {
-  return React.createElement('div', null, 
+  return React.createElement(
+    'div',
+    null,
     React.createElement('h1', null, 'GutSafe App'),
     React.createElement('p', null, 'Full application is loading...'),
     React.createElement('p', null, 'Testing React Native Web components...')

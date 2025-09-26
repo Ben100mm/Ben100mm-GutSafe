@@ -12,7 +12,10 @@ export class SecurityConfig {
   private static instance: SecurityConfig;
   private securityHeaders: Record<string, string> = {};
   private allowedOrigins: string[] = [];
-  private rateLimits: Map<string, { count: number; resetTime: number }> = new Map();
+  private readonly rateLimits: Map<
+    string,
+    { count: number; resetTime: number }
+  > = new Map();
 
   static getInstance(): SecurityConfig {
     if (!SecurityConfig.instance) {
@@ -33,7 +36,8 @@ export class SecurityConfig {
       'X-Frame-Options': 'DENY',
       'X-XSS-Protection': '1; mode=block',
       'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
-      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';",
+      'Content-Security-Policy':
+        "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';",
       'Referrer-Policy': 'strict-origin-when-cross-origin',
       'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
     };
@@ -43,13 +47,13 @@ export class SecurityConfig {
   private initializeAllowedOrigins(): void {
     const isDevelopment = process.env.NODE_ENV === 'development';
     // const isProduction = process.env.NODE_ENV === 'production';
-    
+
     this.allowedOrigins = [
       'https://gutsafe.app',
       'https://www.gutsafe.app',
       'https://api.gutsafe.app',
     ];
-    
+
     if (isDevelopment) {
       this.allowedOrigins.push(
         'http://localhost:3000',
@@ -58,10 +62,12 @@ export class SecurityConfig {
         'http://127.0.0.1:9001'
       );
     }
-    
+
     // Add environment-specific origins
     if (process.env.ALLOWED_ORIGINS) {
-      const envOrigins = process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim());
+      const envOrigins = process.env.ALLOWED_ORIGINS.split(',').map((origin) =>
+        origin.trim()
+      );
       this.allowedOrigins.push(...envOrigins);
     }
   }
@@ -91,7 +97,11 @@ export class SecurityConfig {
   }
 
   // Rate limiting
-  isRateLimited(key: string, limit: number = 100, windowMs: number = 60000): boolean {
+  isRateLimited(
+    key: string,
+    limit: number = 100,
+    windowMs: number = 60000
+  ): boolean {
     const now = Date.now();
     const rateLimit = this.rateLimits.get(key);
 
@@ -101,7 +111,11 @@ export class SecurityConfig {
     }
 
     if (rateLimit.count >= limit) {
-      logger.warn('Rate limit exceeded', 'SecurityConfig', { key, count: rateLimit.count, limit });
+      logger.warn('Rate limit exceeded', 'SecurityConfig', {
+        key,
+        count: rateLimit.count,
+        limit,
+      });
       return true;
     }
 
@@ -209,10 +223,13 @@ export class SecurityConfig {
     if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
       const array = new Uint8Array(length);
       crypto.getRandomValues(array);
-      return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+      return Array.from(array, (byte) =>
+        byte.toString(16).padStart(2, '0')
+      ).join('');
     } else {
       // Fallback for environments without crypto support
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      const chars =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
       let result = '';
       for (let i = 0; i < length; i++) {
         result += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -245,7 +262,7 @@ export class SecurityConfig {
     ];
 
     const detectedPatterns: string[] = [];
-    
+
     for (const pattern of suspiciousPatterns) {
       if (pattern.test(data)) {
         detectedPatterns.push(pattern.source);
@@ -262,7 +279,7 @@ export class SecurityConfig {
   generateCSP(nonce?: string): string {
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'" + (nonce ? ` 'nonce-${nonce}'` : ''),
+      `script-src 'self' 'unsafe-inline'${nonce ? ` 'nonce-${nonce}'` : ''}`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https:",
       "font-src 'self' data:",

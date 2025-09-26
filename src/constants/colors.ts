@@ -11,12 +11,12 @@ export const Colors = {
   primary: '#0F5257', // Petrol Blue-Teal
   primaryLight: '#56CFE1', // Aqua
   primaryGradient: ['#0F5257', '#56CFE1'] as const, // Teal → Aqua gradient
-  
+
   // Status Colors
   safe: '#4ADE80', // Safe Green
   caution: '#FACC15', // Caution Amber
   avoid: '#F87171', // Avoid Red
-  
+
   // Light Mode Colors
   light: {
     background: '#F8F9FB', // Off-white
@@ -29,7 +29,7 @@ export const Colors = {
     shadow: 'rgba(0, 0, 0, 0.1)',
     accent: '#0F5257', // Primary for accents
   },
-  
+
   // Dark Mode Colors
   dark: {
     background: '#000000', // Black background
@@ -42,7 +42,7 @@ export const Colors = {
     shadow: 'rgba(0, 0, 0, 0.3)',
     accent: '#56CFE1', // Light accent for dark mode
   },
-  
+
   // Legacy colors for backward compatibility
   background: '#F8F9FB',
   surface: '#E5E7EB',

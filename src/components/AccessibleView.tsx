@@ -6,21 +6,21 @@
  */
 
 import React, { useEffect, useRef } from 'react';
+import type {
+  ViewStyle,
+  TextStyle,
+  AccessibilityRole} from 'react-native';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  ViewStyle,
-  TextStyle,
   Animated,
-  AccessibilityInfo,
-  AccessibilityRole,
-} from 'react-native';
-import { useColorScheme } from 'react-native';
+  AccessibilityInfo
+ useColorScheme } from 'react-native';
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
+import { Typography } from '../constants/typography';
 import { HapticFeedback } from '../utils/haptics';
 // import { AnimationPresets } from '../utils/animations';
 import AccessibilityService from '../utils/accessibility';
@@ -55,10 +55,11 @@ export const AccessibleView: React.FC<AccessibleViewProps> = ({
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = isDark ? Colors.dark : Colors.light;
-  
+
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
-  const [isScreenReaderEnabled, setIsScreenReaderEnabled] = React.useState(false);
+  const [isScreenReaderEnabled, setIsScreenReaderEnabled] =
+    React.useState(false);
 
   useEffect(() => {
     // Check if screen reader is enabled
@@ -66,17 +67,20 @@ export const AccessibleView: React.FC<AccessibleViewProps> = ({
       const isEnabled = await AccessibilityInfo.isScreenReaderEnabled();
       setIsScreenReaderEnabled(isEnabled);
     };
-    
+
     checkScreenReader();
 
     // Listen for screen reader changes
-    const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', setIsScreenReaderEnabled);
-    
+    const subscription = AccessibilityInfo.addEventListener(
+      'screenReaderChanged',
+      setIsScreenReaderEnabled
+    );
+
     return () => subscription?.remove();
   }, []);
 
   const handlePressIn = () => {
-    if (disabled || !enableAnimations) return;
+    if (disabled || !enableAnimations) {return;}
 
     if (enableHaptics) {
       HapticFeedback.trigger(hapticType as any);
@@ -96,7 +100,7 @@ export const AccessibleView: React.FC<AccessibleViewProps> = ({
   };
 
   const handlePressOut = () => {
-    if (disabled || !enableAnimations) return;
+    if (disabled || !enableAnimations) {return;}
 
     Animated.parallel([
       Animated.spring(scaleAnim, {
@@ -131,27 +135,31 @@ export const AccessibleView: React.FC<AccessibleViewProps> = ({
   };
 
   // Animation styles
-  const animatedStyle = enableAnimations ? {
-    transform: [{ scale: scaleAnim }],
-    opacity: opacityAnim,
-  } : {};
+  const animatedStyle = enableAnimations
+    ? {
+        transform: [{ scale: scaleAnim }],
+        opacity: opacityAnim,
+      }
+    : {};
 
   // Screen reader specific styles
-  const screenReaderStyle = isScreenReaderEnabled ? {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 4,
-    padding: Spacing.xs,
-  } : {};
+  const screenReaderStyle = isScreenReaderEnabled
+    ? {
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: 4,
+        padding: Spacing.xs,
+      }
+    : {};
 
   if (onPress) {
     return (
       <TouchableOpacity
+        disabled={disabled}
+        style={[styles.container, style, screenReaderStyle]}
         onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        disabled={disabled}
-        style={[styles.container, style, screenReaderStyle]}
         {...accessibilityConfig}
       >
         <Animated.View style={[styles.content, animatedStyle]}>
@@ -193,18 +201,22 @@ export const AccessibleText: React.FC<AccessibleTextProps> = ({
   enableHaptics = true,
 }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const [isScreenReaderEnabled, setIsScreenReaderEnabled] = React.useState(false);
+  const [isScreenReaderEnabled, setIsScreenReaderEnabled] =
+    React.useState(false);
 
   useEffect(() => {
     const checkScreenReader = async () => {
       const isEnabled = await AccessibilityInfo.isScreenReaderEnabled();
       setIsScreenReaderEnabled(isEnabled);
     };
-    
+
     checkScreenReader();
 
-    const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', setIsScreenReaderEnabled);
-    
+    const subscription = AccessibilityInfo.addEventListener(
+      'screenReaderChanged',
+      setIsScreenReaderEnabled
+    );
+
     return () => subscription?.remove();
   }, []);
 
@@ -220,31 +232,35 @@ export const AccessibleText: React.FC<AccessibleTextProps> = ({
   const accessibilityConfig = {
     accessible: true,
     accessibilityRole,
-    accessibilityLabel: accessibilityLabel || (typeof children === 'string' ? children : undefined),
+    accessibilityLabel:
+      accessibilityLabel ||
+      (typeof children === 'string' ? children : undefined),
     testID: accessibilityLabel?.toLowerCase().replace(/\s+/g, '-'),
   };
 
-  const animatedStyle = enableAnimations ? {
-    transform: [{ scale: scaleAnim }],
-  } : {};
+  const animatedStyle = enableAnimations
+    ? {
+        transform: [{ scale: scaleAnim }],
+      }
+    : {};
 
-  const screenReaderStyle = isScreenReaderEnabled ? {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 4,
-    padding: Spacing.xs,
-  } : {};
+  const screenReaderStyle = isScreenReaderEnabled
+    ? {
+        borderWidth: 1,
+        borderColor: Colors.border,
+        borderRadius: 4,
+        padding: Spacing.xs,
+      }
+    : {};
 
   if (onPress) {
     return (
       <TouchableOpacity
-        onPress={handlePress}
         style={[screenReaderStyle]}
+        onPress={handlePress}
         {...accessibilityConfig}
       >
-        <Animated.Text style={[style, animatedStyle]}>
-          {children}
-        </Animated.Text>
+        <Animated.Text style={[style, animatedStyle]}>{children}</Animated.Text>
       </TouchableOpacity>
     );
   }
@@ -293,12 +309,12 @@ export const AccessibleButton: React.FC<AccessibleButtonProps> = ({
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = isDark ? Colors.dark : Colors.light;
-  
+
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
-    if (disabled || loading || !enableAnimations) return;
+    if (disabled || loading || !enableAnimations) {return;}
 
     if (enableHaptics) {
       HapticFeedback.trigger(hapticType as any);
@@ -318,7 +334,7 @@ export const AccessibleButton: React.FC<AccessibleButtonProps> = ({
   };
 
   const handlePressOut = () => {
-    if (disabled || loading || !enableAnimations) return;
+    if (disabled || loading || !enableAnimations) {return;}
 
     Animated.parallel([
       Animated.spring(scaleAnim, {
@@ -344,8 +360,18 @@ export const AccessibleButton: React.FC<AccessibleButtonProps> = ({
       borderRadius: 8,
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
-      paddingHorizontal: size === 'small' ? Spacing.md : size === 'large' ? Spacing.xl : Spacing.lg,
-      paddingVertical: size === 'small' ? Spacing.sm : size === 'large' ? Spacing.lg : Spacing.md,
+      paddingHorizontal:
+        size === 'small'
+          ? Spacing.md
+          : size === 'large'
+            ? Spacing.xl
+            : Spacing.lg,
+      paddingVertical:
+        size === 'small'
+          ? Spacing.sm
+          : size === 'large'
+            ? Spacing.lg
+            : Spacing.md,
     };
 
     switch (variant) {
@@ -376,7 +402,12 @@ export const AccessibleButton: React.FC<AccessibleButtonProps> = ({
   const getTextStyle = () => {
     const baseStyle = {
       fontFamily: Typography.fontFamily.semiBold,
-      fontSize: size === 'small' ? Typography.fontSize.bodySmall : size === 'large' ? Typography.fontSize.h3 : Typography.fontSize.body,
+      fontSize:
+        size === 'small'
+          ? Typography.fontSize.bodySmall
+          : size === 'large'
+            ? Typography.fontSize.h3
+            : Typography.fontSize.body,
     };
 
     switch (variant) {
@@ -410,18 +441,20 @@ export const AccessibleButton: React.FC<AccessibleButtonProps> = ({
     false
   );
 
-  const animatedStyle = enableAnimations ? {
-    transform: [{ scale: scaleAnim }],
-    opacity: opacityAnim,
-  } : {};
+  const animatedStyle = enableAnimations
+    ? {
+        transform: [{ scale: scaleAnim }],
+        opacity: opacityAnim,
+      }
+    : {};
 
   return (
     <TouchableOpacity
+      disabled={disabled || loading}
+      style={[getButtonStyle(), style]}
       onPress={handlePress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      disabled={disabled || loading}
-      style={[getButtonStyle(), style]}
       {...accessibilityConfig}
     >
       <Animated.View style={[styles.buttonContent, animatedStyle]}>
@@ -434,15 +467,15 @@ export const AccessibleButton: React.FC<AccessibleButtonProps> = ({
 };
 
 const styles = StyleSheet.create({
+  buttonContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   container: {
     // Base container styles
   },
   content: {
     // Base content styles
-  },
-  buttonContent: {
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
 
