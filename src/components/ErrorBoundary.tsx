@@ -11,7 +11,7 @@ import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
 import { logger } from '../utils/logger';
-import { errorHandler, ErrorSeverity, ErrorCategory } from '../utils/errorHandler';
+import { errorHandler, ErrorSeverity } from '../utils/errorHandler';
 import { AppError } from '../types/comprehensive';
 
 interface Props {

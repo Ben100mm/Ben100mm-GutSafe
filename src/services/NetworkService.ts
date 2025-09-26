@@ -6,10 +6,9 @@
  */
 
 import { EventEmitter } from 'events';
-import { Platform, Alert } from 'react-native';
+import { Platform } from 'react-native';
 import { logger } from '../utils/logger';
 import { SafeFood } from '../types';
-import { errorHandler } from '../utils/errorHandler';
 import { retryUtils } from '../utils/retryUtils';
 
 // Notification types

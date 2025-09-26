@@ -10,7 +10,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
-import { errorHandler, ErrorSeverity, ErrorCategory, UserFriendlyError } from '../utils/errorHandler';
+import { errorHandler, ErrorSeverity } from '../utils/errorHandler';
 import { AppError } from '../types/comprehensive';
 
 interface ErrorMessageProps {

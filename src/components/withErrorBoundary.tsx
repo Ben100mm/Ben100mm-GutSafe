@@ -64,7 +64,7 @@ export function useErrorHandler() {
     };
   };
 
-  const handleAsyncError = async <T>(
+  const handleAsyncError = async <T,>(
     asyncFn: () => Promise<T>,
     context?: string
   ) => {

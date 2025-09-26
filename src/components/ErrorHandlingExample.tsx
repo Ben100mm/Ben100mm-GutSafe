@@ -6,14 +6,12 @@
  */
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Spacing, BorderRadius } from '../constants/spacing';
-import { ErrorBoundary } from './ErrorBoundary';
 import { ErrorMessage } from './ErrorMessage';
 import { withErrorBoundary, useErrorHandler } from './withErrorBoundary';
-import { errorHandler } from '../utils/errorHandler';
 import { retryUtils } from '../utils/retryUtils';
 import { getFoodService } from '../services/ServiceManager';
 
