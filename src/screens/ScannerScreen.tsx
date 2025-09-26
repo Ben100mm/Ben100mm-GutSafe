@@ -34,12 +34,15 @@ import OfflineService from '../services/OfflineService';
 import type { ScanResult, ScanHistory } from '../types';
 import AccessibilityService from '../utils/accessibility';
 import { HapticFeedback } from '../utils/haptics';
+import { cameraManager } from '../utils/cameraManager';
+import { useMobileOptimizations } from '../hooks/useMobileOptimizations';
 
 export const ScannerScreen: React.FC = () => {
   const navigation = useNavigation();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = isDark ? Colors.dark : Colors.light;
+  const { getAnimationConfig, shouldUseNativeDriver, trackPerformance } = useMobileOptimizations();
 
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
@@ -84,18 +87,21 @@ export const ScannerScreen: React.FC = () => {
     networkService.on('online', handleNetworkChange);
     networkService.on('offline', handleNetworkChange);
 
+    // Get optimized animation config
+    const animationConfig = getAnimationConfig();
+    
     // Animate scanning line
     const scanAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(scanLineAnim, {
           toValue: 1,
-          duration: 2000,
-          useNativeDriver: true,
+          duration: animationConfig.duration * 6.67, // 2000ms equivalent
+          useNativeDriver: shouldUseNativeDriver,
         }),
         Animated.timing(scanLineAnim, {
           toValue: 0,
-          duration: 2000,
-          useNativeDriver: true,
+          duration: animationConfig.duration * 6.67,
+          useNativeDriver: shouldUseNativeDriver,
         }),
       ])
     );
@@ -106,13 +112,13 @@ export const ScannerScreen: React.FC = () => {
       Animated.sequence([
         Animated.timing(pulseAnim, {
           toValue: 1.1,
-          duration: 1000,
-          useNativeDriver: true,
+          duration: animationConfig.duration * 3.33, // 1000ms equivalent
+          useNativeDriver: shouldUseNativeDriver,
         }),
         Animated.timing(pulseAnim, {
           toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
+          duration: animationConfig.duration * 3.33,
+          useNativeDriver: shouldUseNativeDriver,
         }),
       ])
     );
@@ -127,12 +133,44 @@ export const ScannerScreen: React.FC = () => {
   }, [dataService, networkService, offlineService, pulseAnim, scanLineAnim]);
 
   useEffect(() => {
-    requestCameraPermission();
-  }, []);
+    const initializeCamera = async () => {
+      const startTime = performance.now();
+      
+      try {
+        const hasPermission = await cameraManager.requestPermissions();
+        setHasPermission(hasPermission);
+        
+        if (hasPermission) {
+          await cameraManager.startScanning();
+        }
+        
+        const endTime = performance.now();
+        trackPerformance('ScannerScreen', 'cameraInitialization', endTime - startTime);
+      } catch (error) {
+        console.error('Camera initialization failed:', error);
+        setHasPermission(false);
+      }
+    };
+
+    initializeCamera();
+
+    return () => {
+      cameraManager.cleanup();
+    };
+  }, [trackPerformance]);
 
   const requestCameraPermission = async () => {
-    const { status } = await Camera.requestCameraPermissionsAsync();
-    setHasPermission(status === 'granted');
+    try {
+      const hasPermission = await cameraManager.requestPermissions();
+      setHasPermission(hasPermission);
+      
+      if (hasPermission) {
+        await cameraManager.startScanning();
+      }
+    } catch (error) {
+      console.error('Permission request failed:', error);
+      setHasPermission(false);
+    }
   };
 
   // const generateMockAnalysis = (result: ScanResult, barcode: string): ScanAnalysis => {
@@ -166,16 +204,17 @@ export const ScannerScreen: React.FC = () => {
     setScanned(false);
     setScanResult(null);
 
-    // Reset animations
+    // Reset animations with optimized config
+    const animationConfig = getAnimationConfig();
     Animated.parallel([
       Animated.spring(scaleAnim, {
         toValue: 1,
-        useNativeDriver: true,
+        useNativeDriver: shouldUseNativeDriver,
       }),
       Animated.timing(glowAnim, {
         toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
+        duration: animationConfig.duration,
+        useNativeDriver: shouldUseNativeDriver,
       }),
     ]).start();
   };

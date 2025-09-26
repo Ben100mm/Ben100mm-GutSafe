@@ -30,7 +30,7 @@ interface FoodTrendAnalysisProps {
   showInsights?: boolean;
 }
 
-export const FoodTrendAnalysis: React.FC<FoodTrendAnalysisProps> = ({
+export const FoodTrendAnalysis: React.FC<FoodTrendAnalysisProps> = React.memo(({
   data,
   maxItems = 5,
   showChart = true,
@@ -288,7 +288,9 @@ export const FoodTrendAnalysis: React.FC<FoodTrendAnalysisProps> = ({
       )}
     </View>
   );
-};
+});
+
+FoodTrendAnalysis.displayName = 'FoodTrendAnalysis';
 
 const styles = StyleSheet.create({
   bar: {

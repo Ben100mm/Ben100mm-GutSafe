@@ -5,104 +5,121 @@
  * @private
  */
 
-// Universal AsyncStorage implementation
-// Automatically uses the correct implementation based on platform
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
-// Web implementation
-const webAsyncStorage = {
+// Web-compatible AsyncStorage implementation
+class WebAsyncStorage {
+  private storage: Storage;
+
+  constructor() {
+    this.storage = Platform.OS === 'web' ? window.localStorage : AsyncStorage;
+  }
+
   async getItem(key: string): Promise<string | null> {
     try {
-      return localStorage.getItem(key);
+      if (Platform.OS === 'web') {
+        return this.storage.getItem(key);
+      }
+      return await AsyncStorage.getItem(key);
     } catch (error) {
-      console.warn('AsyncStorage.getItem failed:', error);
+      console.error('AsyncStorage getItem error:', error);
       return null;
     }
-  },
+  }
 
   async setItem(key: string, value: string): Promise<void> {
     try {
-      localStorage.setItem(key, value);
+      if (Platform.OS === 'web') {
+        this.storage.setItem(key, value);
+        return;
+      }
+      await AsyncStorage.setItem(key, value);
     } catch (error) {
-      console.warn('AsyncStorage.setItem failed:', error);
+      console.error('AsyncStorage setItem error:', error);
       throw error;
     }
-  },
+  }
 
   async removeItem(key: string): Promise<void> {
     try {
-      localStorage.removeItem(key);
+      if (Platform.OS === 'web') {
+        this.storage.removeItem(key);
+        return;
+      }
+      await AsyncStorage.removeItem(key);
     } catch (error) {
-      console.warn('AsyncStorage.removeItem failed:', error);
+      console.error('AsyncStorage removeItem error:', error);
       throw error;
     }
-  },
+  }
 
   async clear(): Promise<void> {
     try {
-      localStorage.clear();
+      if (Platform.OS === 'web') {
+        this.storage.clear();
+        return;
+      }
+      await AsyncStorage.clear();
     } catch (error) {
-      console.warn('AsyncStorage.clear failed:', error);
+      console.error('AsyncStorage clear error:', error);
       throw error;
     }
-  },
+  }
 
   async getAllKeys(): Promise<string[]> {
     try {
-      return Object.keys(localStorage);
+      if (Platform.OS === 'web') {
+        return Object.keys(this.storage);
+      }
+      return await AsyncStorage.getAllKeys();
     } catch (error) {
-      console.warn('AsyncStorage.getAllKeys failed:', error);
+      console.error('AsyncStorage getAllKeys error:', error);
       return [];
     }
-  },
+  }
 
   async multiGet(keys: string[]): Promise<[string, string | null][]> {
     try {
-      return keys.map((key) => [key, localStorage.getItem(key)]);
+      if (Platform.OS === 'web') {
+        return keys.map(key => [key, this.storage.getItem(key)]);
+      }
+      return await AsyncStorage.multiGet(keys);
     } catch (error) {
-      console.warn('AsyncStorage.multiGet failed:', error);
-      return keys.map((key) => [key, null]);
+      console.error('AsyncStorage multiGet error:', error);
+      return keys.map(key => [key, null]);
     }
-  },
+  }
 
   async multiSet(keyValuePairs: [string, string][]): Promise<void> {
     try {
-      keyValuePairs.forEach(([key, value]) => {
-        localStorage.setItem(key, value);
-      });
+      if (Platform.OS === 'web') {
+        keyValuePairs.forEach(([key, value]) => {
+          this.storage.setItem(key, value);
+        });
+        return;
+      }
+      await AsyncStorage.multiSet(keyValuePairs);
     } catch (error) {
-      console.warn('AsyncStorage.multiSet failed:', error);
+      console.error('AsyncStorage multiSet error:', error);
       throw error;
     }
-  },
+  }
 
   async multiRemove(keys: string[]): Promise<void> {
     try {
-      keys.forEach((key) => {
-        localStorage.removeItem(key);
-      });
+      if (Platform.OS === 'web') {
+        keys.forEach(key => {
+          this.storage.removeItem(key);
+        });
+        return;
+      }
+      await AsyncStorage.multiRemove(keys);
     } catch (error) {
-      console.warn('AsyncStorage.multiRemove failed:', error);
+      console.error('AsyncStorage multiRemove error:', error);
       throw error;
     }
-  },
-};
-
-// Native implementation
-let nativeAsyncStorage: any = null;
-
-if (Platform.OS !== 'web') {
-  try {
-    nativeAsyncStorage =
-      require('@react-native-async-storage/async-storage').default;
-  } catch (error) {
-    console.warn('Failed to load native AsyncStorage:', error);
   }
 }
 
-// Export the appropriate implementation
-const AsyncStorage =
-  Platform.OS === 'web' ? webAsyncStorage : nativeAsyncStorage;
-
-export default AsyncStorage;
+export default new WebAsyncStorage();

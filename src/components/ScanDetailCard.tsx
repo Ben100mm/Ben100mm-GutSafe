@@ -38,7 +38,7 @@ interface ScanDetailCardProps {
   expanded?: boolean;
 }
 
-export const ScanDetailCard: React.FC<ScanDetailCardProps> = ({
+export const ScanDetailCard: React.FC<ScanDetailCardProps> = React.memo(({
   scanHistory,
   onPress,
   onExpand,
@@ -356,7 +356,9 @@ export const ScanDetailCard: React.FC<ScanDetailCardProps> = ({
       )}
     </TouchableOpacity>
   );
-};
+});
+
+ScanDetailCard.displayName = 'ScanDetailCard';
 
 const styles = StyleSheet.create({
   alternativeIcon: {

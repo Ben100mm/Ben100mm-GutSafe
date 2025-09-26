@@ -48,7 +48,7 @@ interface Animated3DCardProps {
   selected?: boolean;
 }
 
-export const Animated3DCard: React.FC<Animated3DCardProps> = ({
+export const Animated3DCard: React.FC<Animated3DCardProps> = React.memo(({
   children,
   title,
   subtitle,
@@ -355,7 +355,9 @@ export const Animated3DCard: React.FC<Animated3DCardProps> = ({
       {renderCard()}
     </Animated.View>
   );
-};
+});
+
+Animated3DCard.displayName = 'Animated3DCard';
 
 const styles = StyleSheet.create({
   blurContainer: {

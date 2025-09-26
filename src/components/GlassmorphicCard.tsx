@@ -20,7 +20,7 @@ interface GlassmorphicCardProps {
   tint?: 'light' | 'dark';
 }
 
-export const GlassmorphicCard: React.FC<GlassmorphicCardProps> = ({
+export const GlassmorphicCard: React.FC<GlassmorphicCardProps> = React.memo(({
   children,
   style,
   intensity = 20,
@@ -38,7 +38,9 @@ export const GlassmorphicCard: React.FC<GlassmorphicCardProps> = ({
       </BlurView>
     </View>
   );
-};
+});
+
+GlassmorphicCard.displayName = 'GlassmorphicCard';
 
 const styles = StyleSheet.create({
   blur: {

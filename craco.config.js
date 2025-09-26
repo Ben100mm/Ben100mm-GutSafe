@@ -33,6 +33,30 @@ module.exports = {
         
         webpackConfig.optimization = webpackConfig.optimization || {};
         webpackConfig.optimization.runtimeChunk = false;
+        
+        // Performance optimizations for production
+        webpackConfig.optimization.splitChunks = {
+          chunks: 'all',
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+              priority: 10,
+            },
+            common: {
+              name: 'common',
+              minChunks: 2,
+              chunks: 'all',
+              priority: 5,
+              reuseExistingChunk: true,
+            },
+          },
+        };
+        
+        // Enable tree shaking
+        webpackConfig.optimization.usedExports = true;
+        webpackConfig.optimization.sideEffects = false;
       }
       
       // Add environment variables
