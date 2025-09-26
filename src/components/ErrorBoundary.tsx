@@ -22,6 +22,7 @@ import { Typography } from '../constants/typography';
 import type { AppError } from '../types/comprehensive';
 import { errorHandler, ErrorSeverity } from '../utils/errorHandler';
 import { logger } from '../utils/logger';
+import { ErrorBoundaryFallback } from './ErrorStates';
 
 interface Props {
   children: ReactNode;
@@ -181,99 +182,14 @@ export class ErrorBoundary extends Component<Props, State> {
 
       const { error, retryCount } = this.state;
       const canRetry = retryCount < this.maxRetries;
-      const userFriendlyError = error
-        ? errorHandler.getUserFriendlyError({
-            code: 'REACT_ERROR_BOUNDARY',
-            message: error.message,
-            timestamp: new Date(),
-            ...(error.stack && { stack: error.stack }),
-          })
-        : null;
 
       return (
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          style={styles.container}
-        >
-          <View style={styles.content}>
-            <View style={styles.iconContainer}>
-              <Text style={styles.icon}>⚠️</Text>
-            </View>
-
-            <Text style={styles.title}>
-              {userFriendlyError?.title || 'Something went wrong'}
-            </Text>
-
-            <Text style={styles.message}>
-              {userFriendlyError?.message ||
-                "We're sorry, but something unexpected happened. Please try again."}
-            </Text>
-
-            {retryCount > 0 && (
-              <Text style={styles.retryInfo}>
-                Retry attempt {retryCount} of {this.maxRetries}
-              </Text>
-            )}
-
-            {userFriendlyError && (
-              <View style={styles.severityContainer}>
-                <View
-                  style={[
-                    styles.severityBadge,
-                    {
-                      backgroundColor: this.getSeverityColor(
-                        userFriendlyError.severity
-                      ),
-                    },
-                  ]}
-                >
-                  <Text style={styles.severityText}>
-                    {userFriendlyError.severity} - {userFriendlyError.category}
-                  </Text>
-                </View>
-              </View>
-            )}
-
-            {this.props.showDetails && error && (
-              <View style={styles.errorDetails}>
-                <Text style={styles.errorTitle}>Error Details:</Text>
-                <Text style={styles.errorText}>{error.message}</Text>
-                {error.stack && (
-                  <ScrollView style={styles.stackContainer}>
-                    <Text style={styles.stackTrace}>{error.stack}</Text>
-                  </ScrollView>
-                )}
-              </View>
-            )}
-
-            <View style={styles.buttonContainer}>
-              {canRetry && (
-                <TouchableOpacity
-                  style={styles.retryButton}
-                  onPress={this.handleRetry}
-                >
-                  <Text style={styles.retryButtonText}>
-                    {userFriendlyError?.action || 'Try Again'}
-                  </Text>
-                </TouchableOpacity>
-              )}
-
-              <TouchableOpacity
-                style={styles.resetButton}
-                onPress={this.handleReset}
-              >
-                <Text style={styles.resetButtonText}>Reset</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.supportButton}
-                onPress={this.handleContactSupport}
-              >
-                <Text style={styles.supportButtonText}>Contact Support</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </ScrollView>
+        <ErrorBoundaryFallback
+          error={error!}
+          onRetry={canRetry ? this.handleRetry : undefined}
+          onReset={this.handleReset}
+          onContactSupport={this.handleContactSupport}
+        />
       );
     }
 

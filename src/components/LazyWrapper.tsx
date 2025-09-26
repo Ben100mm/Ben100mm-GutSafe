@@ -1,5 +1,5 @@
 /**
- * @fileoverview LazyWrapper.tsx
+ * @fileoverview LazyWrapper.tsx - Enhanced with Loading States
  * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
  * @license PROPRIETARY - See LICENSE file for details
  * @private
@@ -7,38 +7,46 @@
 
 import type { ComponentType, ReactNode } from 'react';
 import React, { Suspense } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 
 import { Colors } from '../constants/colors';
 import { Spacing } from '../constants/spacing';
-import { Typography } from '../constants/typography';
+import { LoadingSpinner } from './LoadingStates';
 
 interface LazyWrapperProps {
   children: ReactNode;
   fallback?: ReactNode;
+  loadingMessage?: string;
 }
 
-const LoadingFallback: React.FC = () => (
+const LoadingFallback: React.FC<{ message?: string }> = ({ message = 'Loading...' }) => (
   <View style={styles.loadingContainer}>
-    <ActivityIndicator color={Colors.primary} size="large" />
-    <Text style={styles.loadingText}>Loading...</Text>
+    <LoadingSpinner size="large" message={message} />
   </View>
 );
 
 export const LazyWrapper: React.FC<LazyWrapperProps> = ({
   children,
-  fallback = <LoadingFallback />,
+  fallback,
+  loadingMessage,
 }) => {
-  return <Suspense fallback={fallback}>{children}</Suspense>;
+  const defaultFallback = <LoadingFallback message={loadingMessage} />;
+  
+  return (
+    <Suspense fallback={fallback || defaultFallback}>
+      {children}
+    </Suspense>
+  );
 };
 
 // Higher-order component for lazy loading
 export function withLazyLoading<P extends object>(
   WrappedComponent: ComponentType<P>,
-  fallback?: ReactNode
+  fallback?: ReactNode,
+  loadingMessage?: string
 ) {
   const LazyComponent = (props: P) => (
-    <LazyWrapper fallback={fallback}>
+    <LazyWrapper fallback={fallback} loadingMessage={loadingMessage}>
       <WrappedComponent {...props} />
     </LazyWrapper>
   );
@@ -55,12 +63,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: Spacing.lg,
-  },
-  loadingText: {
-    color: Colors.light.textSecondary,
-    fontFamily: Typography.fontFamily.regular,
-    fontSize: Typography.fontSize.body,
-    marginTop: Spacing.md,
   },
 });
 

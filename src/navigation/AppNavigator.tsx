@@ -1,5 +1,5 @@
 /**
- * @fileoverview AppNavigator.tsx
+ * @fileoverview AppNavigator.tsx - Simplified Navigation Structure
  * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
  * @license PROPRIETARY - See LICENSE file for details
  * @private
@@ -9,7 +9,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useEffect } from 'react';
-import { useColorScheme, Platform } from 'react-native';
+import { useColorScheme, Platform, Linking } from 'react-native';
 
 import { LazyWrapper } from '../components/LazyWrapper';
 import { TabIcon } from '../components/TabIcon';
@@ -30,30 +30,24 @@ import {
 } from '../screens/lazy';
 import AccessibilityService from '../utils/accessibility';
 import { HapticFeedback } from '../utils/haptics';
-
-// Lazy loaded screens
-
-// Tab Icons
+import { linkingConfig, DeepLinkHandler } from './linking';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-// Scan Stack Navigator (for scanner modal)
-const ScanStack = () => (
+// Simplified Main Stack Navigator
+const MainStack = () => (
   <Stack.Navigator
     screenOptions={{
       headerShown: false,
-      presentation: 'modal',
+      cardStyle: { backgroundColor: Colors.light.background },
     }}
   >
-    <Stack.Screen name="ScanMain">
-      {() => (
-        <LazyWrapper>
-          <LazyScanScreen />
-        </LazyWrapper>
-      )}
-    </Stack.Screen>
-    <Stack.Screen name="Scanner">
+    <Stack.Screen name="MainTabs" component={MainTabs} />
+    <Stack.Screen 
+      name="Scanner" 
+      options={{ presentation: 'modal' }}
+    >
       {() => (
         <LazyWrapper>
           <LazyScannerScreen />
@@ -98,7 +92,7 @@ const ScanStack = () => (
   </Stack.Navigator>
 );
 
-// Main Tab Navigator
+// Simplified Main Tab Navigator
 const MainTabs = () => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -177,14 +171,19 @@ const MainTabs = () => {
         )}
       </Tab.Screen>
       <Tab.Screen
-        component={ScanStack}
         name="Scan"
         options={{
           tabBarIcon: ({ focused, color }) => (
             <TabIcon color={color} focused={focused} name="camera" />
           ),
         }}
-      />
+      >
+        {() => (
+          <LazyWrapper>
+            <LazyScanScreen />
+          </LazyWrapper>
+        )}
+      </Tab.Screen>
       <Tab.Screen
         name="Browse"
         options={{
@@ -222,21 +221,48 @@ export const AppNavigator = () => {
   const isDark = colorScheme === 'dark';
   const colors = isDark ? Colors.dark : Colors.light;
 
+  // Handle deep links
+  useEffect(() => {
+    const handleDeepLink = (url: string) => {
+      if (DeepLinkHandler.isValidDeepLink(url)) {
+        // Navigation will be handled by the linking configuration
+        console.log('Deep link received:', url);
+      }
+    };
+
+    // Listen for deep links while app is running
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      handleDeepLink(url);
+    });
+
+    // Handle initial deep link
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        handleDeepLink(url);
+      }
+    });
+
+    return () => {
+      subscription?.remove();
+    };
+  }, []);
+
   return (
     <NavigationContainer
+      linking={linkingConfig}
       theme={{
-        dark: false, // Force light mode for testing
+        dark: isDark,
         colors: {
           primary: colors.accent,
-          background: '#FFFFFF', // Force white background
-          card: '#FFFFFF',
+          background: colors.background,
+          card: colors.surface,
           text: colors.text,
           border: colors.border,
           notification: colors.accent,
         },
       }}
     >
-      <MainTabs />
+      <MainStack />
     </NavigationContainer>
   );
 };

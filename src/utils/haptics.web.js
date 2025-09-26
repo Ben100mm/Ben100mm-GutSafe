@@ -7,10 +7,8 @@
 
 // Web implementation of expo-haptics with Web Vibration API support
 class WebHapticFeedback {
-  private enabled = true;
-  private vibrationSupported = false;
-
   constructor() {
+    this.enabled = true;
     this.vibrationSupported = 'vibrate' in navigator;
   }
 
@@ -31,7 +29,7 @@ class WebHapticFeedback {
       heavy: [30],
     };
 
-    navigator.vibrate(patterns[style] || patterns.medium);
+    navigator.vibrate(patterns[style] ?? patterns.medium);
   }
 
   notification(type = 'success') {
@@ -46,7 +44,7 @@ class WebHapticFeedback {
       error: [30, 50, 30, 50, 30],
     };
 
-    navigator.vibrate(patterns[type] || patterns.success);
+    navigator.vibrate(patterns[type] ?? patterns.success);
   }
 
   selection() {
