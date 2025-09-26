@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 
 module.exports = {
   babel: {
@@ -19,45 +20,28 @@ module.exports = {
       extensions: ['.web.js', '.js', '.web.ts', '.ts', '.web.tsx', '.tsx', '.json'],
     },
     configure: (webpackConfig) => {
-      // Completely disable React Refresh
-      webpackConfig.plugins = webpackConfig.plugins.filter(
-        plugin => {
+      // Environment variables
+      const isProduction = process.env.NODE_ENV === 'production';
+      
+      // Remove React Refresh and HMR for production builds
+      if (isProduction) {
+        webpackConfig.plugins = webpackConfig.plugins.filter(plugin => {
           const pluginName = plugin.constructor.name;
-          return pluginName !== 'ReactRefreshPlugin' && 
-                 pluginName !== 'ReactRefreshWebpackPlugin' &&
-                 !pluginName.includes('Refresh');
-        }
-      );
+          return !pluginName.includes('Refresh') && 
+                 !pluginName.includes('HotModuleReplacement');
+        });
+        
+        webpackConfig.optimization = webpackConfig.optimization || {};
+        webpackConfig.optimization.runtimeChunk = false;
+      }
       
-      // Remove all React Refresh related code from babel loaders
-      webpackConfig.module.rules.forEach(rule => {
-        if (rule.oneOf) {
-          rule.oneOf.forEach(loader => {
-            if (loader.use && Array.isArray(loader.use)) {
-              loader.use.forEach(use => {
-                if (use.loader && use.loader.includes('babel-loader')) {
-                  use.options = use.options || {};
-                  use.options.plugins = (use.options.plugins || []).filter(
-                    plugin => {
-                      if (!plugin || !plugin[0]) return true;
-                      const pluginPath = plugin[0];
-                      return !pluginPath.includes('react-refresh') &&
-                             !pluginPath.includes('ReactRefresh');
-                    }
-                  );
-                }
-              });
-            }
-          });
-        }
-      });
-      
-      // Add environment variable to completely disable React Refresh
-      const webpack = require('webpack');
+      // Add environment variables
       webpackConfig.plugins.push(
         new webpack.DefinePlugin({
-          'process.env.FAST_REFRESH': JSON.stringify('false'),
-          'process.env.REACT_REFRESH': JSON.stringify('false')
+          'process.env.FAST_REFRESH': JSON.stringify(isProduction ? 'false' : 'true'),
+          'process.env.REACT_REFRESH': JSON.stringify(isProduction ? 'false' : 'true'),
+          'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+          'process.env.WEBPACK_HOT_RELOAD': JSON.stringify(isProduction ? 'false' : 'true'),
         })
       );
       
