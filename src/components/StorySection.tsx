@@ -88,6 +88,8 @@ export const StorySection: React.FC<StorySectionProps> = ({
       slideAnim.setValue(0);
       scaleAnim.setValue(1);
     }
+
+    return undefined;
   }, [enableAnimation, performanceMode, fadeAnim, scaleAnim, slideAnim]);
 
   const handleCTAPress = () => {

@@ -5,7 +5,6 @@
  * @private
  */
 
-import React from 'react';
 import { Platform, View } from 'react-native';
 
 // Simple fallback LinearGradient that uses solid colors

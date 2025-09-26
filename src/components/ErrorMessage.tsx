@@ -31,7 +31,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
   style,
 }) => {
   const appError = error instanceof Error 
-    ? errorHandler.handleError(error, { operation: context })
+    ? errorHandler.handleError(error, { ...(context && { operation: context }) })
     : error;
   
   const userFriendlyError = errorHandler.getUserFriendlyError(appError);

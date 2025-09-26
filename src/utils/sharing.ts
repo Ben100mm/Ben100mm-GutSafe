@@ -76,6 +76,9 @@ export class SharingService {
       } else if (result.action === Share.dismissedAction) {
         console.log('Share dismissed');
         return { success: false, action: result.action };
+      } else {
+        console.log('Unknown share action:', result.action);
+        return { success: false, action: result.action };
       }
     } catch (error) {
       console.error('Error sharing content:', error);

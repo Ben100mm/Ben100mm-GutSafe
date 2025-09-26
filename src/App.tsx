@@ -5,7 +5,7 @@
  * @private
  */
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { initializeServices, cleanupServices } from './services/ServiceManager';
 import { logger } from './utils/logger';

@@ -84,6 +84,8 @@ export const StickyCTA: React.FC<StickyCTAProps> = ({
 
       return () => pulseAnimation.stop();
     }
+
+    return undefined;
   }, [enablePulse, pulseAnim, slideAnim]);
 
   const handlePress = () => {

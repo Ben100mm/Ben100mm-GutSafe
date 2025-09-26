@@ -5,10 +5,9 @@
  * Comprehensive health monitoring for configuration and system status.
  */
 
-import { config, isDevelopment, isProduction } from './environment';
-import { secretManager, validateApiKey, validateJwtSecret, validateEncryptionKey, validateSessionKey } from './secrets';
+import { config } from './environment';
+import { secretManager, validateApiKey, validateJwtSecret, validateEncryptionKey } from './secrets';
 import { getBuildConfig, detectBuildEnvironment } from './build';
-import { getDeploymentConfig } from './deployment';
 
 // Health check result types
 export interface HealthCheckResult {
@@ -147,7 +146,7 @@ const secretChecks: HealthCheck[] = [
     check: () => {
       const startTime = Date.now();
       try {
-        const apiKey = process.env.REACT_APP_API_KEY;
+        const apiKey = process.env['REACT_APP_API_KEY'];
         if (!apiKey) {
           return {
             name: 'API Key Validation',
@@ -188,7 +187,7 @@ const secretChecks: HealthCheck[] = [
     check: () => {
       const startTime = Date.now();
       try {
-        const jwtSecret = process.env.REACT_APP_JWT_SECRET;
+        const jwtSecret = process.env['REACT_APP_JWT_SECRET'];
         if (!jwtSecret) {
           return {
             name: 'JWT Secret Validation',
@@ -229,7 +228,7 @@ const secretChecks: HealthCheck[] = [
     check: () => {
       const startTime = Date.now();
       try {
-        const dbKey = process.env.REACT_APP_DB_ENCRYPTION_KEY;
+        const dbKey = process.env['REACT_APP_DB_ENCRYPTION_KEY'];
         if (!dbKey) {
           return {
             name: 'Database Encryption Key Validation',
@@ -411,7 +410,6 @@ export const runHealthCheck = async (check: HealthCheck): Promise<HealthCheckRes
 
 // Run all health checks
 export const runAllHealthChecks = async (): Promise<HealthStatus> => {
-  const startTime = Date.now();
   const checks: HealthCheckResult[] = [];
   
   // Run all checks in parallel
@@ -439,7 +437,7 @@ export const runAllHealthChecks = async (): Promise<HealthStatus> => {
   return {
     overall,
     timestamp: new Date(),
-    environment: process.env.NODE_ENV || 'development',
+    environment: process.env['NODE_ENV'] || 'development',
     version: '1.0.0',
     checks,
     summary,
@@ -490,7 +488,7 @@ export const formatHealthStatus = (status: HealthStatus): string => {
 };
 
 // Health check endpoint for monitoring
-export const getHealthEndpoint = async (req: any, res: any) => {
+export const getHealthEndpoint = async (_req: any, res: any) => {
   try {
     const healthStatus = await runAllHealthChecks();
     

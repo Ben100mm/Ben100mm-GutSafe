@@ -5,7 +5,7 @@
  * @private
  */
 
-import React, { Component, ReactNode } from 'react';
+import { Component, ReactNode } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
@@ -52,12 +52,12 @@ export class ErrorBoundary extends Component<Props, State> {
     };
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
+  override componentDidCatch(error: Error, errorInfo: any) {
     const appError: AppError = {
       code: 'REACT_ERROR_BOUNDARY',
       message: error.message,
       timestamp: new Date(),
-      stack: error.stack,
+      ...(error.stack && { stack: error.stack }),
       details: {
         componentStack: errorInfo.componentStack,
         context: this.props.context,
@@ -68,7 +68,7 @@ export class ErrorBoundary extends Component<Props, State> {
     // Handle error with centralized error handler
     const processedError = errorHandler.handleError(appError, {
       operation: 'ErrorBoundary',
-      service: this.props.context,
+      ...(this.props.context && { service: this.props.context }),
     });
 
     // Get user-friendly error message
@@ -131,8 +131,6 @@ export class ErrorBoundary extends Component<Props, State> {
     this.setState(prevState => ({
       hasError: false,
       retryCount: prevState.retryCount + 1,
-      error: undefined,
-      errorInfo: undefined,
     }));
 
     logger.info('Error boundary retry attempted', 'ErrorBoundary', {
@@ -153,10 +151,7 @@ export class ErrorBoundary extends Component<Props, State> {
   handleReset = () => {
     this.setState({
       hasError: false,
-      error: undefined,
-      errorInfo: undefined,
       retryCount: 0,
-      lastErrorTime: undefined,
     });
   };
 
@@ -169,7 +164,7 @@ export class ErrorBoundary extends Component<Props, State> {
     });
   };
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
         return this.props.fallback;
@@ -181,7 +176,7 @@ export class ErrorBoundary extends Component<Props, State> {
         code: 'REACT_ERROR_BOUNDARY',
         message: error.message,
         timestamp: new Date(),
-        stack: error.stack,
+        ...(error.stack && { stack: error.stack }),
       }) : null;
 
       return (

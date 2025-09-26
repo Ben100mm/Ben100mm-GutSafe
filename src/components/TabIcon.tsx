@@ -78,6 +78,8 @@ export const TabIcon: React.FC<TabIconProps> = ({
         }),
       ]).start();
     }
+
+    return undefined;
   }, [focused, pulseAnim, rotateAnim, scaleAnim]);
 
   // 3D transform styles

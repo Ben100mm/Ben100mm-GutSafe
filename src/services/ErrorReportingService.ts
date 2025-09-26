@@ -5,8 +5,8 @@
  * @private
  */
 
-import { AppError, ErrorContext } from '../types/comprehensive';
-import { ErrorSeverity, ErrorCategory } from '../utils/errorHandler';
+import { AppError } from '../types/comprehensive';
+import { ErrorSeverity, ErrorCategory, ErrorContext } from '../utils/errorHandler';
 import { logger } from '../utils/logger';
 import { retryUtils } from '../utils/retryUtils';
 
@@ -265,7 +265,7 @@ class ErrorReportingService {
     );
 
     if (!result.success) {
-      throw new Error(`Failed to send error reports: ${result.error.message}`);
+      throw new Error(`Failed to send error reports: ${(result as any).error.message}`);
     }
 
     this.stats.lastReported = new Date();

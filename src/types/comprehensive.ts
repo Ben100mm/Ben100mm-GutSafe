@@ -7,6 +7,20 @@
 
 // ===== CORE TYPE DEFINITIONS =====
 
+// Basic Types
+export type GutCondition = 
+  | 'ibs-fodmap'
+  | 'gluten'
+  | 'lactose'
+  | 'reflux'
+  | 'histamine'
+  | 'allergies'
+  | 'additives';
+
+export type SeverityLevel = 'mild' | 'moderate' | 'severe';
+
+export type ScanResult = 'safe' | 'caution' | 'avoid';
+
 // Error Types
 export interface AppError {
   code: string;
@@ -57,6 +71,81 @@ export interface UserProfile {
   age?: number;
   gender?: 'male' | 'female' | 'other' | 'prefer-not-to-say';
   gutProfile: GutProfile;
+}
+
+// Additional types that were missing
+export interface GutProfile {
+  id: string;
+  conditions: {
+    [K in GutCondition]: {
+      enabled: boolean;
+      severity: SeverityLevel;
+      knownTriggers: string[];
+    };
+  };
+  preferences: {
+    dietaryRestrictions: string[];
+    preferredAlternatives: string[];
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface GutSymptom {
+  id: string;
+  type: 'bloating' | 'cramping' | 'diarrhea' | 'constipation' | 'gas' | 'nausea' | 'reflux' | 'fatigue' | 'headache' | 'skin_irritation' | 'other';
+  severity: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10; // 1-10 scale
+  description?: string;
+  duration: number; // minutes
+  timestamp: Date;
+  potentialTriggers?: string[];
+  location?: 'upper_abdomen' | 'lower_abdomen' | 'full_abdomen' | 'chest' | 'general';
+}
+
+export interface MedicationSupplement {
+  id: string;
+  name: string;
+  type: 'medication' | 'supplement' | 'probiotic' | 'enzyme' | 'antacid' | 'other';
+  dosage: string;
+  frequency: 'daily' | 'twice_daily' | 'as_needed' | 'weekly' | 'monthly';
+  startDate: Date;
+  endDate?: Date;
+  isActive: boolean;
+  notes?: string;
+  gutRelated: boolean;
+  category?: 'digestive_aid' | 'anti_inflammatory' | 'probiotic' | 'enzyme_support' | 'acid_control' | 'immune_support' | 'other';
+}
+
+export interface ScanHistory {
+  id: string;
+  foodItem: FoodItem;
+  analysis: ScanAnalysis;
+  timestamp: Date;
+  userFeedback?: 'accurate' | 'inaccurate';
+}
+
+export interface SymptomLog {
+  id: string;
+  symptoms: GutSymptom[];
+  foodItems?: string[];
+  timestamp?: Date;
+  notes?: string;
+  weather?: string;
+  stressLevel?: number;
+  sleepQuality?: number;
+  exerciseLevel?: 'none' | 'light' | 'moderate' | 'intense';
+  medicationTaken?: string[];
+  tags?: string[];
+}
+
+export interface MedicationLog {
+  id: string;
+  medication: MedicationSupplement;
+  takenAt: Date;
+  dosage: string;
+  notes?: string;
+  sideEffects?: string[];
+  effectiveness?: 1 | 2 | 3 | 4 | 5; // 1-5 scale
 }
 
 export interface UserPreferences {

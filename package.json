@@ -49,7 +49,8 @@
     "react-scripts": "5.0.1",
     "typescript": "^5.9.2",
     "zod": "^4.1.11",
-    "zustand": "^5.0.8"
+    "zustand": "^5.0.8",
+    "@openfoodfacts/openfoodfacts-nodejs": "^2.0.0-alpha.19"
   },
   "scripts": {
     "start": "cross-env NODE_ENV=development PORT=9001 dotenv -e .env.local -- craco start",
@@ -86,7 +87,6 @@
     "metro:reset": "react-native start --reset-cache",
     "clean": "rimraf build dist node_modules/.cache",
     "clean:all": "rimraf build dist node_modules/.cache node_modules",
-    "postinstall": "react-native setup-ios-permissions",
     "doctor": "react-native doctor",
     "bundle:ios": "react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle",
     "bundle:android": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle",

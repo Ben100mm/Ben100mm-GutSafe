@@ -65,7 +65,9 @@ class AuthService {
       
       logger.info('AuthService initialized', 'AuthService');
     } catch (error) {
-      this.authState.error = error instanceof Error ? error.message : 'Unknown error';
+      this.authState.error = error instanceof Error 
+        ? { code: 'AUTH_INIT_ERROR', message: error.message, timestamp: new Date() }
+        : { code: 'AUTH_INIT_ERROR', message: 'Unknown error', timestamp: new Date() };
       this.authState.isLoading = false;
       this.notifyListeners();
       logger.error('Failed to initialize AuthService', 'AuthService', error);
@@ -216,9 +218,19 @@ class AuthService {
       profile: {
         gutProfile: {
           id: 'default',
-          conditions: [],
-          triggers: [],
-          safeFoods: [],
+          conditions: {
+            'ibs-fodmap': { enabled: false, severity: 'mild', knownTriggers: [] },
+            'gluten': { enabled: false, severity: 'mild', knownTriggers: [] },
+            'lactose': { enabled: false, severity: 'mild', knownTriggers: [] },
+            'reflux': { enabled: false, severity: 'mild', knownTriggers: [] },
+            'histamine': { enabled: false, severity: 'mild', knownTriggers: [] },
+            'allergies': { enabled: false, severity: 'mild', knownTriggers: [] },
+            'additives': { enabled: false, severity: 'mild', knownTriggers: [] },
+          },
+          preferences: {
+            dietaryRestrictions: [],
+            preferredAlternatives: [],
+          },
           createdAt: new Date(),
           updatedAt: new Date(),
         },

@@ -39,7 +39,7 @@ const ErrorHandlingExample: React.FC = () => {
       );
 
       if (!result.success) {
-        setError(result.error as Error);
+        setError(new Error((result as any).error.message || 'Unknown error occurred'));
       }
     } catch (err) {
       setError(err as Error);
@@ -54,7 +54,7 @@ const ErrorHandlingExample: React.FC = () => {
       throw new Error('Invalid input: Email format is incorrect');
     } catch (err) {
       const errorResult = handleError(err as Error, 'ErrorHandlingExample.simulateValidationError');
-      setError(errorResult.error);
+      setError(new Error(errorResult.error.message));
     }
   };
 
@@ -70,8 +70,8 @@ const ErrorHandlingExample: React.FC = () => {
         await foodService.searchByBarcode('invalid-barcode');
       }, 'ErrorHandlingExample.simulateServiceError');
 
-      if (!result.success) {
-        setError(result.error);
+      if (!result.success && result.error) {
+        setError(new Error(result.error.error?.message || 'Unknown error occurred'));
       }
     } catch (err) {
       setError(err as Error);

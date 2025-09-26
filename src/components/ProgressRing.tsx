@@ -127,7 +127,7 @@ export const MultipleProgressRings: React.FC<MultipleProgressRingsProps> = ({
 
   return (
     <View style={[containerStyle, { backgroundColor: colors.surface }]}>
-      {rings.map((ring, index) => (
+      {rings.map((ring) => (
         <ProgressRing
           key={ring.id}
           data={ring}

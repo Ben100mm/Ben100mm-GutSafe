@@ -30,7 +30,6 @@ interface ImmersiveHeroProps {
   subtitle: string;
   ctaText: string;
   onCTAPress: () => void;
-  enable3D?: boolean;
   enableParticles?: boolean;
   backgroundType?: 'gradient' | 'solid' | 'pattern';
   performanceMode?: 'high' | 'medium' | 'low';
@@ -41,7 +40,6 @@ export const ImmersiveHero: React.FC<ImmersiveHeroProps> = ({
   subtitle,
   ctaText,
   onCTAPress,
-  enable3D = false,
   enableParticles = false,
   backgroundType = 'gradient',
   performanceMode = 'medium',

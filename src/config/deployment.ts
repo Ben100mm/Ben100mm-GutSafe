@@ -5,7 +5,6 @@
  * Environment-specific deployment configurations and scripts.
  */
 
-import { BuildEnvironment } from './build';
 
 // Deployment environment types
 export type DeploymentEnvironment = 'development' | 'staging' | 'production' | 'test';
@@ -429,8 +428,8 @@ services:
     image: ${config.database.type === 'postgresql' ? 'postgres:15' : 'sqlite:latest'}
     environment:
       - POSTGRES_DB=gutsafe_${config.environment}
-      - POSTGRES_USER=${config.database.url.split('://')[1].split(':')[0]}
-      - POSTGRES_PASSWORD=${config.database.url.split(':')[3].split('@')[0]}
+      - POSTGRES_USER=${config.database.url?.split('://')[1]?.split(':')[0] || 'gutsafe'}
+      - POSTGRES_PASSWORD=${config.database.url?.split(':')[3]?.split('@')[0] || 'password'}
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:

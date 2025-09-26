@@ -5,7 +5,6 @@
  * Environment-specific build configurations and optimizations.
  */
 
-import { Environment } from './environment';
 
 // Build environment types
 export type BuildEnvironment = 'development' | 'staging' | 'production' | 'test';
@@ -19,6 +18,7 @@ export interface BuildConfig {
     treeShaking: boolean;
     codeSplitting: boolean;
     sourceMaps: boolean;
+    bundleAnalysis: boolean;
   };
   features: {
     hotReload: boolean;
@@ -56,6 +56,7 @@ export const buildConfigs: Record<BuildEnvironment, BuildConfig> = {
       treeShaking: false,
       codeSplitting: false,
       sourceMaps: true,
+      bundleAnalysis: false,
     },
     features: {
       hotReload: true,
@@ -91,6 +92,7 @@ export const buildConfigs: Record<BuildEnvironment, BuildConfig> = {
       treeShaking: true,
       codeSplitting: true,
       sourceMaps: true,
+      bundleAnalysis: true,
     },
     features: {
       hotReload: false,
@@ -126,6 +128,7 @@ export const buildConfigs: Record<BuildEnvironment, BuildConfig> = {
       treeShaking: true,
       codeSplitting: true,
       sourceMaps: false,
+      bundleAnalysis: false,
     },
     features: {
       hotReload: false,
@@ -161,6 +164,7 @@ export const buildConfigs: Record<BuildEnvironment, BuildConfig> = {
       treeShaking: false,
       codeSplitting: false,
       sourceMaps: true,
+      bundleAnalysis: false,
     },
     features: {
       hotReload: false,
@@ -285,18 +289,18 @@ export const getFeatureFlags = (config: BuildConfig) => {
 
 // Build environment detection
 export const detectBuildEnvironment = (): BuildEnvironment => {
-  const nodeEnv = process.env.NODE_ENV as BuildEnvironment;
+  const nodeEnv = process.env['NODE_ENV'] as BuildEnvironment;
   
   if (nodeEnv && buildConfigs[nodeEnv]) {
     return nodeEnv;
   }
   
   // Fallback detection
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env['NODE_ENV'] === 'production') {
     return 'production';
   }
   
-  if (process.env.NODE_ENV === 'test') {
+  if (process.env['NODE_ENV'] === 'test') {
     return 'test';
   }
   

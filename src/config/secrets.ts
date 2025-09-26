@@ -22,6 +22,7 @@ export interface SecretManager {
   hash(plaintext: string, salt?: string): string;
   generateKey(length?: number): string;
   validateSecret(secret: string, minLength?: number): boolean;
+  calculateSecretStrength(secret: string): number;
 }
 
 // Secret validation rules
@@ -145,6 +146,13 @@ class SecretManagerImpl implements SecretManager {
     }
 
     return true;
+  }
+
+  /**
+   * Calculate the strength of a secret
+   */
+  calculateSecretStrength(secret: string): number {
+    return calculateSecretStrength(secret);
   }
 }
 

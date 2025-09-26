@@ -35,7 +35,6 @@ interface Animated3DCardProps {
   style?: ViewStyle;
   variant?: 'glass' | 'solid' | 'gradient';
   enable3D?: boolean;
-  enableHover?: boolean;
   hapticType?: string;
   accessibilityLabel?: string;
   accessibilityHint?: string;
@@ -51,7 +50,6 @@ export const Animated3DCard: React.FC<Animated3DCardProps> = ({
   style,
   variant = 'solid',
   enable3D = true,
-  enableHover = true,
   hapticType = 'light',
   accessibilityLabel,
   accessibilityHint,

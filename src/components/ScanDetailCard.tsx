@@ -32,7 +32,6 @@ interface ScanDetailCardProps {
   onPress?: () => void;
   onExpand?: () => void;
   expanded?: boolean;
-  showFullDetails?: boolean;
 }
 
 export const ScanDetailCard: React.FC<ScanDetailCardProps> = ({
@@ -40,7 +39,6 @@ export const ScanDetailCard: React.FC<ScanDetailCardProps> = ({
   onPress,
   onExpand,
   expanded = false,
-  showFullDetails = false,
 }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';

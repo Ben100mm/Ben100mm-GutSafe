@@ -5,7 +5,7 @@
  * @private
  */
 
-import React, { ComponentType, ReactNode } from 'react';
+import { ComponentType, ReactNode } from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
 import { errorHandler } from '../utils/errorHandler';
 
@@ -28,10 +28,10 @@ export function withErrorBoundary<P extends object>(
     return (
       <ErrorBoundary
         fallback={options.fallback}
-        onError={options.onError}
-        showDetails={options.showDetails}
-        enableReporting={options.enableReporting}
-        context={options.context}
+        {...(options.onError && { onError: options.onError })}
+        {...(options.showDetails !== undefined && { showDetails: options.showDetails })}
+        {...(options.enableReporting !== undefined && { enableReporting: options.enableReporting })}
+        {...(options.context && { context: options.context })}
       >
         <WrappedComponent {...props} />
       </ErrorBoundary>
@@ -50,7 +50,7 @@ export function useErrorHandler() {
   const handleError = (error: Error, context?: string) => {
     const appError = errorHandler.handleError(error, {
       operation: 'useErrorHandler',
-      service: context,
+      ...(context && { service: context }),
     });
 
     const userFriendlyError = errorHandler.getUserFriendlyError(appError);

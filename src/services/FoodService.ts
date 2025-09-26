@@ -5,28 +5,27 @@
  * @private
  */
 
-import { FoodItem, GutCondition, ScanResult, SeverityLevel, ScanAnalysis, IngredientAnalysisResult, HiddenTrigger, SafeFood } from '../types';
+import { FoodItem, GutCondition, ScanResult, ScanAnalysis, IngredientAnalysisResult, HiddenTrigger } from '../types';
 import { 
-  FoodSearchResult, 
   FoodRecommendation, 
   PatternAnalysis, 
   NutritionFacts,
-  AppError, 
   ServiceError, 
-  Result, 
-  AsyncResult,
+  Result,
   NetworkError
 } from '../types/comprehensive';
 import { logger } from '../utils/logger';
-import { validators } from '../utils/validation';
 import { errorHandler } from '../utils/errorHandler';
 import { retryUtils } from '../utils/retryUtils';
+import { apiKeyManager } from '../utils/apiKeyManager';
+import OpenFoodFactsService, { OpenFoodFactsProduct } from './OpenFoodFactsService';
 
 // API Configuration
 const API_CONFIG = {
   OPENFOODFACTS: {
-    baseUrl: 'https://world.openfoodfacts.org/api/v0',
+    baseUrl: 'https://world.openfoodfacts.org/api/v2',
     timeout: 10000,
+    userAgent: 'GutSafe/1.0.0 (https://gutsafe.com)',
   },
   USDA: {
     baseUrl: 'https://api.nal.usda.gov/fdc/v1',
@@ -42,42 +41,9 @@ const API_CONFIG = {
   },
 };
 
-// API Keys (should be stored in environment variables in production)
-const API_KEYS = {
-  OPENFOODFACTS: process.env['REACT_APP_OPENFOODFACTS_API_KEY'] || '',
-  USDA: process.env['REACT_APP_USDA_API_KEY'] || '',
-  SPOONACULAR: process.env['REACT_APP_SPOONACULAR_API_KEY'] || '',
-  GOOGLE_VISION: process.env['REACT_APP_GOOGLE_VISION_API_KEY'] || '',
-};
+// API Keys will be managed through apiKeyManager
 
 // Database Types
-interface OpenFoodFactsProduct {
-  code: string;
-  product_name: string;
-  brands?: string;
-  categories?: string;
-  ingredients_text?: string;
-  allergens_tags?: string[];
-  additives_tags?: string[];
-  nutrition_grades?: string;
-  image_url?: string;
-  image_ingredients_url?: string;
-  image_nutrition_url?: string;
-  nutrition_data_per?: string;
-  nutrition_data_prepared_per?: string;
-  energy_kcal_100g?: number;
-  fat_100g?: number;
-  saturated_fat_100g?: number;
-  carbohydrates_100g?: number;
-  sugars_100g?: number;
-  fiber_100g?: number;
-  proteins_100g?: number;
-  salt_100g?: number;
-  sodium_100g?: number;
-  nutriscore_grade?: string;
-  ecoscore_grade?: string;
-  nova_group?: number;
-}
 
 interface USDAProduct {
   fdcId: number;
@@ -143,9 +109,11 @@ class FoodService {
   private static instance: FoodService;
   private cache: Map<string, any> = new Map();
   private cacheTimeout = 60 * 60 * 1000; // 1 hour
-  private userGutProfile: GutCondition[] = [];
+  private openFoodFactsService: OpenFoodFactsService;
 
-  private constructor() {}
+  private constructor() {
+    this.openFoodFactsService = OpenFoodFactsService.getInstance();
+  }
 
   public static getInstance(): FoodService {
     if (!FoodService.instance) {
@@ -166,19 +134,12 @@ class FoodService {
     }
   }
 
-  /**
-   * Set user gut profile for analysis
-   */
-  setUserGutProfile(conditions: GutCondition[]): void {
-    this.userGutProfile = conditions;
-    logger.info('User gut profile updated', 'FoodService', { conditionCount: conditions.length });
-  }
 
   /**
    * Search for food by barcode
    */
   async searchByBarcode(barcode: string): Promise<Result<FoodItem | null, ServiceError>> {
-    return errorHandler.withErrorHandling(async () => {
+    const result = await errorHandler.withErrorHandling(async () => {
       const cacheKey = `barcode_${barcode}`;
       const cached = this.getCachedData(cacheKey);
       if (cached) {
@@ -186,11 +147,7 @@ class FoodService {
       }
 
       // Try OpenFoodFacts first with retry
-      const openFoodFactsResult = await retryUtils.retryApiCall(
-        () => this.searchOpenFoodFacts(barcode),
-        { maxAttempts: 2 },
-        'FoodService.searchByBarcode'
-      );
+      const openFoodFactsResult = await this.openFoodFactsService.getProductByBarcode(barcode);
       
       if (openFoodFactsResult.success && openFoodFactsResult.data) {
         const foodItem = this.convertToFoodItem(openFoodFactsResult.data, 'openfoodfacts');
@@ -217,13 +174,27 @@ class FoodService {
       service: 'FoodService',
       additionalData: { barcode }
     }, 'FoodService');
+
+    if (result.success) {
+      return { success: true, data: result.data };
+    } else {
+      return { 
+        success: false, 
+        error: {
+          ...result.error,
+          code: 'SERVICE_ERROR' as const,
+          service: 'FoodService',
+          operation: 'searchByBarcode'
+        }
+      };
+    }
   }
 
   /**
    * Search for food by name
    */
   async searchByName(query: string): Promise<Result<FoodItem[], ServiceError>> {
-    return errorHandler.withErrorHandling(async () => {
+    const result = await errorHandler.withErrorHandling(async () => {
       const cacheKey = `search_${query.toLowerCase()}`;
       const cached = this.getCachedData(cacheKey);
       if (cached) {
@@ -234,11 +205,11 @@ class FoodService {
 
       // Search multiple sources with retry
       const [openFoodFactsResults, usdaResults, spoonacularResults] = await Promise.allSettled([
-        retryUtils.retryApiCall(
-          () => this.searchOpenFoodFactsByName(query),
-          { maxAttempts: 2 },
-          'FoodService.searchByName.openfoodfacts'
-        ),
+        this.openFoodFactsService.searchProducts({
+          search_terms: query,
+          page_size: 10,
+          sort_by: 'popularity'
+        }),
         retryUtils.retryApiCall(
           () => this.searchUSDAByName(query),
           { maxAttempts: 2 },
@@ -253,13 +224,22 @@ class FoodService {
 
       // Process results
       if (openFoodFactsResults.status === 'fulfilled' && openFoodFactsResults.value.success) {
-        results.push(...openFoodFactsResults.value.data);
+        const foodItems = openFoodFactsResults.value.data.products.map(product => 
+          this.convertToFoodItem(product, 'openfoodfacts')
+        );
+        results.push(...foodItems);
       }
       if (usdaResults.status === 'fulfilled' && usdaResults.value.success) {
-        results.push(...usdaResults.value.data);
+        const foodItems = usdaResults.value.data.map((product: USDAProduct) => 
+          this.convertToFoodItem(product, 'usda')
+        );
+        results.push(...foodItems);
       }
       if (spoonacularResults.status === 'fulfilled' && spoonacularResults.value.success) {
-        results.push(...spoonacularResults.value.data);
+        const foodItems = spoonacularResults.value.data.map((product: SpoonacularProduct) => 
+          this.convertToFoodItem(product, 'spoonacular')
+        );
+        results.push(...foodItems);
       }
 
       // Remove duplicates and limit results
@@ -294,7 +274,7 @@ class FoodService {
         const ingredientAnalysis = await this.analyzeIngredients(foodItem.ingredients, gutProfile);
         analysis.flaggedIngredients = ingredientAnalysis.flagged.map(ing => ({
           ingredient: ing.ingredient,
-          reason: ing.reason || 'Potential trigger',
+          reason: 'Potential trigger',
           severity: ing.riskLevel === 'severe' ? 'severe' : ing.riskLevel === 'moderate' ? 'moderate' : 'mild',
           condition: 'ibs-fodmap' as GutCondition, // Default condition
         }));
@@ -363,7 +343,7 @@ class FoodService {
   /**
    * Analyze pattern in food consumption
    */
-  async analyzePatterns(scanHistory: any[]): Promise<PatternAnalysis> {
+  async analyzePatterns(_scanHistory: any[]): Promise<PatternAnalysis> {
     try {
       // This would use pattern analysis algorithms in a real implementation
       const analysis: PatternAnalysis = {
@@ -389,91 +369,27 @@ class FoodService {
     }
   }
 
-  /**
-   * Search OpenFoodFacts by barcode
-   */
-  private async searchOpenFoodFacts(barcode: string): Promise<Result<OpenFoodFactsProduct | null, NetworkError>> {
-    try {
-      const response = await fetch(`${API_CONFIG.OPENFOODFACTS.baseUrl}/product/${barcode}.json`, {
-        signal: AbortSignal.timeout(API_CONFIG.OPENFOODFACTS.timeout),
-      });
-      
-      if (!response.ok) {
-        const networkError: NetworkError = {
-          code: 'NETWORK_ERROR',
-          message: `HTTP ${response.status}: ${response.statusText}`,
-          status: response.status,
-          url: response.url,
-          method: 'GET',
-          timestamp: new Date(),
-          details: { barcode }
-        };
-        return { success: false, error: networkError };
-      }
-      
-      const data = await response.json();
-      const product = data.status === 1 ? data.product : null;
-      return { success: true, data: product };
-    } catch (error) {
-      const networkError: NetworkError = {
-        code: 'NETWORK_ERROR',
-        message: error instanceof Error ? error.message : 'Network request failed',
-        timestamp: new Date(),
-        details: { barcode, error }
-      };
-      
-      logger.error('OpenFoodFacts search failed', 'FoodService', { barcode, error });
-      return { success: false, error: networkError };
-    }
-  }
-
-  /**
-   * Search OpenFoodFacts by name
-   */
-  private async searchOpenFoodFactsByName(query: string): Promise<Result<FoodItem[], NetworkError>> {
-    try {
-      const response = await fetch(`${API_CONFIG.OPENFOODFACTS.baseUrl}/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1`, {
-        signal: AbortSignal.timeout(API_CONFIG.OPENFOODFACTS.timeout),
-      });
-      
-      if (!response.ok) {
-        const networkError: NetworkError = {
-          code: 'NETWORK_ERROR',
-          message: `HTTP ${response.status}: ${response.statusText}`,
-          status: response.status,
-          url: response.url,
-          method: 'GET',
-          timestamp: new Date(),
-          details: { query }
-        };
-        return { success: false, error: networkError };
-      }
-      
-      const data = await response.json();
-      const products = data.products?.slice(0, 10).map((product: OpenFoodFactsProduct) => 
-        this.convertToFoodItem(product, 'openfoodfacts')
-      ) || [];
-      
-      return { success: true, data: products };
-    } catch (error) {
-      const networkError: NetworkError = {
-        code: 'NETWORK_ERROR',
-        message: error instanceof Error ? error.message : 'Network request failed',
-        timestamp: new Date(),
-        details: { query, error }
-      };
-      
-      logger.error('OpenFoodFacts name search failed', 'FoodService', { query, error });
-      return { success: false, error: networkError };
-    }
-  }
 
   /**
    * Search USDA by barcode
    */
   private async searchUSDA(barcode: string): Promise<Result<USDAProduct | null, NetworkError>> {
     try {
-      const response = await fetch(`${API_CONFIG.USDA.baseUrl}/foods/search?query=${barcode}&api_key=${API_KEYS.USDA}`, {
+      const apiKey = await apiKeyManager.getApiKey('USDA_API_KEY');
+      if (!apiKey) {
+        const networkError: NetworkError = {
+          code: 'NETWORK_ERROR',
+          message: 'USDA API key not configured',
+          status: 500,
+          url: `${API_CONFIG.USDA.baseUrl}/foods/search`,
+          method: 'GET',
+          timestamp: new Date(),
+          details: { barcode }
+        };
+        return { success: false, error: networkError };
+      }
+
+      const response = await fetch(`${API_CONFIG.USDA.baseUrl}/foods/search?query=${barcode}&api_key=${apiKey}`, {
         signal: AbortSignal.timeout(API_CONFIG.USDA.timeout),
       });
       
@@ -511,7 +427,13 @@ class FoodService {
    */
   private async searchUSDAByName(query: string): Promise<Result<FoodItem[], NetworkError>> {
     try {
-      const response = await fetch(`${API_CONFIG.USDA.baseUrl}/foods/search?query=${encodeURIComponent(query)}&api_key=${API_KEYS.USDA}`, {
+      const apiKey = await apiKeyManager.getApiKey('USDA_API_KEY');
+      if (!apiKey) {
+        logger.warn('USDA API key not configured', 'FoodService');
+        return [];
+      }
+
+      const response = await fetch(`${API_CONFIG.USDA.baseUrl}/foods/search?query=${encodeURIComponent(query)}&api_key=${apiKey}`, {
         signal: AbortSignal.timeout(API_CONFIG.USDA.timeout),
       });
       
@@ -552,7 +474,13 @@ class FoodService {
    */
   private async searchSpoonacularByName(query: string): Promise<Result<FoodItem[], NetworkError>> {
     try {
-      const response = await fetch(`${API_CONFIG.SPOONACULAR.baseUrl}/food/products/search?query=${encodeURIComponent(query)}&apiKey=${API_KEYS.SPOONACULAR}`, {
+      const apiKey = await apiKeyManager.getApiKey('SPOONACULAR_API_KEY');
+      if (!apiKey) {
+        logger.warn('Spoonacular API key not configured', 'FoodService');
+        return [];
+      }
+
+      const response = await fetch(`${API_CONFIG.SPOONACULAR.baseUrl}/food/products/search?query=${encodeURIComponent(query)}&apiKey=${apiKey}`, {
         signal: AbortSignal.timeout(API_CONFIG.SPOONACULAR.timeout),
       });
       
@@ -602,6 +530,10 @@ class FoodService {
     const imageUrl = 'image_url' in product ? product.image_url : 'image' in product ? product.image : '';
     const allergens = 'allergens_tags' in product ? product.allergens_tags || [] : [];
     const additives = 'additives_tags' in product ? product.additives_tags || [] : [];
+    const labels = 'labels_tags' in product ? product.labels_tags || [] : [];
+    const categories = 'categories_tags' in product ? product.categories_tags || [] : [];
+    const countries = 'countries_tags' in product ? product.countries_tags || [] : [];
+    const traces = 'traces_tags' in product ? product.traces_tags || [] : [];
 
     return {
       id: `${source}_${baseId}`,
@@ -617,6 +549,17 @@ class FoodService {
       source,
       createdAt: new Date(),
       updatedAt: new Date(),
+      // Additional OpenFoodFacts metadata
+      ...(source === 'openfoodfacts' && {
+        nutriscore: 'nutriscore_grade' in product ? product.nutriscore_grade : undefined,
+        ecoscore: 'ecoscore_grade' in product ? product.ecoscore_grade : undefined,
+        novaGroup: 'nova_group' in product ? product.nova_group : undefined,
+        labels,
+        categories,
+        countries,
+        traces,
+        lastModified: 'last_modified_t' in product ? new Date(product.last_modified_t * 1000) : undefined,
+      }),
     };
   }
 
@@ -725,7 +668,7 @@ class FoodService {
   /**
    * Analyze ingredients for gut health
    */
-  private async analyzeIngredients(ingredients: string, gutProfile: GutCondition[]): Promise<{
+  private async analyzeIngredients(ingredients: string, _gutProfile: GutCondition[]): Promise<{
     flagged: IngredientAnalysisResult[];
     hidden: HiddenTrigger[];
     confidence: number;
@@ -780,7 +723,7 @@ class FoodService {
   /**
    * Generate recommendations based on analysis
    */
-  private generateRecommendations(foodItem: FoodItem, analysis: ScanAnalysis, gutProfile: GutCondition[]): string[] {
+  private generateRecommendations(_foodItem: FoodItem, analysis: ScanAnalysis, _gutProfile: GutCondition[]): string[] {
     const recommendations: string[] = [];
     
     if (analysis.overallSafety === 'avoid') {
@@ -831,6 +774,7 @@ class FoodService {
    */
   cleanup(): void {
     this.cache.clear();
+    this.openFoodFactsService.cleanup();
     logger.info('FoodService cleaned up', 'FoodService');
   }
 }
