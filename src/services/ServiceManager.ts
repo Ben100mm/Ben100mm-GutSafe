@@ -11,6 +11,7 @@ import FoodService from './FoodService';
 import HealthService from './HealthService';
 import StorageService from './StorageService';
 import NetworkService from './NetworkService';
+import ErrorReportingService from './ErrorReportingService';
 
 /**
  * ServiceManager - Simple service management without dependency injection
@@ -41,6 +42,11 @@ class ServiceManager {
 
     try {
       logger.info('Initializing services', 'ServiceManager');
+
+      // Initialize error reporting service first
+      const errorReportingService = ErrorReportingService.getInstance();
+      await errorReportingService.initialize();
+      this.services.set('errorReporting', errorReportingService);
 
       // Initialize services in dependency order
       const storageService = StorageService.getInstance();

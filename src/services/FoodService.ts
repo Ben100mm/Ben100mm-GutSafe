@@ -19,6 +19,8 @@ import {
 } from '../types/comprehensive';
 import { logger } from '../utils/logger';
 import { validators } from '../utils/validation';
+import { errorHandler } from '../utils/errorHandler';
+import { retryUtils } from '../utils/retryUtils';
 
 // API Configuration
 const API_CONFIG = {
@@ -176,63 +178,77 @@ class FoodService {
    * Search for food by barcode
    */
   async searchByBarcode(barcode: string): Promise<Result<FoodItem | null, ServiceError>> {
-    try {
+    return errorHandler.withErrorHandling(async () => {
       const cacheKey = `barcode_${barcode}`;
       const cached = this.getCachedData(cacheKey);
       if (cached) {
-        return { success: true, data: cached };
+        return cached;
       }
 
-      // Try OpenFoodFacts first
-      const openFoodFactsResult = await this.searchOpenFoodFacts(barcode);
+      // Try OpenFoodFacts first with retry
+      const openFoodFactsResult = await retryUtils.retryApiCall(
+        () => this.searchOpenFoodFacts(barcode),
+        { maxAttempts: 2 },
+        'FoodService.searchByBarcode'
+      );
+      
       if (openFoodFactsResult.success && openFoodFactsResult.data) {
         const foodItem = this.convertToFoodItem(openFoodFactsResult.data, 'openfoodfacts');
         this.setCachedData(cacheKey, foodItem);
-        return { success: true, data: foodItem };
+        return foodItem;
       }
 
-      // Try USDA if OpenFoodFacts fails
-      const usdaResult = await this.searchUSDA(barcode);
+      // Try USDA if OpenFoodFacts fails with retry
+      const usdaResult = await retryUtils.retryApiCall(
+        () => this.searchUSDA(barcode),
+        { maxAttempts: 2 },
+        'FoodService.searchByBarcode'
+      );
+      
       if (usdaResult.success && usdaResult.data) {
         const foodItem = this.convertToFoodItem(usdaResult.data, 'usda');
         this.setCachedData(cacheKey, foodItem);
-        return { success: true, data: foodItem };
+        return foodItem;
       }
 
-      return { success: true, data: null };
-    } catch (error) {
-      const serviceError: ServiceError = {
-        code: 'SERVICE_ERROR',
-        message: error instanceof Error ? error.message : 'Failed to search by barcode',
-        service: 'FoodService',
-        operation: 'searchByBarcode',
-        timestamp: new Date(),
-        details: { barcode, error }
-      };
-      
-      logger.error('Failed to search by barcode', 'FoodService', { barcode, error });
-      return { success: false, error: serviceError };
-    }
+      return null;
+    }, {
+      operation: 'searchByBarcode',
+      service: 'FoodService',
+      additionalData: { barcode }
+    }, 'FoodService');
   }
 
   /**
    * Search for food by name
    */
   async searchByName(query: string): Promise<Result<FoodItem[], ServiceError>> {
-    try {
+    return errorHandler.withErrorHandling(async () => {
       const cacheKey = `search_${query.toLowerCase()}`;
       const cached = this.getCachedData(cacheKey);
       if (cached) {
-        return { success: true, data: cached };
+        return cached;
       }
 
       const results: FoodItem[] = [];
 
-      // Search multiple sources
+      // Search multiple sources with retry
       const [openFoodFactsResults, usdaResults, spoonacularResults] = await Promise.allSettled([
-        this.searchOpenFoodFactsByName(query),
-        this.searchUSDAByName(query),
-        this.searchSpoonacularByName(query),
+        retryUtils.retryApiCall(
+          () => this.searchOpenFoodFactsByName(query),
+          { maxAttempts: 2 },
+          'FoodService.searchByName.openfoodfacts'
+        ),
+        retryUtils.retryApiCall(
+          () => this.searchUSDAByName(query),
+          { maxAttempts: 2 },
+          'FoodService.searchByName.usda'
+        ),
+        retryUtils.retryApiCall(
+          () => this.searchSpoonacularByName(query),
+          { maxAttempts: 2 },
+          'FoodService.searchByName.spoonacular'
+        ),
       ]);
 
       // Process results
@@ -250,27 +266,19 @@ class FoodService {
       const uniqueResults = this.removeDuplicateFoods(results).slice(0, 20);
       this.setCachedData(cacheKey, uniqueResults);
       
-      return { success: true, data: uniqueResults };
-    } catch (error) {
-      const serviceError: ServiceError = {
-        code: 'SERVICE_ERROR',
-        message: error instanceof Error ? error.message : 'Failed to search by name',
-        service: 'FoodService',
-        operation: 'searchByName',
-        timestamp: new Date(),
-        details: { query, error }
-      };
-      
-      logger.error('Failed to search by name', 'FoodService', { query, error });
-      return { success: false, error: serviceError };
-    }
+      return uniqueResults;
+    }, {
+      operation: 'searchByName',
+      service: 'FoodService',
+      additionalData: { query }
+    }, 'FoodService');
   }
 
   /**
    * Analyze food for gut health
    */
   async analyzeFood(foodItem: FoodItem, gutProfile: GutCondition[]): Promise<Result<ScanAnalysis, ServiceError>> {
-    try {
+    return errorHandler.withErrorHandling(async () => {
       const analysis: ScanAnalysis = {
         overallSafety: 'safe' as ScanResult,
         flaggedIngredients: [],
@@ -302,20 +310,12 @@ class FoodService {
         risk: analysis.overallSafety,
       });
 
-      return { success: true, data: analysis };
-    } catch (error) {
-      const serviceError: ServiceError = {
-        code: 'SERVICE_ERROR',
-        message: error instanceof Error ? error.message : 'Failed to analyze food',
-        service: 'FoodService',
-        operation: 'analyzeFood',
-        timestamp: new Date(),
-        details: { foodId: foodItem.id, error }
-      };
-      
-      logger.error('Failed to analyze food', 'FoodService', { foodId: foodItem.id, error });
-      return { success: false, error: serviceError };
-    }
+      return analysis;
+    }, {
+      operation: 'analyzeFood',
+      service: 'FoodService',
+      additionalData: { foodId: foodItem.id, gutProfileCount: gutProfile.length }
+    }, 'FoodService');
   }
 
   /**

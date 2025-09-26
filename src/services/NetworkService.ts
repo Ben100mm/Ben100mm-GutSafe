@@ -9,6 +9,8 @@ import { EventEmitter } from 'events';
 import { Platform, Alert } from 'react-native';
 import { logger } from '../utils/logger';
 import { SafeFood } from '../types';
+import { errorHandler } from '../utils/errorHandler';
+import { retryUtils } from '../utils/retryUtils';
 
 // Notification types
 export interface NotificationSettings {
@@ -248,35 +250,49 @@ class NetworkService extends EventEmitter {
   }> {
     const startTime = Date.now();
     
-    try {
-      // In a real app, you would ping your API endpoint
-      // For now, we'll simulate a network test
+    const result = await retryUtils.retryApiCall(async () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
       
-      const response = await fetch('https://httpbin.org/get', {
-        method: 'GET',
-        signal: controller.signal,
-      });
-      
-      clearTimeout(timeoutId);
-      
-      const latency = Date.now() - startTime;
-      const isConnected = response.ok;
-      
-      if (isConnected) {
-        this.handleOnline();
-      } else {
+      try {
+        const response = await fetch('https://httpbin.org/get', {
+          method: 'GET',
+          signal: controller.signal,
+        });
+        
+        clearTimeout(timeoutId);
+        
+        const latency = Date.now() - startTime;
+        const isConnected = response.ok;
+        
+        if (isConnected) {
+          this.handleOnline();
+        } else {
+          this.handleOffline();
+        }
+        
+        return {
+          isConnected,
+          latency,
+          timestamp: Date.now(),
+        };
+      } catch (error) {
+        clearTimeout(timeoutId);
         this.handleOffline();
+        throw error;
       }
-      
-      return {
-        isConnected,
-        latency,
-        timestamp: Date.now(),
-      };
-    } catch (error) {
-      this.handleOffline();
+    }, {
+      maxAttempts: 2,
+      baseDelay: 1000,
+      maxDelay: 3000,
+      backoffMultiplier: 2,
+      retryableErrors: ['NETWORK_ERROR', 'TIMEOUT_ERROR'],
+    }, 'NetworkService.testConnectivity');
+
+    if (result.success) {
+      return result.data;
+    } else {
+      // Fallback response on failure
       return {
         isConnected: false,
         latency: Date.now() - startTime,
