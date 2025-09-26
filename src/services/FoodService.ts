@@ -1,0 +1,838 @@
+/**
+ * @fileoverview FoodService.ts
+ * @copyright Copyright (c) 2024 Benjamin [Last Name]. All rights reserved.
+ * @license PROPRIETARY - See LICENSE file for details
+ * @private
+ */
+
+import { FoodItem, GutCondition, ScanResult, SeverityLevel, ScanAnalysis, IngredientAnalysisResult, HiddenTrigger, SafeFood } from '../types';
+import { 
+  FoodSearchResult, 
+  FoodRecommendation, 
+  PatternAnalysis, 
+  NutritionFacts,
+  AppError, 
+  ServiceError, 
+  Result, 
+  AsyncResult,
+  NetworkError
+} from '../types/comprehensive';
+import { logger } from '../utils/logger';
+import { validators } from '../utils/validation';
+
+// API Configuration
+const API_CONFIG = {
+  OPENFOODFACTS: {
+    baseUrl: 'https://world.openfoodfacts.org/api/v0',
+    timeout: 10000,
+  },
+  USDA: {
+    baseUrl: 'https://api.nal.usda.gov/fdc/v1',
+    timeout: 10000,
+  },
+  SPOONACULAR: {
+    baseUrl: 'https://api.spoonacular.com',
+    timeout: 10000,
+  },
+  GOOGLE_VISION: {
+    baseUrl: 'https://vision.googleapis.com/v1',
+    timeout: 15000,
+  },
+};
+
+// API Keys (should be stored in environment variables in production)
+const API_KEYS = {
+  OPENFOODFACTS: process.env['REACT_APP_OPENFOODFACTS_API_KEY'] || '',
+  USDA: process.env['REACT_APP_USDA_API_KEY'] || '',
+  SPOONACULAR: process.env['REACT_APP_SPOONACULAR_API_KEY'] || '',
+  GOOGLE_VISION: process.env['REACT_APP_GOOGLE_VISION_API_KEY'] || '',
+};
+
+// Database Types
+interface OpenFoodFactsProduct {
+  code: string;
+  product_name: string;
+  brands?: string;
+  categories?: string;
+  ingredients_text?: string;
+  allergens_tags?: string[];
+  additives_tags?: string[];
+  nutrition_grades?: string;
+  image_url?: string;
+  image_ingredients_url?: string;
+  image_nutrition_url?: string;
+  nutrition_data_per?: string;
+  nutrition_data_prepared_per?: string;
+  energy_kcal_100g?: number;
+  fat_100g?: number;
+  saturated_fat_100g?: number;
+  carbohydrates_100g?: number;
+  sugars_100g?: number;
+  fiber_100g?: number;
+  proteins_100g?: number;
+  salt_100g?: number;
+  sodium_100g?: number;
+  nutriscore_grade?: string;
+  ecoscore_grade?: string;
+  nova_group?: number;
+}
+
+interface USDAProduct {
+  fdcId: number;
+  description: string;
+  brandOwner?: string;
+  ingredients?: string;
+  foodNutrients: Array<{
+    nutrient: {
+      id: number;
+      name: string;
+      unitName: string;
+    };
+    amount: number;
+  }>;
+}
+
+interface SpoonacularProduct {
+  id: number;
+  title: string;
+  image: string;
+  imageType: string;
+  nutrition: {
+    nutrients: Array<{
+      name: string;
+      amount: number;
+      unit: string;
+    }>;
+  };
+  ingredients: Array<{
+    id: number;
+    name: string;
+    amount: number;
+    unit: string;
+  }>;
+}
+
+export interface ComplexFoodAnalysis {
+  foodName: string;
+  overallRisk: ScanResult;
+  flaggedIngredients: IngredientAnalysisResult[];
+  hiddenTriggers: HiddenTrigger[];
+  riskSummary: {
+    totalIngredients: number;
+    problematicCount: number;
+    hiddenCount: number;
+    severeCount: number;
+    moderateCount: number;
+    mildCount: number;
+  };
+  recommendations: {
+    overall: string;
+    specific: string[];
+    alternatives: string[];
+  };
+  confidence: number;
+}
+
+/**
+ * FoodService - Handles all food-related operations
+ * Consolidates food database, scanning, analysis, recommendations, and AI learning
+ */
+class FoodService {
+  private static instance: FoodService;
+  private cache: Map<string, any> = new Map();
+  private cacheTimeout = 60 * 60 * 1000; // 1 hour
+  private userGutProfile: GutCondition[] = [];
+
+  private constructor() {}
+
+  public static getInstance(): FoodService {
+    if (!FoodService.instance) {
+      FoodService.instance = new FoodService();
+    }
+    return FoodService.instance;
+  }
+
+  /**
+   * Initialize the food service
+   */
+  async initialize(): Promise<void> {
+    try {
+      logger.info('FoodService initialized', 'FoodService');
+    } catch (error) {
+      logger.error('Failed to initialize FoodService', 'FoodService', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Set user gut profile for analysis
+   */
+  setUserGutProfile(conditions: GutCondition[]): void {
+    this.userGutProfile = conditions;
+    logger.info('User gut profile updated', 'FoodService', { conditionCount: conditions.length });
+  }
+
+  /**
+   * Search for food by barcode
+   */
+  async searchByBarcode(barcode: string): Promise<Result<FoodItem | null, ServiceError>> {
+    try {
+      const cacheKey = `barcode_${barcode}`;
+      const cached = this.getCachedData(cacheKey);
+      if (cached) {
+        return { success: true, data: cached };
+      }
+
+      // Try OpenFoodFacts first
+      const openFoodFactsResult = await this.searchOpenFoodFacts(barcode);
+      if (openFoodFactsResult.success && openFoodFactsResult.data) {
+        const foodItem = this.convertToFoodItem(openFoodFactsResult.data, 'openfoodfacts');
+        this.setCachedData(cacheKey, foodItem);
+        return { success: true, data: foodItem };
+      }
+
+      // Try USDA if OpenFoodFacts fails
+      const usdaResult = await this.searchUSDA(barcode);
+      if (usdaResult.success && usdaResult.data) {
+        const foodItem = this.convertToFoodItem(usdaResult.data, 'usda');
+        this.setCachedData(cacheKey, foodItem);
+        return { success: true, data: foodItem };
+      }
+
+      return { success: true, data: null };
+    } catch (error) {
+      const serviceError: ServiceError = {
+        code: 'SERVICE_ERROR',
+        message: error instanceof Error ? error.message : 'Failed to search by barcode',
+        service: 'FoodService',
+        operation: 'searchByBarcode',
+        timestamp: new Date(),
+        details: { barcode, error }
+      };
+      
+      logger.error('Failed to search by barcode', 'FoodService', { barcode, error });
+      return { success: false, error: serviceError };
+    }
+  }
+
+  /**
+   * Search for food by name
+   */
+  async searchByName(query: string): Promise<Result<FoodItem[], ServiceError>> {
+    try {
+      const cacheKey = `search_${query.toLowerCase()}`;
+      const cached = this.getCachedData(cacheKey);
+      if (cached) {
+        return { success: true, data: cached };
+      }
+
+      const results: FoodItem[] = [];
+
+      // Search multiple sources
+      const [openFoodFactsResults, usdaResults, spoonacularResults] = await Promise.allSettled([
+        this.searchOpenFoodFactsByName(query),
+        this.searchUSDAByName(query),
+        this.searchSpoonacularByName(query),
+      ]);
+
+      // Process results
+      if (openFoodFactsResults.status === 'fulfilled' && openFoodFactsResults.value.success) {
+        results.push(...openFoodFactsResults.value.data);
+      }
+      if (usdaResults.status === 'fulfilled' && usdaResults.value.success) {
+        results.push(...usdaResults.value.data);
+      }
+      if (spoonacularResults.status === 'fulfilled' && spoonacularResults.value.success) {
+        results.push(...spoonacularResults.value.data);
+      }
+
+      // Remove duplicates and limit results
+      const uniqueResults = this.removeDuplicateFoods(results).slice(0, 20);
+      this.setCachedData(cacheKey, uniqueResults);
+      
+      return { success: true, data: uniqueResults };
+    } catch (error) {
+      const serviceError: ServiceError = {
+        code: 'SERVICE_ERROR',
+        message: error instanceof Error ? error.message : 'Failed to search by name',
+        service: 'FoodService',
+        operation: 'searchByName',
+        timestamp: new Date(),
+        details: { query, error }
+      };
+      
+      logger.error('Failed to search by name', 'FoodService', { query, error });
+      return { success: false, error: serviceError };
+    }
+  }
+
+  /**
+   * Analyze food for gut health
+   */
+  async analyzeFood(foodItem: FoodItem, gutProfile: GutCondition[]): Promise<Result<ScanAnalysis, ServiceError>> {
+    try {
+      const analysis: ScanAnalysis = {
+        overallSafety: 'safe' as ScanResult,
+        flaggedIngredients: [],
+        conditionWarnings: [],
+        safeAlternatives: [],
+        explanation: '',
+        dataSource: 'FoodService',
+        lastUpdated: new Date(),
+      };
+
+      // Analyze ingredients
+      if (foodItem.ingredients) {
+        const ingredientAnalysis = await this.analyzeIngredients(foodItem.ingredients, gutProfile);
+        analysis.flaggedIngredients = ingredientAnalysis.flagged.map(ing => ({
+          ingredient: ing.ingredient,
+          reason: ing.reason || 'Potential trigger',
+          severity: ing.riskLevel === 'severe' ? 'severe' : ing.riskLevel === 'moderate' ? 'moderate' : 'mild',
+          condition: 'ibs-fodmap' as GutCondition, // Default condition
+        }));
+        analysis.overallSafety = this.calculateOverallRisk(ingredientAnalysis);
+      }
+
+      // Generate recommendations
+      analysis.safeAlternatives = this.generateRecommendations(foodItem, analysis, gutProfile);
+      analysis.explanation = `Analysis completed with ${analysis.flaggedIngredients.length} flagged ingredients`;
+
+      logger.info('Food analysis completed', 'FoodService', { 
+        foodId: foodItem.id, 
+        risk: analysis.overallSafety,
+      });
+
+      return { success: true, data: analysis };
+    } catch (error) {
+      const serviceError: ServiceError = {
+        code: 'SERVICE_ERROR',
+        message: error instanceof Error ? error.message : 'Failed to analyze food',
+        service: 'FoodService',
+        operation: 'analyzeFood',
+        timestamp: new Date(),
+        details: { foodId: foodItem.id, error }
+      };
+      
+      logger.error('Failed to analyze food', 'FoodService', { foodId: foodItem.id, error });
+      return { success: false, error: serviceError };
+    }
+  }
+
+  /**
+   * Get food recommendations based on gut profile
+   */
+  async getRecommendations(gutProfile: GutCondition[]): Promise<FoodRecommendation[]> {
+    try {
+      // This would use AI/ML in a real implementation
+      const recommendations: FoodRecommendation[] = [
+        {
+          id: '1',
+          name: 'Quinoa',
+          reason: 'High in fiber and protein, gentle on digestive system',
+          confidence: 0.9,
+          category: 'Grains',
+          nutritionalValue: {
+            calories: 120,
+            protein: 4.4,
+            carbs: 22,
+            fat: 1.9,
+          },
+        },
+        {
+          id: '2',
+          name: 'Greek Yogurt',
+          reason: 'Contains probiotics that support gut health',
+          confidence: 0.85,
+          category: 'Dairy',
+          nutritionalValue: {
+            calories: 100,
+            protein: 10,
+            carbs: 6,
+            fat: 0,
+          },
+        },
+      ];
+
+      return recommendations;
+    } catch (error) {
+      logger.error('Failed to get recommendations', 'FoodService', error);
+      return [];
+    }
+  }
+
+  /**
+   * Analyze pattern in food consumption
+   */
+  async analyzePatterns(scanHistory: any[]): Promise<PatternAnalysis> {
+    try {
+      // This would use pattern analysis algorithms in a real implementation
+      const analysis: PatternAnalysis = {
+        commonTriggers: ['Dairy', 'Gluten', 'Spicy foods'],
+        safeFoods: ['Rice', 'Bananas', 'Oatmeal'],
+        timePatterns: {
+          morning: ['Oatmeal', 'Bananas'],
+          afternoon: ['Rice', 'Chicken'],
+          evening: ['Vegetables', 'Fish'],
+        },
+        seasonalPatterns: {
+          spring: ['Leafy greens', 'Berries'],
+          summer: ['Watermelon', 'Cucumber'],
+          fall: ['Squash', 'Apples'],
+          winter: ['Root vegetables', 'Citrus'],
+        },
+      };
+
+      return analysis;
+    } catch (error) {
+      logger.error('Failed to analyze patterns', 'FoodService', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Search OpenFoodFacts by barcode
+   */
+  private async searchOpenFoodFacts(barcode: string): Promise<Result<OpenFoodFactsProduct | null, NetworkError>> {
+    try {
+      const response = await fetch(`${API_CONFIG.OPENFOODFACTS.baseUrl}/product/${barcode}.json`, {
+        signal: AbortSignal.timeout(API_CONFIG.OPENFOODFACTS.timeout),
+      });
+      
+      if (!response.ok) {
+        const networkError: NetworkError = {
+          code: 'NETWORK_ERROR',
+          message: `HTTP ${response.status}: ${response.statusText}`,
+          status: response.status,
+          url: response.url,
+          method: 'GET',
+          timestamp: new Date(),
+          details: { barcode }
+        };
+        return { success: false, error: networkError };
+      }
+      
+      const data = await response.json();
+      const product = data.status === 1 ? data.product : null;
+      return { success: true, data: product };
+    } catch (error) {
+      const networkError: NetworkError = {
+        code: 'NETWORK_ERROR',
+        message: error instanceof Error ? error.message : 'Network request failed',
+        timestamp: new Date(),
+        details: { barcode, error }
+      };
+      
+      logger.error('OpenFoodFacts search failed', 'FoodService', { barcode, error });
+      return { success: false, error: networkError };
+    }
+  }
+
+  /**
+   * Search OpenFoodFacts by name
+   */
+  private async searchOpenFoodFactsByName(query: string): Promise<Result<FoodItem[], NetworkError>> {
+    try {
+      const response = await fetch(`${API_CONFIG.OPENFOODFACTS.baseUrl}/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1`, {
+        signal: AbortSignal.timeout(API_CONFIG.OPENFOODFACTS.timeout),
+      });
+      
+      if (!response.ok) {
+        const networkError: NetworkError = {
+          code: 'NETWORK_ERROR',
+          message: `HTTP ${response.status}: ${response.statusText}`,
+          status: response.status,
+          url: response.url,
+          method: 'GET',
+          timestamp: new Date(),
+          details: { query }
+        };
+        return { success: false, error: networkError };
+      }
+      
+      const data = await response.json();
+      const products = data.products?.slice(0, 10).map((product: OpenFoodFactsProduct) => 
+        this.convertToFoodItem(product, 'openfoodfacts')
+      ) || [];
+      
+      return { success: true, data: products };
+    } catch (error) {
+      const networkError: NetworkError = {
+        code: 'NETWORK_ERROR',
+        message: error instanceof Error ? error.message : 'Network request failed',
+        timestamp: new Date(),
+        details: { query, error }
+      };
+      
+      logger.error('OpenFoodFacts name search failed', 'FoodService', { query, error });
+      return { success: false, error: networkError };
+    }
+  }
+
+  /**
+   * Search USDA by barcode
+   */
+  private async searchUSDA(barcode: string): Promise<Result<USDAProduct | null, NetworkError>> {
+    try {
+      const response = await fetch(`${API_CONFIG.USDA.baseUrl}/foods/search?query=${barcode}&api_key=${API_KEYS.USDA}`, {
+        signal: AbortSignal.timeout(API_CONFIG.USDA.timeout),
+      });
+      
+      if (!response.ok) {
+        const networkError: NetworkError = {
+          code: 'NETWORK_ERROR',
+          message: `HTTP ${response.status}: ${response.statusText}`,
+          status: response.status,
+          url: response.url,
+          method: 'GET',
+          timestamp: new Date(),
+          details: { barcode }
+        };
+        return { success: false, error: networkError };
+      }
+      
+      const data = await response.json();
+      const product = data.foods?.[0] || null;
+      return { success: true, data: product };
+    } catch (error) {
+      const networkError: NetworkError = {
+        code: 'NETWORK_ERROR',
+        message: error instanceof Error ? error.message : 'Network request failed',
+        timestamp: new Date(),
+        details: { barcode, error }
+      };
+      
+      logger.error('USDA search failed', 'FoodService', { barcode, error });
+      return { success: false, error: networkError };
+    }
+  }
+
+  /**
+   * Search USDA by name
+   */
+  private async searchUSDAByName(query: string): Promise<Result<FoodItem[], NetworkError>> {
+    try {
+      const response = await fetch(`${API_CONFIG.USDA.baseUrl}/foods/search?query=${encodeURIComponent(query)}&api_key=${API_KEYS.USDA}`, {
+        signal: AbortSignal.timeout(API_CONFIG.USDA.timeout),
+      });
+      
+      if (!response.ok) {
+        const networkError: NetworkError = {
+          code: 'NETWORK_ERROR',
+          message: `HTTP ${response.status}: ${response.statusText}`,
+          status: response.status,
+          url: response.url,
+          method: 'GET',
+          timestamp: new Date(),
+          details: { query }
+        };
+        return { success: false, error: networkError };
+      }
+      
+      const data = await response.json();
+      const products = data.foods?.slice(0, 10).map((product: USDAProduct) => 
+        this.convertToFoodItem(product, 'usda')
+      ) || [];
+      
+      return { success: true, data: products };
+    } catch (error) {
+      const networkError: NetworkError = {
+        code: 'NETWORK_ERROR',
+        message: error instanceof Error ? error.message : 'Network request failed',
+        timestamp: new Date(),
+        details: { query, error }
+      };
+      
+      logger.error('USDA name search failed', 'FoodService', { query, error });
+      return { success: false, error: networkError };
+    }
+  }
+
+  /**
+   * Search Spoonacular by name
+   */
+  private async searchSpoonacularByName(query: string): Promise<Result<FoodItem[], NetworkError>> {
+    try {
+      const response = await fetch(`${API_CONFIG.SPOONACULAR.baseUrl}/food/products/search?query=${encodeURIComponent(query)}&apiKey=${API_KEYS.SPOONACULAR}`, {
+        signal: AbortSignal.timeout(API_CONFIG.SPOONACULAR.timeout),
+      });
+      
+      if (!response.ok) {
+        const networkError: NetworkError = {
+          code: 'NETWORK_ERROR',
+          message: `HTTP ${response.status}: ${response.statusText}`,
+          status: response.status,
+          url: response.url,
+          method: 'GET',
+          timestamp: new Date(),
+          details: { query }
+        };
+        return { success: false, error: networkError };
+      }
+      
+      const data = await response.json();
+      const products = data.products?.slice(0, 10).map((product: SpoonacularProduct) => 
+        this.convertToFoodItem(product, 'spoonacular')
+      ) || [];
+      
+      return { success: true, data: products };
+    } catch (error) {
+      const networkError: NetworkError = {
+        code: 'NETWORK_ERROR',
+        message: error instanceof Error ? error.message : 'Network request failed',
+        timestamp: new Date(),
+        details: { query, error }
+      };
+      
+      logger.error('Spoonacular search failed', 'FoodService', { query, error });
+      return { success: false, error: networkError };
+    }
+  }
+
+  /**
+   * Convert API product to FoodItem
+   */
+  private convertToFoodItem(product: OpenFoodFactsProduct | USDAProduct | SpoonacularProduct, source: string): FoodItem {
+    const baseId = 'code' in product ? product.code : 'fdcId' in product ? product.fdcId : product.id;
+    const name = 'product_name' in product ? product.product_name : 'description' in product ? product.description : product.title;
+    const brand = 'brands' in product ? product.brands : 'brandOwner' in product ? product.brandOwner : '';
+    const category = 'categories' in product ? product.categories : 'Unknown';
+    const ingredients = 'ingredients_text' in product ? product.ingredients_text : 'ingredients' in product ? 
+      (Array.isArray(product.ingredients) ? product.ingredients.map(ing => typeof ing === 'string' ? ing : ing.name).join(', ') : '') : '';
+    const barcode = 'code' in product ? product.code : '';
+    const imageUrl = 'image_url' in product ? product.image_url : 'image' in product ? product.image : '';
+    const allergens = 'allergens_tags' in product ? product.allergens_tags || [] : [];
+    const additives = 'additives_tags' in product ? product.additives_tags || [] : [];
+
+    return {
+      id: `${source}_${baseId}`,
+      name: name || 'Unknown Product',
+      brand: brand || '',
+      category: category || 'Unknown',
+      ingredients: ingredients || '',
+      barcode: barcode || '',
+      imageUrl: imageUrl || '',
+      nutritionFacts: this.extractNutritionFacts(product),
+      allergens,
+      additives,
+      source,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+  }
+
+  /**
+   * Extract nutrition facts from product data
+   */
+  private extractNutritionFacts(product: OpenFoodFactsProduct | USDAProduct | SpoonacularProduct): NutritionFacts {
+    const nutrition: NutritionFacts = {};
+    
+    // OpenFoodFacts nutrition data
+    if ('energy_kcal_100g' in product && product.energy_kcal_100g) {
+      nutrition.calories = product.energy_kcal_100g;
+    }
+    if ('fat_100g' in product && product.fat_100g) {
+      nutrition.fat = product.fat_100g;
+    }
+    if ('saturated_fat_100g' in product && product.saturated_fat_100g) {
+      nutrition.saturatedFat = product.saturated_fat_100g;
+    }
+    if ('carbohydrates_100g' in product && product.carbohydrates_100g) {
+      nutrition.carbs = product.carbohydrates_100g;
+    }
+    if ('sugars_100g' in product && product.sugars_100g) {
+      nutrition.sugars = product.sugars_100g;
+    }
+    if ('fiber_100g' in product && product.fiber_100g) {
+      nutrition.fiber = product.fiber_100g;
+    }
+    if ('proteins_100g' in product && product.proteins_100g) {
+      nutrition.protein = product.proteins_100g;
+    }
+    if ('salt_100g' in product && product.salt_100g) {
+      nutrition.salt = product.salt_100g;
+    }
+    if ('sodium_100g' in product && product.sodium_100g) {
+      nutrition.sodium = product.sodium_100g;
+    }
+    
+    // USDA nutrition data
+    if ('foodNutrients' in product && product.foodNutrients) {
+      product.foodNutrients.forEach(nutrient => {
+        const name = nutrient.nutrient.name.toLowerCase();
+        const amount = nutrient.amount;
+        
+        switch (name) {
+          case 'energy':
+            nutrition.calories = amount;
+            break;
+          case 'protein':
+            nutrition.protein = amount;
+            break;
+          case 'total lipid (fat)':
+            nutrition.fat = amount;
+            break;
+          case 'carbohydrate, by difference':
+            nutrition.carbs = amount;
+            break;
+          case 'fiber, total dietary':
+            nutrition.fiber = amount;
+            break;
+          case 'sugars, total including nlea':
+            nutrition.sugars = amount;
+            break;
+          case 'sodium, na':
+            nutrition.sodium = amount;
+            break;
+        }
+      });
+    }
+    
+    // Spoonacular nutrition data
+    if ('nutrition' in product && product.nutrition?.nutrients) {
+      product.nutrition.nutrients.forEach(nutrient => {
+        const name = nutrient.name.toLowerCase();
+        const amount = nutrient.amount;
+        
+        switch (name) {
+          case 'calories':
+            nutrition.calories = amount;
+            break;
+          case 'protein':
+            nutrition.protein = amount;
+            break;
+          case 'fat':
+            nutrition.fat = amount;
+            break;
+          case 'carbohydrates':
+            nutrition.carbs = amount;
+            break;
+          case 'sugar':
+            nutrition.sugars = amount;
+            break;
+          case 'fiber':
+            nutrition.fiber = amount;
+            break;
+          case 'sodium':
+            nutrition.sodium = amount;
+            break;
+        }
+      });
+    }
+    
+    return nutrition;
+  }
+
+  /**
+   * Analyze ingredients for gut health
+   */
+  private async analyzeIngredients(ingredients: string, gutProfile: GutCondition[]): Promise<{
+    flagged: IngredientAnalysisResult[];
+    hidden: HiddenTrigger[];
+    confidence: number;
+  }> {
+    // This would use AI/ML in a real implementation
+    const flagged: IngredientAnalysisResult[] = [];
+    const hidden: HiddenTrigger[] = [];
+    
+    // Mock analysis based on common triggers
+    const commonTriggers = ['dairy', 'gluten', 'soy', 'nuts', 'eggs'];
+    const ingredientList = ingredients.toLowerCase().split(',').map(i => i.trim());
+    
+    ingredientList.forEach(ingredient => {
+      commonTriggers.forEach(trigger => {
+        if (ingredient.includes(trigger)) {
+          flagged.push({
+            ingredient: ingredient.trim(),
+            isProblematic: true,
+            isHidden: false,
+            detectedTriggers: [],
+            confidence: 0.7,
+            category: 'common_trigger',
+            riskLevel: 'moderate',
+            recommendations: {
+              avoid: true,
+              caution: false,
+              alternatives: [],
+              modifications: [],
+            },
+          });
+        }
+      });
+    });
+
+    return {
+      flagged,
+      hidden,
+      confidence: 0.8,
+    };
+  }
+
+  /**
+   * Calculate overall risk from analysis
+   */
+  private calculateOverallRisk(analysis: { flagged: IngredientAnalysisResult[] }): ScanResult {
+    if (analysis.flagged.length === 0) return 'safe';
+    if (analysis.flagged.some(f => f.riskLevel === 'severe')) return 'avoid';
+    if (analysis.flagged.some(f => f.riskLevel === 'moderate')) return 'caution';
+    return 'safe';
+  }
+
+  /**
+   * Generate recommendations based on analysis
+   */
+  private generateRecommendations(foodItem: FoodItem, analysis: ScanAnalysis, gutProfile: GutCondition[]): string[] {
+    const recommendations: string[] = [];
+    
+    if (analysis.overallSafety === 'avoid') {
+      recommendations.push('Consider avoiding this food due to potential triggers');
+    } else if (analysis.overallSafety === 'caution') {
+      recommendations.push('Consume in moderation and monitor symptoms');
+    } else {
+      recommendations.push('This food appears safe for your gut profile');
+    }
+    
+    return recommendations;
+  }
+
+  /**
+   * Remove duplicate foods from search results
+   */
+  private removeDuplicateFoods(foods: FoodItem[]): FoodItem[] {
+    const seen = new Set<string>();
+    return foods.filter(food => {
+      const key = `${food.name}_${food.brand}`.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  /**
+   * Cache management
+   */
+  private getCachedData<T>(key: string): T | null {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+      return cached.data as T;
+    }
+    this.cache.delete(key);
+    return null;
+  }
+
+  private setCachedData<T>(key: string, data: T): void {
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now(),
+    });
+  }
+
+  /**
+   * Cleanup resources
+   */
+  cleanup(): void {
+    this.cache.clear();
+    logger.info('FoodService cleaned up', 'FoodService');
+  }
+}
+
+export default FoodService;

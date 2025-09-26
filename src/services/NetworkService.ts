@@ -6,12 +6,35 @@
  */
 
 import { EventEmitter } from 'events';
-import { Platform } from 'react-native';
+import { Platform, Alert } from 'react-native';
 import { logger } from '../utils/logger';
+import { SafeFood } from '../types';
+
+// Notification types
+export interface NotificationSettings {
+  mealReminders: boolean;
+  newSafeFoods: boolean;
+  scanReminders: boolean;
+  weeklyReports: boolean;
+  quietHours: {
+    enabled: boolean;
+    start: string;
+    end: string;
+  };
+}
+
+export interface ScheduledNotification {
+  id: string;
+  title: string;
+  body: string;
+  scheduledFor: Date;
+  type: 'meal_reminder' | 'scan_reminder' | 'weekly_report' | 'safe_food_alert';
+  data?: any;
+}
 
 /**
- * NetworkService - Handles network connectivity monitoring and status
- * Provides real-time network status updates and connection management
+ * NetworkService - Handles network connectivity, API calls, and notifications
+ * Consolidates network monitoring, API communication, and notification functionality
  */
 class NetworkService extends EventEmitter {
   private static instance: NetworkService;
@@ -25,6 +48,28 @@ class NetworkService extends EventEmitter {
   private reconnectDelay: number = 1000; // 1 second
   private statusCheckInterval: NodeJS.Timeout | null = null;
   private simulationInterval: NodeJS.Timeout | null = null;
+  
+  // Notification properties
+  private notificationPermission: boolean = false;
+  private scheduledNotifications: Map<string, ScheduledNotification> = new Map();
+  private notificationSettings: NotificationSettings = {
+    mealReminders: true,
+    newSafeFoods: true,
+    scanReminders: false,
+    weeklyReports: true,
+    quietHours: {
+      enabled: false,
+      start: '22:00',
+      end: '08:00',
+    },
+  };
+  
+  // Storage keys
+  private readonly KEYS = {
+    NOTIFICATION_SETTINGS: 'gut_safe_notification_settings',
+    SCHEDULED_NOTIFICATIONS: 'gut_safe_scheduled_notifications',
+    NOTIFICATION_HISTORY: 'gut_safe_notification_history',
+  };
 
   private constructor() {
     super();
@@ -38,10 +83,14 @@ class NetworkService extends EventEmitter {
     return NetworkService.instance;
   }
 
-  public initialize(): void {
+  public async initialize(): Promise<void> {
     this.setupListeners();
     this.checkInitialStatus();
     this.statusCheckInterval = setInterval(() => this.getNetworkStatus(), 30000); // Check every 30 seconds
+    
+    // Initialize notifications
+    await this.initializeNotifications();
+    
     logger.info('NetworkService initialized', 'NetworkService');
   }
 
@@ -382,6 +431,293 @@ class NetworkService extends EventEmitter {
       window.removeEventListener('offline', this.handleOffline.bind(this));
     }
     this.removeAllListeners();
+  }
+
+  // ===== NOTIFICATION METHODS =====
+
+  /**
+   * Initialize notification service
+   */
+  private async initializeNotifications(): Promise<void> {
+    try {
+      await this.loadNotificationSettings();
+      await this.loadScheduledNotifications();
+      await this.requestNotificationPermission();
+      
+      logger.info('Notifications initialized', 'NetworkService');
+    } catch (error) {
+      logger.error('Failed to initialize notifications', 'NetworkService', error);
+    }
+  }
+
+  /**
+   * Request notification permission
+   */
+  async requestNotificationPermission(): Promise<boolean> {
+    try {
+      if (Platform.OS === 'web') {
+        if ('Notification' in window) {
+          const permission = await Notification.requestPermission();
+          this.notificationPermission = permission === 'granted';
+        }
+      } else {
+        // For React Native, you would use a library like @react-native-async-storage/async-storage
+        // or react-native-push-notification
+        this.notificationPermission = true; // Mock for now
+      }
+      
+      logger.info('Notification permission requested', 'NetworkService', { 
+        granted: this.notificationPermission 
+      });
+      
+      return this.notificationPermission;
+    } catch (error) {
+      logger.error('Failed to request notification permission', 'NetworkService', error);
+      return false;
+    }
+  }
+
+  /**
+   * Send local notification
+   */
+  async sendNotification(title: string, body: string, data?: any): Promise<void> {
+    try {
+      if (!this.notificationPermission) {
+        logger.warn('Notification permission not granted', 'NetworkService');
+        return;
+      }
+
+      if (Platform.OS === 'web') {
+        if ('Notification' in window) {
+          const notification = new Notification(title, {
+            body,
+            icon: '/favicon.ico',
+            data,
+          });
+          
+          // Auto-close after 5 seconds
+          setTimeout(() => notification.close(), 5000);
+        }
+      } else {
+        // For React Native, use push notification library
+        // This would be implemented with react-native-push-notification
+        console.log('Notification:', { title, body, data });
+      }
+      
+      logger.info('Notification sent', 'NetworkService', { title });
+    } catch (error) {
+      logger.error('Failed to send notification', 'NetworkService', { title, error });
+    }
+  }
+
+  /**
+   * Schedule notification
+   */
+  async scheduleNotification(notification: Omit<ScheduledNotification, 'id'>): Promise<string> {
+    try {
+      const id = this.generateNotificationId();
+      const scheduledNotification: ScheduledNotification = {
+        ...notification,
+        id,
+      };
+
+      this.scheduledNotifications.set(id, scheduledNotification);
+      await this.saveScheduledNotifications();
+
+      // Schedule the actual notification
+      const delay = notification.scheduledFor.getTime() - Date.now();
+      if (delay > 0) {
+        setTimeout(() => {
+          this.sendNotification(notification.title, notification.body, notification.data);
+          this.scheduledNotifications.delete(id);
+          this.saveScheduledNotifications();
+        }, delay);
+      }
+
+      logger.info('Notification scheduled', 'NetworkService', { id, scheduledFor: notification.scheduledFor });
+      return id;
+    } catch (error) {
+      logger.error('Failed to schedule notification', 'NetworkService', { notification, error });
+      throw error;
+    }
+  }
+
+  /**
+   * Cancel scheduled notification
+   */
+  async cancelNotification(id: string): Promise<void> {
+    try {
+      this.scheduledNotifications.delete(id);
+      await this.saveScheduledNotifications();
+      
+      logger.info('Notification cancelled', 'NetworkService', { id });
+    } catch (error) {
+      logger.error('Failed to cancel notification', 'NetworkService', { id, error });
+      throw error;
+    }
+  }
+
+  /**
+   * Send meal reminder notification
+   */
+  async sendMealReminder(): Promise<void> {
+    if (!this.notificationSettings.mealReminders) return;
+
+    await this.sendNotification(
+      'Meal Time! 🍽️',
+      'Don\'t forget to log your meal and check for gut-friendly options.',
+      { type: 'meal_reminder' }
+    );
+  }
+
+  /**
+   * Send new safe food notification
+   */
+  async sendNewSafeFoodNotification(safeFood: SafeFood): Promise<void> {
+    if (!this.notificationSettings.newSafeFoods) return;
+
+    await this.sendNotification(
+      'New Safe Food! ✅',
+      `${safeFood.foodName || 'Unknown food'} has been added to your safe foods list.`,
+      { type: 'safe_food_alert', foodId: safeFood.id }
+    );
+  }
+
+  /**
+   * Send scan reminder notification
+   */
+  async sendScanReminder(): Promise<void> {
+    if (!this.notificationSettings.scanReminders) return;
+
+    await this.sendNotification(
+      'Scan Reminder 📱',
+      'Remember to scan your food before eating to check for triggers.',
+      { type: 'scan_reminder' }
+    );
+  }
+
+  /**
+   * Send weekly report notification
+   */
+  async sendWeeklyReport(): Promise<void> {
+    if (!this.notificationSettings.weeklyReports) return;
+
+    await this.sendNotification(
+      'Weekly Report 📊',
+      'Your weekly gut health report is ready. Check your insights!',
+      { type: 'weekly_report' }
+    );
+  }
+
+  /**
+   * Update notification settings
+   */
+  async updateNotificationSettings(settings: Partial<NotificationSettings>): Promise<void> {
+    try {
+      this.notificationSettings = {
+        ...this.notificationSettings,
+        ...settings,
+      };
+      
+      await this.saveNotificationSettings();
+      
+      logger.info('Notification settings updated', 'NetworkService', { settings });
+    } catch (error) {
+      logger.error('Failed to update notification settings', 'NetworkService', { settings, error });
+      throw error;
+    }
+  }
+
+  /**
+   * Get notification settings
+   */
+  getNotificationSettings(): NotificationSettings {
+    return { ...this.notificationSettings };
+  }
+
+  /**
+   * Check if in quiet hours
+   */
+  private isInQuietHours(): boolean {
+    if (!this.notificationSettings.quietHours.enabled) return false;
+
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    
+    const startParts = this.notificationSettings.quietHours.start.split(':').map(Number);
+    const endParts = this.notificationSettings.quietHours.end.split(':').map(Number);
+    
+    const startHour = startParts[0] || 0;
+    const startMin = startParts[1] || 0;
+    const endHour = endParts[0] || 0;
+    const endMin = endParts[1] || 0;
+    
+    const startTime = startHour * 60 + startMin;
+    const endTime = endHour * 60 + endMin;
+
+    if (startTime < endTime) {
+      return currentTime >= startTime && currentTime <= endTime;
+    } else {
+      // Quiet hours span midnight
+      return currentTime >= startTime || currentTime <= endTime;
+    }
+  }
+
+  /**
+   * Load notification settings from storage
+   */
+  private async loadNotificationSettings(): Promise<void> {
+    try {
+      // This would load from actual storage in a real implementation
+      // For now, use default settings
+      logger.info('Notification settings loaded', 'NetworkService');
+    } catch (error) {
+      logger.error('Failed to load notification settings', 'NetworkService', error);
+    }
+  }
+
+  /**
+   * Save notification settings to storage
+   */
+  private async saveNotificationSettings(): Promise<void> {
+    try {
+      // This would save to actual storage in a real implementation
+      logger.info('Notification settings saved', 'NetworkService');
+    } catch (error) {
+      logger.error('Failed to save notification settings', 'NetworkService', error);
+    }
+  }
+
+  /**
+   * Load scheduled notifications from storage
+   */
+  private async loadScheduledNotifications(): Promise<void> {
+    try {
+      // This would load from actual storage in a real implementation
+      this.scheduledNotifications.clear();
+      logger.info('Scheduled notifications loaded', 'NetworkService');
+    } catch (error) {
+      logger.error('Failed to load scheduled notifications', 'NetworkService', error);
+    }
+  }
+
+  /**
+   * Save scheduled notifications to storage
+   */
+  private async saveScheduledNotifications(): Promise<void> {
+    try {
+      // This would save to actual storage in a real implementation
+      logger.info('Scheduled notifications saved', 'NetworkService');
+    } catch (error) {
+      logger.error('Failed to save scheduled notifications', 'NetworkService', error);
+    }
+  }
+
+  /**
+   * Generate unique notification ID
+   */
+  private generateNotificationId(): string {
+    return `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 }
 
