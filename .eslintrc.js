@@ -212,7 +212,7 @@ module.exports = {
     'import/no-cycle': 'error',
     'import/no-self-import': 'error',
     'import/no-useless-path-segments': 'error',
-    'import/no-duplicate-imports': 'error',
+    // 'import/no-duplicate-imports': 'error', // Temporarily disabled due to plugin issue
     'import/first': 'error',
     'import/newline-after-import': 'error',
     'import/no-default-export': 'off', // React components need default exports

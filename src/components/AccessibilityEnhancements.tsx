@@ -5,7 +5,7 @@
  * @private
  */
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,6 @@ import {
 import { Colors } from '../constants/colors';
 import { Spacing, BorderRadius } from '../constants/spacing';
 import { Typography } from '../constants/typography';
-import AccessibilityService from '../utils/accessibility';
 
 // Enhanced Accessible Button with better semantics
 interface AccessibleButtonProps {

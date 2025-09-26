@@ -15,11 +15,11 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { LoadingOverlay } from './components/LoadingStates';
 
 // Main App Component with Context
-function AppContent() {
+function AppContent(): JSX.Element {
   const { state, dispatch } = useApp();
 
   useEffect(() => {
-    const initializeApp = async () => {
+    const initializeApp = async (): Promise<void> => {
       try {
         dispatch({ type: 'SET_LOADING', payload: true });
 
@@ -35,11 +35,11 @@ function AppContent() {
       }
     };
 
-    initializeApp();
+    void initializeApp();
 
     // Cleanup on unmount
     return () => {
-      cleanupServices().catch((error) => {
+      void cleanupServices().catch((error) => {
         logger.error('Failed to cleanup services', 'App', error);
       });
     };
@@ -55,7 +55,7 @@ function AppContent() {
     );
   }
 
-  if (state.error) {
+  if (state.error !== null && state.error !== undefined) {
     return (
       <ErrorBoundary
         fallback={
@@ -102,7 +102,7 @@ function AppContent() {
 }
 
 // App with Provider
-export default function App() {
+export default function App(): JSX.Element {
   return (
     <AppProvider>
       <AppContent />
