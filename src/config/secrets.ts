@@ -53,7 +53,7 @@ class SecretManagerImpl implements SecretManager {
     try {
       const encryptionKey = key || this.defaultKey;
       const encrypted = CryptoJS.AES.encrypt(plaintext, encryptionKey, {
-        mode: CryptoJS.mode.GCM,
+        mode: CryptoJS.mode.CBC,
         padding: CryptoJS.pad.Pkcs7,
       });
       return encrypted.toString();
@@ -70,7 +70,7 @@ class SecretManagerImpl implements SecretManager {
     try {
       const decryptionKey = key || this.defaultKey;
       const decrypted = CryptoJS.AES.decrypt(ciphertext, decryptionKey, {
-        mode: CryptoJS.mode.GCM,
+        mode: CryptoJS.mode.CBC,
         padding: CryptoJS.pad.Pkcs7,
       });
       return decrypted.toString(CryptoJS.enc.Utf8);

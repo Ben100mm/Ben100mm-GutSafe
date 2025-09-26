@@ -11,6 +11,15 @@ export * from './secrets';
 export * from './build';
 export * from './validation';
 
+// Import specific functions for internal use
+import { validateEnvironment } from './validation';
+import { validateEnvironmentSecrets } from './secrets';
+import { getBuildConfig, detectBuildEnvironment, validateBuildConfig } from './build';
+import { developmentConfig } from './environments/development';
+import { stagingConfig } from './environments/staging';
+import { productionConfig } from './environments/production';
+import { testConfig } from './environments/test';
+
 // Export environment-specific configurations
 export { developmentConfig } from './environments/development';
 export { stagingConfig } from './environments/staging';
@@ -107,7 +116,7 @@ export const loadEnvironmentConfig = (environment: string) => {
 // Configuration health check
 export const checkConfigurationHealth = () => {
   const health = {
-    environment: process.env.NODE_ENV || 'development',
+    environment: process.env['NODE_ENV'] || 'development',
     timestamp: new Date().toISOString(),
     status: 'healthy',
     checks: {
@@ -172,10 +181,6 @@ export const checkConfigurationHealth = () => {
 
 // Export default configuration
 export default {
-  config,
-  currentConfig,
-  secretManager,
-  currentBuildConfig,
   initializeConfiguration,
   loadEnvironmentConfig,
   checkConfigurationHealth,
